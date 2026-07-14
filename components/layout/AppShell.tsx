@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { Footer, Navbar, ToastProvider, ToastViewport } from 'base-ds'
+import { CartDrawer } from '@/components/cart/CartDrawer'
 
 const NAV_ITEMS = [
   { label: 'Catálogo', href: '/catalog' },
@@ -23,6 +24,7 @@ export function AppShell({ children }: AppShellProps) {
           </Link>
         }
         items={NAV_ITEMS}
+        actions={<CartDrawer />}
         sticky
       />
       <main className="flex-1">{children}</main>

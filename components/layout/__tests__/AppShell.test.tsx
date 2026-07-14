@@ -41,6 +41,15 @@ describe('AppShell', () => {
     expect(screen.getByRole('link', { name: /carrinho/i })).toHaveAttribute('href', '/cart')
   })
 
+  it('renders the cart drawer trigger', () => {
+    render(
+      <AppShell>
+        <p>conteúdo</p>
+      </AppShell>,
+    )
+    expect(screen.getByRole('button', { name: /carrinho/i })).toBeInTheDocument()
+  })
+
   it('renders the footer landmark', () => {
     render(
       <AppShell>

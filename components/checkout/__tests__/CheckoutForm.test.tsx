@@ -3,10 +3,20 @@ import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { ToastProvider, ToastViewport } from 'base-ds'
 import { CheckoutForm } from '../CheckoutForm'
 import { useCartStore } from '@/stores/cart.store'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Address, OrderResponse } from '@/types'
+
+function renderCheckoutForm(props: React.ComponentProps<typeof CheckoutForm>) {
+  return render(
+    <ToastProvider>
+      <CheckoutForm {...props} />
+      <ToastViewport />
+    </ToastProvider>,
+  )
+}
 
 const mockAddress: Address = {
   id: 'addr-1',
@@ -49,21 +59,21 @@ beforeEach(() => {
 
 describe('CheckoutForm', () => {
   it('renders payment method options', () => {
-    render(<CheckoutForm addresses={[mockAddress]} />)
+    renderCheckoutForm({ addresses: [mockAddress] })
     expect(screen.getByLabelText(/pix/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/cart/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/boleto/i)).toBeInTheDocument()
   })
 
   it('renders address dropdown with provided addresses', () => {
-    render(<CheckoutForm addresses={[mockAddress]} />)
+    renderCheckoutForm({ addresses: [mockAddress] })
     expect(screen.getByLabelText(/endereço/i)).toBeInTheDocument()
     expect(screen.getByText(/Rua das Flores/)).toBeInTheDocument()
   })
 
   it('submits order and shows success state', async () => {
     const user = userEvent.setup()
-    render(<CheckoutForm addresses={[mockAddress]} />)
+    renderCheckoutForm({ addresses: [mockAddress] })
 
     await user.click(screen.getByRole('button', { name: /finalizar/i }))
 
@@ -81,7 +91,7 @@ describe('CheckoutForm', () => {
       ),
     )
     const user = userEvent.setup()
-    render(<CheckoutForm addresses={[mockAddress]} />)
+    renderCheckoutForm({ addresses: [mockAddress] })
 
     await user.click(screen.getByRole('button', { name: /finalizar/i }))
 
@@ -101,7 +111,7 @@ describe('CheckoutForm', () => {
     )
 
     const user = userEvent.setup()
-    render(<CheckoutForm addresses={[mockAddress]} />)
+    renderCheckoutForm({ addresses: [mockAddress] })
 
     const button = screen.getByRole('button', { name: /finalizar/i })
     const clickDone = user.click(button)

@@ -1,38 +1,54 @@
 import { ProductCard } from '@/components/product/ProductCard'
+import { CatalogSearch } from '@/components/catalog/CatalogSearch'
+import { CatalogPagination } from '@/components/catalog/CatalogPagination'
 import type { ProductPage, Category } from '@/types'
 
 const API = process.env.API_INTERNAL_URL ?? 'http://localhost:8080/api/v1'
 
-async function fetchProducts(categoryId?: string, search?: string): Promise<ProductPage> {
+async function fetchProducts(categoryId?: string, search?: string, page = 1): Promise<ProductPage> {
   const params = new URLSearchParams()
   if (categoryId) params.set('categoryId', categoryId)
   if (search) params.set('search', search)
+  params.set('page', String(page - 1))
 
-  const res = await fetch(`${API}/catalog/products?${params}`, { next: { revalidate: 60 } })
-  if (!res.ok) return { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, last: true }
-  return res.json()
+  try {
+    const res = await fetch(`${API}/catalog/products?${params}`, { next: { revalidate: 60 } })
+    if (!res.ok) return { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, last: true }
+    return res.json()
+  } catch {
+    return { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, last: true }
+  }
 }
 
 async function fetchCategories(): Promise<Category[]> {
-  const res = await fetch(`${API}/catalog/categories`, { next: { revalidate: 300 } })
-  if (!res.ok) return []
-  return res.json()
+  try {
+    const res = await fetch(`${API}/catalog/categories`, { next: { revalidate: 300 } })
+    if (!res.ok) return []
+    return res.json()
+  } catch {
+    return []
+  }
 }
 
 interface Props {
-  searchParams: Promise<{ categoryId?: string; search?: string }>
+  searchParams: Promise<{ categoryId?: string; search?: string; page?: string }>
 }
 
 export default async function CatalogPage({ searchParams }: Props) {
-  const { categoryId, search } = await searchParams
+  const { categoryId, search, page: pageParam } = await searchParams
+  const page = Math.max(1, Number(pageParam) || 1)
   const [data, categories] = await Promise.all([
-    fetchProducts(categoryId, search),
+    fetchProducts(categoryId, search, page),
     fetchCategories(),
   ])
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold">Catálogo</h1>
+
+      <div className="mb-6 max-w-md">
+        <CatalogSearch defaultValue={search ?? ''} categoryId={categoryId} />
+      </div>
 
       {categories.length > 0 && (
         <nav className="mb-6 flex flex-wrap gap-2">
@@ -60,6 +76,15 @@ export default async function CatalogPage({ searchParams }: Props) {
           ))}
         </div>
       )}
+
+      <div className="mt-8 flex justify-center">
+        <CatalogPagination
+          currentPage={page}
+          totalPages={data.totalPages}
+          categoryId={categoryId}
+          search={search}
+        />
+      </div>
     </main>
   )
 }

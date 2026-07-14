@@ -3,7 +3,17 @@ import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { ToastProvider, ToastViewport } from 'base-ds'
 import { RegisterForm } from '../RegisterForm'
+
+function renderRegisterForm(props: React.ComponentProps<typeof RegisterForm>) {
+  return render(
+    <ToastProvider>
+      <RegisterForm {...props} />
+      <ToastViewport />
+    </ToastProvider>,
+  )
+}
 
 const server = setupServer(
   http.post('/api/auth/register', async ({ request }) => {
@@ -24,7 +34,7 @@ afterAll(() => server.close())
 
 describe('RegisterForm', () => {
   it('renders name, email and password fields', () => {
-    render(<RegisterForm onSuccess={() => {}} />)
+    renderRegisterForm({ onSuccess: () => {} })
 
     expect(screen.getByLabelText(/nome/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
@@ -34,7 +44,7 @@ describe('RegisterForm', () => {
 
   it('shows required errors when form is submitted empty', async () => {
     const user = userEvent.setup()
-    render(<RegisterForm onSuccess={() => {}} />)
+    renderRegisterForm({ onSuccess: () => {} })
 
     await user.click(screen.getByRole('button', { name: /cadastrar/i }))
 
@@ -45,7 +55,7 @@ describe('RegisterForm', () => {
 
   it('shows error when email is already taken', async () => {
     const user = userEvent.setup()
-    render(<RegisterForm onSuccess={() => {}} />)
+    renderRegisterForm({ onSuccess: () => {} })
 
     await user.type(screen.getByLabelText(/nome/i), 'João Victor')
     await user.type(screen.getByLabelText(/email/i), 'taken@test.com')
@@ -60,7 +70,7 @@ describe('RegisterForm', () => {
   it('calls onSuccess after successful registration', async () => {
     const onSuccess = vi.fn()
     const user = userEvent.setup()
-    render(<RegisterForm onSuccess={onSuccess} />)
+    renderRegisterForm({ onSuccess })
 
     await user.type(screen.getByLabelText(/nome/i), 'João Victor')
     await user.type(screen.getByLabelText(/email/i), 'new@test.com')

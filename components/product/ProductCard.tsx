@@ -1,4 +1,5 @@
 'use client'
+import { Badge, Button, Card, Heading, Image, Text } from 'base-ds'
 import type { Product } from '@/types'
 
 interface Props {
@@ -13,36 +14,44 @@ export function ProductCard({ product }: Props) {
   }).format(product.price)
 
   return (
-    <article className="flex flex-col gap-2 rounded-lg border p-4">
+    <Card variant="outlined" className="flex flex-col gap-2">
       {product.imageUrl && (
-        <img
+        <Image
           src={product.imageUrl}
           alt={product.name}
-          className="h-48 w-full object-cover rounded"
+          aspectRatio="video"
+          className="rounded"
         />
       )}
 
-      <span className="text-sm text-gray-500">{product.categoryName}</span>
-      <h3 className="font-semibold text-gray-900">{product.name}</h3>
+      <Badge variant="default" size="sm" className="w-fit">
+        {product.categoryName}
+      </Badge>
+      <Heading as="h3" size="xl">
+        {product.name}
+      </Heading>
 
       {product.description && (
-        <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
+        <Text size="sm" color="muted" className="line-clamp-2">
+          {product.description}
+        </Text>
       )}
 
       <div className="mt-auto flex items-center justify-between gap-2">
-        <span className="text-lg font-bold text-gray-900">{formattedPrice}</span>
+        <Text weight="bold" size="lg">
+          {formattedPrice}
+        </Text>
 
         {inStock ? (
-          <button
-            type="button"
-            className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
-          >
+          <Button type="button" size="sm">
             Adicionar ao carrinho
-          </button>
+          </Button>
         ) : (
-          <span className="text-sm text-red-500">Sem estoque</span>
+          <Badge variant="danger" size="sm">
+            Sem estoque
+          </Badge>
         )}
       </div>
-    </article>
+    </Card>
   )
 }

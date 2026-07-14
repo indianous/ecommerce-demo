@@ -3,7 +3,17 @@ import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { ToastProvider, ToastViewport } from 'base-ds'
 import { LoginForm } from '../LoginForm'
+
+function renderLoginForm(props: React.ComponentProps<typeof LoginForm>) {
+  return render(
+    <ToastProvider>
+      <LoginForm {...props} />
+      <ToastViewport />
+    </ToastProvider>,
+  )
+}
 
 const server = setupServer(
   http.post('/api/auth/login', async ({ request }) => {
@@ -26,7 +36,7 @@ afterAll(() => server.close())
 
 describe('LoginForm', () => {
   it('renders email, password fields and submit button', () => {
-    render(<LoginForm onSuccess={() => {}} />)
+    renderLoginForm({ onSuccess: () => {} })
 
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
@@ -35,7 +45,7 @@ describe('LoginForm', () => {
 
   it('shows validation error when submitting empty form', async () => {
     const user = userEvent.setup()
-    render(<LoginForm onSuccess={() => {}} />)
+    renderLoginForm({ onSuccess: () => {} })
 
     await user.click(screen.getByRole('button', { name: /entrar/i }))
 
@@ -46,7 +56,7 @@ describe('LoginForm', () => {
 
   it('shows error message on invalid credentials', async () => {
     const user = userEvent.setup()
-    render(<LoginForm onSuccess={() => {}} />)
+    renderLoginForm({ onSuccess: () => {} })
 
     await user.type(screen.getByLabelText(/email/i), 'wrong@test.com')
     await user.type(screen.getByLabelText(/senha/i), 'badpassword')
@@ -60,7 +70,7 @@ describe('LoginForm', () => {
   it('calls onSuccess callback after successful login', async () => {
     const onSuccess = vi.fn()
     const user = userEvent.setup()
-    render(<LoginForm onSuccess={onSuccess} />)
+    renderLoginForm({ onSuccess })
 
     await user.type(screen.getByLabelText(/email/i), 'valid@test.com')
     await user.type(screen.getByLabelText(/senha/i), 'password123')
@@ -84,7 +94,7 @@ describe('LoginForm', () => {
     )
 
     const user = userEvent.setup()
-    render(<LoginForm onSuccess={() => {}} />)
+    renderLoginForm({ onSuccess: () => {} })
     await user.type(screen.getByLabelText(/email/i), 'valid@test.com')
     await user.type(screen.getByLabelText(/senha/i), 'password123')
 

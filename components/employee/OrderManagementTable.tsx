@@ -1,5 +1,6 @@
 'use client'
 
+import { Badge, Select, Table, type TableColumn } from 'base-ds'
 import type { AdminOrderResponse, OrderStatus } from '@/types'
 
 interface Props {
@@ -9,6 +10,14 @@ interface Props {
 
 const STATUS_OPTIONS: OrderStatus[] = ['PENDING', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED']
 
+const STATUS_BADGE_VARIANT: Record<OrderStatus, 'warning' | 'info' | 'primary' | 'success' | 'danger'> = {
+  PENDING: 'warning',
+  CONFIRMED: 'info',
+  SHIPPED: 'primary',
+  DELIVERED: 'success',
+  CANCELLED: 'danger',
+}
+
 const formatBRL = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 
@@ -17,48 +26,56 @@ export function OrderManagementTable({ orders, onStatusChange }: Props) {
     return <p>Nenhum pedido encontrado.</p>
   }
 
-  return (
-    <table>
-      <thead>
-        <tr>
-          <th>Cliente</th>
-          <th>Total</th>
-          <th>Itens</th>
-          <th>Pagamento</th>
-          <th>Status</th>
-          <th>Alterar status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {orders.map((order) => (
-          <tr key={order.id}>
-            <td>
-              <div>{order.customerName}</div>
-              <div>{order.customerEmail}</div>
-            </td>
-            <td>{formatBRL(order.totalAmount)}</td>
-            <td>{order.itemCount} itens</td>
-            <td>
-              <div>{order.paymentMethod}</div>
-              <div>{order.paymentStatus}</div>
-            </td>
-            <td>{order.status}</td>
-            <td>
-              <select
-                aria-label="Status"
-                value={order.status}
-                onChange={(e) => onStatusChange(order.id, e.target.value as OrderStatus)}
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  )
+  const columns: TableColumn<AdminOrderResponse>[] = [
+    {
+      key: 'customer',
+      header: 'Cliente',
+      render: (order) => (
+        <div>
+          <div>{order.customerName}</div>
+          <div>{order.customerEmail}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'totalAmount',
+      header: 'Total',
+      render: (order) => formatBRL(order.totalAmount),
+    },
+    {
+      key: 'itemCount',
+      header: 'Itens',
+      render: (order) => `${order.itemCount} itens`,
+    },
+    {
+      key: 'payment',
+      header: 'Pagamento',
+      render: (order) => (
+        <div>
+          <div>{order.paymentMethod}</div>
+          <div>{order.paymentStatus}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (order) => <Badge variant={STATUS_BADGE_VARIANT[order.status]}>{order.status}</Badge>,
+    },
+    {
+      key: 'statusChange',
+      header: 'Alterar status',
+      render: (order) => (
+        <Select
+          id={`status-${order.id}`}
+          aria-label="Status"
+          value={order.status}
+          onChange={(e) => onStatusChange(order.id, e.target.value as OrderStatus)}
+          options={STATUS_OPTIONS.map((s) => ({ value: s, label: s }))}
+        />
+      ),
+    },
+  ]
+
+  return <Table columns={columns} data={orders} />
 }

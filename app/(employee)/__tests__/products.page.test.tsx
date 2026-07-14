@@ -1,0 +1,108 @@
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { http, HttpResponse } from 'msw'
+import { setupServer } from 'msw/node'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { ToastProvider, ToastViewport } from 'base-ds'
+import ProductsManagementPage from '../products/page'
+import { useAuthStore } from '@/stores/auth.store'
+import type { Category, Product } from '@/types'
+
+const mockCategory: Category = { id: 'cat-1', name: 'Eletrônicos', slug: 'eletronicos' }
+
+const mockProduct: Product = {
+  id: 'prod-1',
+  categoryId: 'cat-1',
+  categoryName: 'Eletrônicos',
+  name: 'Teclado Mecânico',
+  price: 499.9,
+  stockQuantity: 10,
+  active: true,
+}
+
+let products: Product[] = []
+
+const server = setupServer(
+  http.get('/api/categories', () => HttpResponse.json([mockCategory])),
+  http.get('/api/admin/products', () => HttpResponse.json(products)),
+  http.post('/api/admin/products', async ({ request }) => {
+    const body = (await request.json()) as Omit<Product, 'id'>
+    const created: Product = { ...body, id: 'prod-2' }
+    products = [...products, created]
+    return HttpResponse.json(created, { status: 201 })
+  }),
+  http.delete('/api/admin/products/:id', ({ params }) => {
+    products = products.filter((p) => p.id !== params.id)
+    return new HttpResponse(null, { status: 204 })
+  }),
+)
+
+beforeAll(() => server.listen())
+afterEach(() => {
+  server.resetHandlers()
+  useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
+})
+afterAll(() => server.close())
+
+beforeEach(() => {
+  products = [mockProduct]
+  useAuthStore.setState({ accessToken: 'mock-token', isAuthenticated: true })
+})
+
+function renderPage() {
+  return render(
+    <ToastProvider>
+      <ProductsManagementPage />
+      <ToastViewport />
+    </ToastProvider>,
+  )
+}
+
+describe('ProductsManagementPage', () => {
+  it('renders existing products', async () => {
+    renderPage()
+    await waitFor(() => {
+      expect(screen.getByText('Teclado Mecânico')).toBeInTheDocument()
+    })
+  })
+
+  it('opens the create dialog with empty fields', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await waitFor(() => screen.getByText('Teclado Mecânico'))
+
+    await user.click(screen.getByRole('button', { name: /novo produto/i }))
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByLabelText(/nome/i)).toHaveValue('')
+  })
+
+  it('creates a new product', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await waitFor(() => screen.getByText('Teclado Mecânico'))
+
+    await user.click(screen.getByRole('button', { name: /novo produto/i }))
+    await screen.findByRole('dialog')
+
+    await user.type(screen.getByLabelText(/nome/i), 'Mouse Gamer')
+    await user.selectOptions(screen.getByLabelText(/categoria/i), 'cat-1')
+    await user.click(screen.getByRole('button', { name: /salvar/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Mouse Gamer')).toBeInTheDocument()
+    })
+  })
+
+  it('deletes a product', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await waitFor(() => screen.getByText('Teclado Mecânico'))
+
+    await user.click(screen.getByRole('button', { name: /excluir teclado mecânico/i }))
+
+    await waitFor(() => {
+      expect(screen.queryByText('Teclado Mecânico')).not.toBeInTheDocument()
+    })
+  })
+})

@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { Button, FormField, Input, PasswordInput, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 
 interface Props {
@@ -8,9 +9,9 @@ interface Props {
 
 export function LoginForm({ onSuccess }: Props) {
   const login = useAuthStore((s) => s.login)
+  const { toast } = useToast()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
   const [emailError, setEmailError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -28,13 +29,15 @@ export function LoginForm({ onSuccess }: Props) {
     if (!validate()) return
 
     setIsLoading(true)
-    setError('')
 
     try {
       await login({ email, password })
       onSuccess()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Credenciais inválidas')
+      toast({
+        variant: 'destructive',
+        description: err instanceof Error ? err.message : 'Credenciais inválidas',
+      })
     } finally {
       setIsLoading(false)
     }
@@ -42,9 +45,8 @@ export function LoginForm({ onSuccess }: Props) {
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      <div>
-        <label htmlFor="email">Email</label>
-        <input
+      <FormField label="Email" id="email" error={emailError}>
+        <Input
           id="email"
           type="email"
           value={email}
@@ -52,26 +54,21 @@ export function LoginForm({ onSuccess }: Props) {
           disabled={isLoading}
           autoComplete="email"
         />
-        {emailError && <span>{emailError}</span>}
-      </div>
+      </FormField>
 
-      <div>
-        <label htmlFor="password">Senha</label>
-        <input
+      <FormField label="Senha" id="password">
+        <PasswordInput
           id="password"
-          type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={isLoading}
           autoComplete="current-password"
         />
-      </div>
+      </FormField>
 
-      {error && <p role="alert">{error}</p>}
-
-      <button type="submit" disabled={isLoading}>
+      <Button type="submit" disabled={isLoading} isLoading={isLoading}>
         {isLoading ? 'Carregando...' : 'Entrar'}
-      </button>
+      </Button>
     </form>
   )
 }

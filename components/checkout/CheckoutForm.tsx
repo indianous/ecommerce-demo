@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Button, FormField, QrCode, Radio, Select, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { useCartStore, selectCartTotal } from '@/stores/cart.store'
 import type { Address, OrderResponse, PaymentMethod } from '@/types'
@@ -9,15 +10,21 @@ interface Props {
   addresses: Address[]
 }
 
+const PAYMENT_LABELS: Record<PaymentMethod, string> = {
+  PIX: 'Pix',
+  CREDIT_CARD: 'Cartão de Crédito',
+  BOLETO: 'Boleto',
+}
+
 export function CheckoutForm({ addresses }: Props) {
   const { accessToken } = useAuthStore()
   const { items, clearCart } = useCartStore()
   const total = useCartStore(selectCartTotal)
+  const { toast } = useToast()
 
   const [selectedAddressId, setSelectedAddressId] = useState(addresses[0]?.id ?? '')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('PIX')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [order, setOrder] = useState<OrderResponse | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,7 +32,6 @@ export function CheckoutForm({ addresses }: Props) {
     if (!selectedAddressId || items.length === 0) return
 
     setLoading(true)
-    setError(null)
 
     try {
       const res = await fetch('/api/orders', {
@@ -47,14 +53,14 @@ export function CheckoutForm({ addresses }: Props) {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.message ?? 'Erro ao criar pedido')
+        toast({ variant: 'destructive', description: data.message ?? 'Erro ao criar pedido' })
         return
       }
 
       setOrder(data)
       clearCart()
     } catch {
-      setError('Erro de conexão. Tente novamente.')
+      toast({ variant: 'destructive', description: 'Erro de conexão. Tente novamente.' })
     } finally {
       setLoading(false)
     }
@@ -70,58 +76,56 @@ export function CheckoutForm({ addresses }: Props) {
             Código de pagamento: <strong>{order.paymentId}</strong>
           </p>
         )}
+        {order.paymentMethod === 'PIX' && order.paymentId && (
+          <QrCode value={order.paymentId} />
+        )}
       </div>
     )
   }
 
   return (
     <form onSubmit={handleSubmit}>
-      <div>
-        <label htmlFor="address-select">Endereço de entrega</label>
-        {addresses.length > 0 ? (
-          <select
+      {addresses.length > 0 ? (
+        <FormField label="Endereço de entrega" id="address-select">
+          <Select
             id="address-select"
             value={selectedAddressId}
             onChange={(e) => setSelectedAddressId(e.target.value)}
             required
-          >
-            {addresses.map((addr) => (
-              <option key={addr.id} value={addr.id}>
-                {addr.street}, {addr.number} — {addr.city}/{addr.state}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <p>Nenhum endereço cadastrado.</p>
-        )}
-      </div>
+            options={addresses.map((addr) => ({
+              value: addr.id,
+              label: `${addr.street}, ${addr.number} — ${addr.city}/${addr.state}`,
+            }))}
+          />
+        </FormField>
+      ) : (
+        <p>Nenhum endereço cadastrado.</p>
+      )}
 
       <fieldset>
         <legend>Forma de pagamento</legend>
         {(['PIX', 'CREDIT_CARD', 'BOLETO'] as const).map((method) => (
-          <label key={method}>
-            <input
-              type="radio"
-              name="paymentMethod"
-              value={method}
-              checked={paymentMethod === method}
-              onChange={() => setPaymentMethod(method)}
-            />
-            {method === 'PIX' ? 'Pix' : method === 'CREDIT_CARD' ? 'Cartão de Crédito' : 'Boleto'}
-          </label>
+          <Radio
+            key={method}
+            id={`payment-${method}`}
+            name="paymentMethod"
+            value={method}
+            label={PAYMENT_LABELS[method]}
+            checked={paymentMethod === method}
+            onChange={() => setPaymentMethod(method)}
+          />
         ))}
       </fieldset>
 
       <p>Total: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)}</p>
 
-      {error && <p role="alert">{error}</p>}
-
-      <button
+      <Button
         type="submit"
         disabled={loading || items.length === 0 || !selectedAddressId}
+        isLoading={loading}
       >
         {loading ? 'Processando...' : 'Finalizar Pedido'}
-      </button>
+      </Button>
     </form>
   )
 }

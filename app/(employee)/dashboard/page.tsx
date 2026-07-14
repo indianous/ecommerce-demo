@@ -1,15 +1,16 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { OrderManagementTable } from '@/components/employee/OrderManagementTable'
 import type { AdminOrderResponse, OrderStatus } from '@/types'
 
 export default function DashboardPage() {
   const { accessToken } = useAuthStore()
+  const { toast } = useToast()
   const [orders, setOrders] = useState<AdminOrderResponse[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   const fetchOrders = useCallback(async () => {
     if (!accessToken) return
@@ -20,11 +21,11 @@ export default function DashboardPage() {
       if (!res.ok) throw new Error()
       setOrders(await res.json())
     } catch {
-      setError('Erro ao carregar pedidos.')
+      toast({ variant: 'destructive', description: 'Erro ao carregar pedidos.' })
     } finally {
       setLoading(false)
     }
-  }, [accessToken])
+  }, [accessToken, toast])
 
   useEffect(() => {
     fetchOrders()
@@ -46,7 +47,6 @@ export default function DashboardPage() {
   }
 
   if (loading) return <main><p>Carregando pedidos...</p></main>
-  if (error) return <main><p role="alert">{error}</p></main>
 
   return (
     <main>

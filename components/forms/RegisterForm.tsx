@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { Button, FormField, Input, PasswordInput, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 
 interface Props {
@@ -8,10 +9,10 @@ interface Props {
 
 export function RegisterForm({ onSuccess }: Props) {
   const register = useAuthStore((s) => s.register)
+  const { toast } = useToast()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
   const [nameError, setNameError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -29,13 +30,15 @@ export function RegisterForm({ onSuccess }: Props) {
     if (!validate()) return
 
     setIsLoading(true)
-    setError('')
 
     try {
       await register({ name, email, password })
       onSuccess()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao cadastrar')
+      toast({
+        variant: 'destructive',
+        description: err instanceof Error ? err.message : 'Erro ao cadastrar',
+      })
     } finally {
       setIsLoading(false)
     }
@@ -43,9 +46,8 @@ export function RegisterForm({ onSuccess }: Props) {
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      <div>
-        <label htmlFor="name">Nome</label>
-        <input
+      <FormField label="Nome" id="name" error={nameError}>
+        <Input
           id="name"
           type="text"
           value={name}
@@ -53,12 +55,10 @@ export function RegisterForm({ onSuccess }: Props) {
           disabled={isLoading}
           autoComplete="name"
         />
-        {nameError && <span>{nameError}</span>}
-      </div>
+      </FormField>
 
-      <div>
-        <label htmlFor="email">Email</label>
-        <input
+      <FormField label="Email" id="email">
+        <Input
           id="email"
           type="email"
           value={email}
@@ -66,25 +66,21 @@ export function RegisterForm({ onSuccess }: Props) {
           disabled={isLoading}
           autoComplete="email"
         />
-      </div>
+      </FormField>
 
-      <div>
-        <label htmlFor="password">Senha</label>
-        <input
+      <FormField label="Senha" id="password">
+        <PasswordInput
           id="password"
-          type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={isLoading}
           autoComplete="new-password"
         />
-      </div>
+      </FormField>
 
-      {error && <p role="alert">{error}</p>}
-
-      <button type="submit" disabled={isLoading}>
+      <Button type="submit" disabled={isLoading} isLoading={isLoading}>
         {isLoading ? 'Carregando...' : 'Cadastrar'}
-      </button>
+      </Button>
     </form>
   )
 }
