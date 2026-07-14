@@ -1,0 +1,97 @@
+export type UserRole = 'CUSTOMER' | 'EMPLOYEE'
+
+export interface User {
+  id: string
+  name: string
+  email: string
+  role: UserRole
+}
+
+export interface Address {
+  id: string
+  street: string
+  number: string
+  complement?: string
+  district: string
+  city: string
+  state: string
+  zipCode: string
+  isDefault: boolean
+}
+
+export interface Category {
+  id: string
+  name: string
+  slug: string
+  description?: string
+}
+
+export interface Product {
+  id: string
+  categoryId: string
+  categoryName: string
+  name: string
+  description?: string
+  price: number
+  stockQuantity: number
+  imageUrl?: string
+  active: boolean
+}
+
+export interface ProductPage {
+  content: Product[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  last: boolean
+}
+
+export type PaymentMethod = 'PIX' | 'CREDIT_CARD' | 'BOLETO'
+export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
+export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED'
+
+export interface OrderItemResponse {
+  productId: string
+  productName: string
+  quantity: number
+  unitPrice: number
+  subtotal: number
+}
+
+export interface OrderResponse {
+  id: string
+  status: OrderStatus
+  totalAmount: number
+  paymentMethod: PaymentMethod
+  paymentStatus: PaymentStatus
+  paymentId?: string
+  createdAt: string
+  items: OrderItemResponse[]
+}
+
+export interface CartItem {
+  productId: string
+  name: string
+  price: number
+  quantity: number
+  imageUrl?: string
+}
+
+export interface AdminOrderResponse {
+  id: string
+  customerName: string
+  customerEmail: string
+  status: OrderStatus
+  totalAmount: number
+  paymentMethod: PaymentMethod
+  paymentStatus: PaymentStatus
+  paymentId?: string
+  createdAt: string
+  itemCount: number
+}
+
+export interface ApiError {
+  message: string
+  status: number
+}
