@@ -24,7 +24,7 @@ export function AppShell({ children }: AppShellProps) {
           </Link>
         }
         items={NAV_ITEMS}
-        actions={<CartDrawer />}
+        actions={[<CartDrawer key="cart" />]}
         sticky
       />
       <main className="flex-1">{children}</main>

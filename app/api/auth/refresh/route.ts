@@ -31,10 +31,18 @@ export async function POST() {
     maxAge: 60 * 60 * 24 * 7,
     path: '/',
   })
+  cookieStore.set('role', data.role ?? 'CUSTOMER', {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 24 * 7,
+    path: '/',
+  })
 
   return NextResponse.json({
     accessToken: data.accessToken,
     tokenType: data.tokenType,
     expiresIn: data.expiresIn,
+    role: data.role,
   })
 }

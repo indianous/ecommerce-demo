@@ -1,6 +1,6 @@
 'use client'
 import { create } from 'zustand'
-import type { User } from '@/types'
+import type { User, UserRole } from '@/types'
 
 interface LoginCredentials {
   email: string
@@ -18,17 +18,20 @@ interface AuthTokens {
   refreshToken: string
   tokenType: string
   expiresIn: number
+  role?: UserRole
 }
 
 interface AuthState {
   accessToken: string | null
   user: User | null
+  role: UserRole | null
   isAuthenticated: boolean
   login: (credentials: LoginCredentials) => Promise<void>
   register: (data: RegisterData) => Promise<void>
   logout: () => void
   setAccessToken: (token: string) => void
   setUser: (user: User) => void
+  hydrateSession: () => Promise<void>
 }
 
 async function postAuth(path: string, body: unknown): Promise<AuthTokens> {
@@ -47,25 +50,33 @@ async function postAuth(path: string, body: unknown): Promise<AuthTokens> {
 export const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
   user: null,
+  role: null,
   isAuthenticated: false,
 
   login: async (credentials) => {
     const tokens = await postAuth('/api/auth/login', credentials)
-    // accessToken kept only in memory — never localStorage
-    set({ accessToken: tokens.accessToken, isAuthenticated: true })
+    set({ accessToken: tokens.accessToken, isAuthenticated: true, role: tokens.role ?? null })
   },
 
   register: async (data) => {
     const tokens = await postAuth('/api/auth/register', data)
-    set({ accessToken: tokens.accessToken, isAuthenticated: true })
+    set({ accessToken: tokens.accessToken, isAuthenticated: true, role: tokens.role ?? 'CUSTOMER' })
   },
 
   logout: () => {
-    set({ accessToken: null, user: null, isAuthenticated: false })
-    // Fire-and-forget: tell BFF to clear the HttpOnly refresh cookie
+    set({ accessToken: null, user: null, role: null, isAuthenticated: false })
     fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
   },
 
   setAccessToken: (token) => set({ accessToken: token, isAuthenticated: true }),
   setUser: (user) => set({ user }),
+
+  hydrateSession: async () => {
+    try {
+      const res = await fetch('/api/auth/refresh', { method: 'POST' })
+      if (!res.ok) return
+      const data = await res.json()
+      set({ accessToken: data.accessToken, isAuthenticated: true, role: data.role ?? null })
+    } catch { /* sem cookie de sessão — usuário permanece anônimo */ }
+  },
 }))

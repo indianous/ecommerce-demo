@@ -47,7 +47,9 @@ describe('AppShell', () => {
         <p>conteúdo</p>
       </AppShell>,
     )
-    expect(screen.getByRole('button', { name: /carrinho/i })).toBeInTheDocument()
+    // Navbar renders actions in both desktop and mobile slots; both are in the DOM in jsdom
+    const triggers = screen.getAllByRole('button', { name: /carrinho/i })
+    expect(triggers.length).toBeGreaterThan(0)
   })
 
   it('renders the footer landmark', () => {
