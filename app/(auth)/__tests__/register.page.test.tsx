@@ -50,7 +50,7 @@ describe('RegisterPage', () => {
     expect(screen.getByRole('link', { name: /entrar/i })).toHaveAttribute('href', '/login')
   })
 
-  it('redirects to the catalog after a successful registration', async () => {
+  it('redirects to home after a successful registration', async () => {
     const user = userEvent.setup()
     renderRegisterPage()
 
@@ -59,6 +59,6 @@ describe('RegisterPage', () => {
     await user.type(screen.getByLabelText(/^senha/i), 'SecurePass123!')
     await user.click(screen.getByRole('button', { name: /cadastrar/i }))
 
-    await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/catalog'))
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/'))
   })
 })

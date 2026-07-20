@@ -4,9 +4,15 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Heading, Text } from 'base-ds'
 import { LoginForm } from '@/components/forms/LoginForm'
+import { useAuthStore } from '@/stores/auth.store'
 
 export default function LoginPage() {
   const router = useRouter()
+
+  const handleSuccess = () => {
+    const role = useAuthStore.getState().role
+    router.push(role === 'EMPLOYEE' ? '/dashboard' : '/')
+  }
 
   return (
     <main className="mx-auto flex max-w-sm flex-col gap-6 px-4 py-16">
@@ -14,7 +20,7 @@ export default function LoginPage() {
         Entrar
       </Heading>
 
-      <LoginForm onSuccess={() => router.push('/catalog')} />
+      <LoginForm onSuccess={handleSuccess} />
 
       <Text size="sm" color="muted">
         Não tem conta?{' '}

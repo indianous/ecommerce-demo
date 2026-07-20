@@ -5,6 +5,7 @@ import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { ToastProvider, ToastViewport } from 'base-ds'
 import LoginPage from '../login/page'
+import { useAuthStore } from '@/stores/auth.store'
 
 const pushMock = vi.fn()
 
@@ -19,6 +20,7 @@ const server = setupServer(
       refreshToken: 'refresh',
       tokenType: 'Bearer',
       expiresIn: 900,
+      role: 'CUSTOMER',
     }),
   ),
 )
@@ -27,6 +29,7 @@ beforeAll(() => server.listen())
 afterEach(() => {
   server.resetHandlers()
   pushMock.mockClear()
+  useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
 })
 afterAll(() => server.close())
 
@@ -52,7 +55,7 @@ describe('LoginPage', () => {
     expect(screen.getByRole('link', { name: /cadastr/i })).toHaveAttribute('href', '/register')
   })
 
-  it('redirects to the catalog after a successful login', async () => {
+  it('redirects to home after a successful login as CUSTOMER', async () => {
     const user = userEvent.setup()
     renderLoginPage()
 
@@ -60,6 +63,28 @@ describe('LoginPage', () => {
     await user.type(screen.getByLabelText(/senha/i), 'password123')
     await user.click(screen.getByRole('button', { name: /entrar/i }))
 
-    await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/catalog'))
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/'))
+  })
+
+  it('redirects to dashboard after a successful login as EMPLOYEE', async () => {
+    server.use(
+      http.post('/api/auth/login', () =>
+        HttpResponse.json({
+          accessToken: 'token',
+          refreshToken: 'refresh',
+          tokenType: 'Bearer',
+          expiresIn: 900,
+          role: 'EMPLOYEE',
+        }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderLoginPage()
+
+    await user.type(screen.getByLabelText(/email/i), 'employee@test.com')
+    await user.type(screen.getByLabelText(/senha/i), 'password123')
+    await user.click(screen.getByRole('button', { name: /entrar/i }))
+
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/dashboard'))
   })
 })

@@ -14,7 +14,7 @@ export default function RegisterPage() {
         Cadastro
       </Heading>
 
-      <RegisterForm onSuccess={() => router.push('/catalog')} />
+      <RegisterForm onSuccess={() => router.push('/')} />
 
       <Text size="sm" color="muted">
         Já tem conta?{' '}
