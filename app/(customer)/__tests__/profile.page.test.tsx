@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -100,6 +100,50 @@ describe('ProfilePage', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Av\. Paulista/)).toBeInTheDocument()
+    })
+  })
+
+  it('atualiza campos do formulário com dados normalizados pelo servidor após salvar', async () => {
+    server.use(
+      http.patch('/api/auth/me', () =>
+        HttpResponse.json({
+          id: 'user-1',
+          name: 'João Victor (Servidor)',
+          email: 'joao.servidor@test.com',
+          role: 'CUSTOMER',
+        })
+      )
+    )
+
+    const user = userEvent.setup()
+    renderProfilePage()
+
+    await waitFor(() => expect(screen.getByLabelText(/nome/i)).toHaveValue('João Victor'))
+
+    await user.clear(screen.getByLabelText(/nome/i))
+    await user.type(screen.getByLabelText(/nome/i), 'qualquer coisa digitada')
+    await user.click(screen.getByRole('button', { name: /salvar/i }))
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/nome/i)).toHaveValue('João Victor (Servidor)')
+      expect(screen.getByLabelText(/email/i)).toHaveValue('joao.servidor@test.com')
+    })
+  })
+
+  it('popula formulário quando accessToken é setado após o mount (hidratação)', async () => {
+    useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
+
+    renderProfilePage()
+
+    expect(screen.queryByLabelText(/nome/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/precisa entrar na sua conta/i)).toBeInTheDocument()
+
+    act(() => {
+      useAuthStore.setState({ accessToken: 'mock-token', isAuthenticated: true })
+    })
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/nome/i)).toHaveValue('João Victor')
     })
   })
 })

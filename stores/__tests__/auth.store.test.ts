@@ -3,6 +3,8 @@ import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { useAuthStore } from '../auth.store'
 
+const mockUser = { id: 'user-1', name: 'João Victor', email: 'valid@test.com', role: 'CUSTOMER' }
+
 const server = setupServer(
   http.post('/api/auth/login', async ({ request }) => {
     const body = (await request.json()) as { email: string; password: string }
@@ -12,28 +14,39 @@ const server = setupServer(
         refreshToken: 'mock-refresh-token',
         tokenType: 'Bearer',
         expiresIn: 900,
+        role: 'CUSTOMER',
       })
     }
     return HttpResponse.json({ message: 'Credenciais inválidas' }, { status: 401 })
   }),
   http.post('/api/auth/register', async ({ request }) => {
-    const body = (await request.json()) as { email: string }
+    const body = (await request.json()) as { name: string; email: string }
     if (body.email === 'taken@test.com') {
       return HttpResponse.json({ message: 'Email já cadastrado' }, { status: 409 })
     }
     return HttpResponse.json(
-      { accessToken: 'new-token', refreshToken: 'new-refresh', tokenType: 'Bearer', expiresIn: 900 },
+      { accessToken: 'new-token', refreshToken: 'new-refresh', tokenType: 'Bearer', expiresIn: 900, role: 'CUSTOMER' },
       { status: 201 }
     )
   }),
-  http.post('/api/auth/logout', () => new HttpResponse(null, { status: 204 }))
+  http.post('/api/auth/refresh', () =>
+    HttpResponse.json({ accessToken: 'hydrated-token', tokenType: 'Bearer', expiresIn: 900, role: 'CUSTOMER' })
+  ),
+  http.post('/api/auth/logout', () => new HttpResponse(null, { status: 204 })),
+  http.get('/api/auth/me', ({ request }) => {
+    const auth = request.headers.get('Authorization')
+    if (!auth) return new HttpResponse(null, { status: 401 })
+    if (auth.includes('new-token')) {
+      return HttpResponse.json({ id: 'user-2', name: 'Novo Usuário', email: 'new@test.com', role: 'CUSTOMER' })
+    }
+    return HttpResponse.json(mockUser)
+  }),
 )
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 afterEach(() => {
   server.resetHandlers()
-  // Reset full state — isAuthenticated must also be cleared
-  useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
+  useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
 })
 afterAll(() => server.close())
 
@@ -100,6 +113,31 @@ describe('AuthStore', () => {
       expect(getStore().accessToken).toBeNull()
       expect(getStore().user).toBeNull()
       expect(getStore().isAuthenticated).toBe(false)
+    })
+  })
+
+  describe('user population', () => {
+    it('login(): seta user no store após autenticação', async () => {
+      await getStore().login({ email: 'valid@test.com', password: 'pass123' })
+
+      expect(getStore().user).not.toBeNull()
+      expect(getStore().user?.name).toBe('João Victor')
+      expect(getStore().user?.email).toBe('valid@test.com')
+    })
+
+    it('register(): seta user no store após cadastro', async () => {
+      await getStore().register({ name: 'Novo Usuário', email: 'new@test.com', password: 'SecurePass123!' })
+
+      expect(getStore().user).not.toBeNull()
+      expect(getStore().user?.name).toBe('Novo Usuário')
+      expect(getStore().user?.email).toBe('new@test.com')
+    })
+
+    it('hydrateSession(): seta user após refresh de sessão', async () => {
+      await getStore().hydrateSession()
+
+      expect(getStore().user).not.toBeNull()
+      expect(getStore().user?.name).toBe('João Victor')
     })
   })
 })

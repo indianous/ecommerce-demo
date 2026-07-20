@@ -47,6 +47,14 @@ async function postAuth(path: string, body: unknown): Promise<AuthTokens> {
   return res.json()
 }
 
+async function fetchMe(accessToken: string): Promise<User | null> {
+  const res = await fetch('/api/auth/me', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+  if (!res.ok) return null
+  return res.json()
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
   user: null,
@@ -55,12 +63,14 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: async (credentials) => {
     const tokens = await postAuth('/api/auth/login', credentials)
-    set({ accessToken: tokens.accessToken, isAuthenticated: true, role: tokens.role ?? null })
+    const user = await fetchMe(tokens.accessToken)
+    set({ accessToken: tokens.accessToken, isAuthenticated: true, role: tokens.role ?? null, user })
   },
 
   register: async (data) => {
     const tokens = await postAuth('/api/auth/register', data)
-    set({ accessToken: tokens.accessToken, isAuthenticated: true, role: tokens.role ?? 'CUSTOMER' })
+    const user = await fetchMe(tokens.accessToken)
+    set({ accessToken: tokens.accessToken, isAuthenticated: true, role: tokens.role ?? 'CUSTOMER', user })
   },
 
   logout: () => {
@@ -76,7 +86,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       const res = await fetch('/api/auth/refresh', { method: 'POST' })
       if (!res.ok) return
       const data = await res.json()
-      set({ accessToken: data.accessToken, isAuthenticated: true, role: data.role ?? null })
+      const user = await fetchMe(data.accessToken)
+      set({ accessToken: data.accessToken, isAuthenticated: true, role: data.role ?? null, user })
     } catch { /* sem cookie de sessão — usuário permanece anônimo */ }
   },
 }))

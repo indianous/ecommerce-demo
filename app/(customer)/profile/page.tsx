@@ -17,7 +17,7 @@ const EMPTY_ADDRESS: NewAddress = {
 }
 
 export default function ProfilePage() {
-  const { accessToken } = useAuthStore()
+  const { accessToken, setUser } = useAuthStore()
   const { toast } = useToast()
 
   const [name, setName] = useState('')
@@ -54,6 +54,10 @@ export default function ProfilePage() {
         body: JSON.stringify({ name, email }),
       })
       if (!res.ok) throw new Error()
+      const updated: User = await res.json()
+      setName(updated.name)
+      setEmail(updated.email)
+      setUser(updated)
       toast({ variant: 'success', description: 'Dados atualizados com sucesso.' })
     } catch {
       toast({ variant: 'destructive', description: 'Erro ao atualizar dados.' })
