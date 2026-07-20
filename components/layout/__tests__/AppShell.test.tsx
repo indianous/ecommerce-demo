@@ -1,8 +1,15 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useToast } from 'base-ds'
 import { AppShell } from '../AppShell'
+import { useAuthStore } from '@/stores/auth.store'
+
+const pushMock = vi.fn()
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: pushMock }),
+}))
 
 function ToastTrigger() {
   const { toast } = useToast()
@@ -12,6 +19,11 @@ function ToastTrigger() {
     </button>
   )
 }
+
+afterEach(() => {
+  useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
+  pushMock.mockClear()
+})
 
 describe('AppShell', () => {
   it('renders the main navigation', () => {
@@ -23,22 +35,25 @@ describe('AppShell', () => {
     expect(screen.getByRole('navigation', { name: /main navigation/i })).toBeInTheDocument()
   })
 
-  it('renders a link to the catalog', () => {
+  it('renders a search form in the navbar', () => {
     render(
       <AppShell>
         <p>conteúdo</p>
       </AppShell>,
     )
-    expect(screen.getByRole('link', { name: /catálogo/i })).toHaveAttribute('href', '/catalog')
+    expect(screen.getByRole('search')).toBeInTheDocument()
   })
 
-  it('renders a link to the cart', () => {
+  it('renders a login link when unauthenticated', () => {
     render(
       <AppShell>
         <p>conteúdo</p>
       </AppShell>,
     )
-    expect(screen.getByRole('link', { name: /carrinho/i })).toHaveAttribute('href', '/cart')
+    // Navbar renders actions in both desktop and mobile slots; both are in the DOM in jsdom
+    const links = screen.getAllByRole('link', { name: /entrar/i })
+    expect(links.length).toBeGreaterThan(0)
+    expect(links[0]).toHaveAttribute('href', '/login')
   })
 
   it('renders the cart drawer trigger', () => {

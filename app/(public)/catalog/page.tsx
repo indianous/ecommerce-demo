@@ -1,5 +1,4 @@
 import { ProductCard } from '@/components/product/ProductCard'
-import { CatalogSearch } from '@/components/catalog/CatalogSearch'
 import { CatalogPagination } from '@/components/catalog/CatalogPagination'
 import type { ProductPage, Category } from '@/types'
 
@@ -45,10 +44,6 @@ export default async function CatalogPage({ searchParams }: Props) {
   return (
     <main className="mx-auto max-w-7xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold">Catálogo</h1>
-
-      <div className="mb-6 max-w-md">
-        <CatalogSearch defaultValue={search ?? ''} categoryId={categoryId} />
-      </div>
 
       {categories.length > 0 && (
         <nav className="mb-6 flex flex-wrap gap-2">

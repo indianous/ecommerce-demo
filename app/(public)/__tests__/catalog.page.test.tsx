@@ -38,13 +38,12 @@ afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
 
 describe('CatalogPage', () => {
-  it('renders a search field and pagination when there is more than one page', async () => {
+  it('renders products and pagination when there is more than one page', async () => {
     const jsx = await CatalogPage({ searchParams: Promise.resolve({}) })
     render(jsx)
 
-    expect(screen.getByRole('textbox', { name: /search input/i })).toBeInTheDocument()
-    expect(screen.getByRole('navigation', { name: /pagination/i })).toBeInTheDocument()
     expect(screen.getByText('Mechanical Keyboard')).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: /pagination/i })).toBeInTheDocument()
   })
 
   it('requests the requested page (0-indexed) from the backend', async () => {
