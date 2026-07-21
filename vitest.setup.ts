@@ -1,4 +1,9 @@
 import '@testing-library/jest-dom'
+import { configureAxe, toHaveNoViolations } from 'jest-axe'
+import { expect } from 'vitest'
+
+expect.extend(toHaveNoViolations)
+configureAxe({ globalOptions: { rules: [{ id: 'color-contrast', enabled: false }] } })
 
 // Stub canvas API used by QrCode component (qrcode lib calls getContext + createImageData)
 Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {

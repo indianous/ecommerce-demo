@@ -10,6 +10,14 @@ interface Props {
 
 const STATUS_OPTIONS: OrderStatus[] = ['PENDING', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED']
 
+const STATUS_LABELS: Record<OrderStatus, string> = {
+  PENDING: 'Pendente',
+  CONFIRMED: 'Confirmado',
+  SHIPPED: 'Enviado',
+  DELIVERED: 'Entregue',
+  CANCELLED: 'Cancelado',
+}
+
 const STATUS_BADGE_VARIANT: Record<OrderStatus, 'warning' | 'info' | 'primary' | 'success' | 'danger'> = {
   PENDING: 'warning',
   CONFIRMED: 'info',
@@ -71,7 +79,7 @@ export function OrderManagementTable({ orders, onStatusChange }: Props) {
           aria-label="Status"
           value={order.status}
           onChange={(e) => onStatusChange(order.id, e.target.value as OrderStatus)}
-          options={STATUS_OPTIONS.map((s) => ({ value: s, label: s }))}
+          options={STATUS_OPTIONS.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
         />
       ),
     },

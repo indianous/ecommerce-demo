@@ -11,7 +11,9 @@ export default function LoginPage() {
 
   const handleSuccess = () => {
     const role = useAuthStore.getState().role
-    router.push(role === 'EMPLOYEE' ? '/dashboard' : '/')
+    if (role === 'ADMIN') router.push('/dashboard/admin')
+    else if (role === 'EMPLOYEE') router.push('/dashboard')
+    else router.push('/')
   }
 
   return (
