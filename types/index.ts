@@ -1,4 +1,4 @@
-export type UserRole = 'CUSTOMER' | 'EMPLOYEE'
+export type UserRole = 'CUSTOMER' | 'EMPLOYEE' | 'ADMIN'
 
 export interface User {
   id: string
@@ -94,4 +94,17 @@ export interface AdminOrderResponse {
 export interface ApiError {
   message: string
   status: number
+}
+
+export interface Employee {
+  id: string
+  name: string
+  email: string
+  role: 'EMPLOYEE'
+}
+
+export interface EmployeeFormData {
+  name: string
+  email: string
+  password: string
 }

@@ -87,4 +87,26 @@ describe('LoginPage', () => {
 
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/dashboard'))
   })
+
+  it('redirects to /dashboard/admin after a successful login as ADMIN', async () => {
+    server.use(
+      http.post('/api/auth/login', () =>
+        HttpResponse.json({
+          accessToken: 'token',
+          refreshToken: 'refresh',
+          tokenType: 'Bearer',
+          expiresIn: 900,
+          role: 'ADMIN',
+        }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderLoginPage()
+
+    await user.type(screen.getByLabelText(/email/i), 'admin@teste.com')
+    await user.type(screen.getByLabelText(/senha/i), 'admin@123')
+    await user.click(screen.getByRole('button', { name: /entrar/i }))
+
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/dashboard/admin'))
+  })
 })
