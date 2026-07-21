@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -24,9 +24,11 @@ const manyOrders = Array.from({ length: 7 }, (_, i) => makeOrder(i + 1))
 const server = setupServer(http.get('/api/orders', () => HttpResponse.json(manyOrders)))
 
 beforeAll(() => server.listen())
-afterEach(() => {
+afterEach(async () => {
   server.resetHandlers()
-  useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
+  await act(async () => {
+    useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
+  })
 })
 afterAll(() => server.close())
 
@@ -39,17 +41,13 @@ describe('OrdersPage', () => {
     server.use(http.get('/api/orders', () => HttpResponse.json([])))
     render(<OrdersPage />)
 
-    await waitFor(() => {
-      expect(screen.getByText(/nenhum pedido/i)).toBeInTheDocument()
-    })
+    expect(await screen.findByText(/nenhum pedido/i)).toBeInTheDocument()
   })
 
   it('renders the first page of orders with status', async () => {
     render(<OrdersPage />)
 
-    await waitFor(() => {
-      expect(screen.getByText('order-1')).toBeInTheDocument()
-    })
+    await screen.findByText('order-1')
     expect(screen.getAllByText('PENDING').length).toBeGreaterThan(0)
     expect(screen.queryByText('order-6')).not.toBeInTheDocument()
   })
@@ -58,12 +56,10 @@ describe('OrdersPage', () => {
     const user = userEvent.setup()
     render(<OrdersPage />)
 
-    await waitFor(() => expect(screen.getByText('order-1')).toBeInTheDocument())
+    await screen.findByText('order-1')
 
     await user.click(screen.getByRole('button', { name: /next page/i }))
 
-    await waitFor(() => {
-      expect(screen.getByText('order-6')).toBeInTheDocument()
-    })
+    expect(await screen.findByText('order-6')).toBeInTheDocument()
   })
 })

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -38,9 +38,11 @@ const server = setupServer(
 )
 
 beforeAll(() => server.listen())
-afterEach(() => {
+afterEach(async () => {
   server.resetHandlers()
-  useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
+  await act(async () => {
+    useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
+  })
 })
 afterAll(() => server.close())
 
@@ -61,15 +63,13 @@ function renderPage() {
 describe('ProductsManagementPage', () => {
   it('renders existing products', async () => {
     renderPage()
-    await waitFor(() => {
-      expect(screen.getByText('Teclado Mecânico')).toBeInTheDocument()
-    })
+    expect(await screen.findByText('Teclado Mecânico')).toBeInTheDocument()
   })
 
   it('opens the create dialog with empty fields', async () => {
     const user = userEvent.setup()
     renderPage()
-    await waitFor(() => screen.getByText('Teclado Mecânico'))
+    await screen.findByText('Teclado Mecânico')
 
     await user.click(screen.getByRole('button', { name: /novo produto/i }))
 
@@ -80,7 +80,7 @@ describe('ProductsManagementPage', () => {
   it('creates a new product', async () => {
     const user = userEvent.setup()
     renderPage()
-    await waitFor(() => screen.getByText('Teclado Mecânico'))
+    await screen.findByText('Teclado Mecânico')
 
     await user.click(screen.getByRole('button', { name: /novo produto/i }))
     await screen.findByRole('dialog')
@@ -89,15 +89,13 @@ describe('ProductsManagementPage', () => {
     await user.selectOptions(screen.getByLabelText(/categoria/i), 'cat-1')
     await user.click(screen.getByRole('button', { name: /salvar/i }))
 
-    await waitFor(() => {
-      expect(screen.getByText('Mouse Gamer')).toBeInTheDocument()
-    })
+    expect(await screen.findByText('Mouse Gamer')).toBeInTheDocument()
   })
 
   it('deletes a product', async () => {
     const user = userEvent.setup()
     renderPage()
-    await waitFor(() => screen.getByText('Teclado Mecânico'))
+    await screen.findByText('Teclado Mecânico')
 
     await user.click(screen.getByRole('button', { name: /excluir teclado mecânico/i }))
 

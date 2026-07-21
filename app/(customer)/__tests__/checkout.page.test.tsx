@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
@@ -24,10 +24,12 @@ const server = setupServer(
 )
 
 beforeAll(() => server.listen())
-afterEach(() => {
+afterEach(async () => {
   server.resetHandlers()
-  useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
-  useCartStore.getState().clearCart()
+  await act(async () => {
+    useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
+    useCartStore.getState().clearCart()
+  })
 })
 afterAll(() => server.close())
 
@@ -54,9 +56,7 @@ describe('CheckoutPage', () => {
   it('renders the checkout form once addresses load', async () => {
     renderCheckoutPage()
 
-    await waitFor(() => {
-      expect(screen.getByText(/Rua das Flores/)).toBeInTheDocument()
-    })
+    expect(await screen.findByText(/Rua das Flores/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /finalizar/i })).toBeInTheDocument()
   })
 

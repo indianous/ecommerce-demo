@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ToastProvider } from 'base-ds'
@@ -19,8 +19,10 @@ function renderUserMenu() {
   )
 }
 
-afterEach(() => {
-  useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
+afterEach(async () => {
+  await act(async () => {
+    useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
+  })
   pushMock.mockClear()
 })
 

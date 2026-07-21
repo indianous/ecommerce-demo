@@ -48,11 +48,15 @@ async function postAuth(path: string, body: unknown): Promise<AuthTokens> {
 }
 
 async function fetchMe(accessToken: string): Promise<User | null> {
-  const res = await fetch('/api/auth/me', {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  })
-  if (!res.ok) return null
-  return res.json()
+  try {
+    const res = await fetch('/api/auth/me', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    if (!res.ok) return null
+    return res.json()
+  } catch {
+    return null
+  }
 }
 
 export const useAuthStore = create<AuthState>((set) => ({

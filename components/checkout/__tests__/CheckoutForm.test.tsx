@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ToastProvider, ToastViewport } from 'base-ds'
 import { CheckoutForm } from '../CheckoutForm'
@@ -46,10 +46,12 @@ const server = setupServer(
 
 beforeAll(() => server.listen())
 afterAll(() => server.close())
-afterEach(() => {
+afterEach(async () => {
   server.resetHandlers()
-  useCartStore.getState().clearCart()
-  useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
+  await act(async () => {
+    useCartStore.getState().clearCart()
+    useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
+  })
 })
 
 beforeEach(() => {
@@ -77,9 +79,7 @@ describe('CheckoutForm', () => {
 
     await user.click(screen.getByRole('button', { name: /finalizar/i }))
 
-    await waitFor(() => {
-      expect(screen.getByTestId('order-success')).toBeInTheDocument()
-    })
+    expect(await screen.findByTestId('order-success')).toBeInTheDocument()
     expect(screen.getByText(/PIX-ABC123/)).toBeInTheDocument()
     expect(useCartStore.getState().items).toHaveLength(0)
   })
@@ -95,9 +95,8 @@ describe('CheckoutForm', () => {
 
     await user.click(screen.getByRole('button', { name: /finalizar/i }))
 
-    await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Estoque insuficiente')
-    })
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Estoque insuficiente')
   })
 
   it('disables submit button while request is in flight', async () => {

@@ -31,9 +31,11 @@ const server = setupServer(
 )
 
 beforeAll(() => server.listen())
-afterEach(() => {
+afterEach(async () => {
   server.resetHandlers()
-  useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
+  await act(async () => {
+    useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
+  })
 })
 afterAll(() => server.close())
 
@@ -54,9 +56,8 @@ describe('ProfilePage', () => {
   it('loads and displays the current user data', async () => {
     renderProfilePage()
 
-    await waitFor(() => {
-      expect(screen.getByLabelText(/nome/i)).toHaveValue('João Victor')
-    })
+    const nameInput = await screen.findByLabelText(/nome/i)
+    expect(nameInput).toHaveValue('João Victor')
     expect(screen.getByLabelText(/email/i)).toHaveValue('joao@test.com')
   })
 
@@ -64,31 +65,27 @@ describe('ProfilePage', () => {
     const user = userEvent.setup()
     renderProfilePage()
 
-    await waitFor(() => expect(screen.getByLabelText(/nome/i)).toHaveValue('João Victor'))
+    await screen.findByDisplayValue('João Victor')
 
     const nameInput = screen.getByLabelText(/nome/i)
     await user.clear(nameInput)
     await user.type(nameInput, 'João V. Silva')
     await user.click(screen.getByRole('button', { name: /salvar/i }))
 
-    await waitFor(() => {
-      expect(screen.getByRole('status')).toHaveTextContent(/dados atualizados/i)
-    })
+    expect(await screen.findByRole('status')).toHaveTextContent(/dados atualizados/i)
   })
 
   it('renders the existing addresses', async () => {
     renderProfilePage()
 
-    await waitFor(() => {
-      expect(screen.getByText(/Rua das Flores/)).toBeInTheDocument()
-    })
+    expect(await screen.findByText(/Rua das Flores/)).toBeInTheDocument()
   })
 
   it('adds a new address', async () => {
     const user = userEvent.setup()
     renderProfilePage()
 
-    await waitFor(() => expect(screen.getByText(/Rua das Flores/)).toBeInTheDocument())
+    await screen.findByText(/Rua das Flores/)
 
     await user.type(screen.getByLabelText(/rua\/logradouro/i), 'Av. Paulista')
     await user.type(screen.getByLabelText(/número/i), '1000')
@@ -98,9 +95,7 @@ describe('ProfilePage', () => {
     await user.type(screen.getByLabelText(/cep/i), '01310-200')
     await user.click(screen.getByRole('button', { name: /adicionar endereço/i }))
 
-    await waitFor(() => {
-      expect(screen.getByText(/Av\. Paulista/)).toBeInTheDocument()
-    })
+    expect(await screen.findByText(/Av\. Paulista/)).toBeInTheDocument()
   })
 
   it('atualiza campos do formulário com dados normalizados pelo servidor após salvar', async () => {
@@ -118,7 +113,7 @@ describe('ProfilePage', () => {
     const user = userEvent.setup()
     renderProfilePage()
 
-    await waitFor(() => expect(screen.getByLabelText(/nome/i)).toHaveValue('João Victor'))
+    await screen.findByDisplayValue('João Victor')
 
     await user.clear(screen.getByLabelText(/nome/i))
     await user.type(screen.getByLabelText(/nome/i), 'qualquer coisa digitada')
@@ -142,8 +137,6 @@ describe('ProfilePage', () => {
       useAuthStore.setState({ accessToken: 'mock-token', isAuthenticated: true })
     })
 
-    await waitFor(() => {
-      expect(screen.getByLabelText(/nome/i)).toHaveValue('João Victor')
-    })
+    await screen.findByDisplayValue('João Victor')
   })
 })

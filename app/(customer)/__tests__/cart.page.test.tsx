@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import CartPage from '../cart/page'
@@ -8,8 +8,10 @@ beforeEach(() => {
   useCartStore.getState().addItem({ productId: 'prod-1', name: 'Laptop', price: 2999 })
 })
 
-afterEach(() => {
-  useCartStore.getState().clearCart()
+afterEach(async () => {
+  await act(async () => {
+    useCartStore.getState().clearCart()
+  })
 })
 
 describe('CartPage', () => {

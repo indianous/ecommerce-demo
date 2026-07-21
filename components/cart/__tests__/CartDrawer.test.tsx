@@ -1,11 +1,13 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import { CartDrawer } from '../CartDrawer'
 import { useCartStore } from '@/stores/cart.store'
 
-afterEach(() => {
-  useCartStore.getState().clearCart()
+afterEach(async () => {
+  await act(async () => {
+    useCartStore.getState().clearCart()
+  })
 })
 
 describe('CartDrawer', () => {
