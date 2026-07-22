@@ -1,7 +1,7 @@
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { useToast } from 'base-ds'
+import { ToastProvider, useToast } from 'base-ds'
 import { AppShell } from '../AppShell'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -89,10 +89,13 @@ describe('AppShell', () => {
 
   it('lets descendants trigger toasts that render through the mounted ToastViewport', async () => {
     const user = userEvent.setup()
+    // AppShell no longer owns ToastProvider — it must be provided externally (by RootProviders)
     render(
-      <AppShell>
-        <ToastTrigger />
-      </AppShell>,
+      <ToastProvider>
+        <AppShell>
+          <ToastTrigger />
+        </AppShell>
+      </ToastProvider>,
     )
 
     await user.click(screen.getByRole('button', { name: /disparar toast/i }))
