@@ -2,11 +2,10 @@
 
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { Footer, Navbar, ToastProvider, ToastViewport } from 'base-ds'
+import { Footer, Navbar } from 'base-ds'
 import { CartDrawer } from '@/components/cart/CartDrawer'
 import { NavbarSearch } from '@/components/layout/NavbarSearch'
 import { UserMenu } from '@/components/layout/UserMenu'
-import { AuthHydrator } from '@/components/layout/AuthHydrator'
 
 interface AppShellProps {
   children: ReactNode
@@ -14,7 +13,7 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   return (
-    <ToastProvider>
+    <>
       <Navbar
         logo={
           <Link href="/" className="text-lg font-semibold text-foreground">
@@ -27,8 +26,6 @@ export function AppShell({ children }: AppShellProps) {
       />
       <main className="flex-1">{children}</main>
       <Footer copyright={`© ${new Date().getFullYear()} Loja`} />
-      <ToastViewport />
-      <AuthHydrator />
-    </ToastProvider>
+    </>
   )
 }

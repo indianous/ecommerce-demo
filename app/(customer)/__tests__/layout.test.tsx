@@ -8,15 +8,17 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/cart',
 }))
 
+const storeState = {
+  isAuthenticated: false,
+  accessToken: null,
+  role: null,
+  user: null,
+  logout: vi.fn(),
+}
+
 vi.mock('@/stores/auth.store', () => ({
-  useAuthStore: (sel: (s: object) => unknown) =>
-    sel({
-      isAuthenticated: false,
-      accessToken: null,
-      role: null,
-      user: null,
-      logout: vi.fn(),
-    }),
+  // UserMenu calls useAuthStore() without selector; other components pass a selector
+  useAuthStore: (sel?: (s: object) => unknown) => (sel ? sel(storeState) : storeState),
 }))
 
 describe('CustomerLayout', () => {
