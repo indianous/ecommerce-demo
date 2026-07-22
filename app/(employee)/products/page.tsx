@@ -24,6 +24,7 @@ type ProductFormState = {
   price: number
   stockQuantity: number
   categoryId: string
+  imageUrl: string
 }
 
 const EMPTY_FORM: ProductFormState = {
@@ -32,6 +33,7 @@ const EMPTY_FORM: ProductFormState = {
   price: 0,
   stockQuantity: 0,
   categoryId: '',
+  imageUrl: '',
 }
 
 const formatBRL = (value: number) =>
@@ -79,6 +81,7 @@ export default function ProductsManagementPage() {
       price: product.price,
       stockQuantity: product.stockQuantity,
       categoryId: product.categoryId,
+      imageUrl: product.imageUrl ?? '',
     })
     setDialogOpen(true)
   }
@@ -219,14 +222,32 @@ export default function ProductsManagementPage() {
             />
           </FormField>
 
-          {/*
-            base-ds's FileUpload has no companion upload endpoint anywhere in this
-            codebase yet, so it only collects a File locally — it's not wired to
-            persist an image. Flagging instead of inventing an upload API.
-          */}
           <FormField label="Imagem" id="product-image">
-            <FileUpload accept="image/*" />
+            <FileUpload
+              accept="image/*"
+              onChange={async ([file]) => {
+                if (!file) return
+                const fd = new FormData()
+                fd.append('file', file)
+                const res = await fetch('/api/upload/image', {
+                  method: 'POST',
+                  headers: { Authorization: `Bearer ${accessToken}` },
+                  body: fd,
+                })
+                if (res.ok) {
+                  const { url } = await res.json()
+                  setForm((f) => ({ ...f, imageUrl: url }))
+                }
+              }}
+            />
           </FormField>
+          {form.imageUrl && (
+            <img
+              src={form.imageUrl}
+              alt="Preview"
+              className="w-16 h-16 object-cover rounded-md"
+            />
+          )}
 
           <Button type="submit" isLoading={saving} className="self-start">
             Salvar

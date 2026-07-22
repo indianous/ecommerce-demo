@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { POST } from '../route'
 
 const fetchMock = vi.fn()
@@ -13,19 +13,19 @@ afterEach(() => {
   fetchMock.mockReset()
 })
 
-function makeUploadRequest(opts: { authorization?: string; file?: File } = {}) {
-  const file = opts.file ?? new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], 'photo.png', { type: 'image/png' })
+// NextRequest.formData() hangs in jsdom when the body is a binary FormData,
+// so we use a plain mock object that matches the parts the route handler uses.
+function makeUploadRequest(opts: { authorization?: string } = {}) {
   const formData = new FormData()
-  formData.append('file', file)
+  formData.append(
+    'file',
+    new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], 'photo.png', { type: 'image/png' }),
+  )
 
-  const headers: HeadersInit = {}
-  if (opts.authorization) headers['Authorization'] = opts.authorization
-
-  return new NextRequest('http://localhost/api/upload/image', {
-    method: 'POST',
-    headers,
-    body: formData,
-  })
+  return {
+    headers: { get: (name: string) => (name === 'Authorization' ? (opts.authorization ?? null) : null) },
+    formData: vi.fn().mockResolvedValue(formData),
+  } as unknown as NextRequest
 }
 
 describe('POST /api/upload/image (BFF route)', () => {
