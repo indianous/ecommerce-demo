@@ -1,7 +1,15 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { act, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { afterEach, describe, expect, it } from 'vitest'
 import { ProductCard } from '../ProductCard'
+import { useCartStore } from '@/stores/cart.store'
 import type { Product } from '@/types'
+
+afterEach(async () => {
+  await act(async () => {
+    useCartStore.getState().clearCart()
+  })
+})
 
 const mockProduct: Product = {
   id: 'prod-1',
@@ -45,5 +53,32 @@ describe('ProductCard', () => {
   it('renders "add to cart" button when product is in stock', () => {
     render(<ProductCard product={mockProduct} />)
     expect(screen.getByRole('button', { name: /adicionar ao carrinho/i })).toBeInTheDocument()
+  })
+
+  it('adds the product to the cart store when the button is clicked', async () => {
+    const user = userEvent.setup()
+    render(<ProductCard product={mockProduct} />)
+
+    await user.click(screen.getByRole('button', { name: /adicionar ao carrinho/i }))
+
+    const items = useCartStore.getState().items
+    expect(items).toHaveLength(1)
+    expect(items[0]).toMatchObject({
+      productId: 'prod-1',
+      name: 'Mechanical Keyboard',
+      price: 499.9,
+      imageUrl: 'https://example.com/keyboard.jpg',
+    })
+  })
+
+  it('increments quantity when the same product is added twice', async () => {
+    const user = userEvent.setup()
+    render(<ProductCard product={mockProduct} />)
+
+    const btn = screen.getByRole('button', { name: /adicionar ao carrinho/i })
+    await user.click(btn)
+    await user.click(btn)
+
+    expect(useCartStore.getState().items[0].quantity).toBe(2)
   })
 })

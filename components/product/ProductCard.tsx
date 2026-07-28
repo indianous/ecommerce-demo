@@ -1,5 +1,6 @@
 'use client'
 import { Badge, Button, Card, Heading, Image, Text } from 'base-ds'
+import { useCartStore } from '@/stores/cart.store'
 import type { Product } from '@/types'
 
 interface Props {
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export function ProductCard({ product }: Props) {
+  const addItem = useCartStore((s) => s.addItem)
   const inStock = product.stockQuantity > 0
   const formattedPrice = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -43,7 +45,11 @@ export function ProductCard({ product }: Props) {
         </Text>
 
         {inStock ? (
-          <Button type="button" size="sm">
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => addItem({ productId: product.id, name: product.name, price: product.price, imageUrl: product.imageUrl })}
+          >
             Adicionar ao carrinho
           </Button>
         ) : (

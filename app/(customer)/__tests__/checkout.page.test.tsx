@@ -60,10 +60,12 @@ describe('CheckoutPage', () => {
     expect(screen.getByRole('button', { name: /finalizar/i })).toBeInTheDocument()
   })
 
-  it('prompts login when there is no access token', () => {
+  it('shows the auth form when there is no access token', () => {
     useAuthStore.setState({ accessToken: null, isAuthenticated: false })
     renderCheckoutPage()
 
-    expect(screen.getByRole('link', { name: /entrar/i })).toHaveAttribute('href', '/login')
+    expect(screen.getByRole('tab', { name: /entrar/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /criar conta/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /finalizar/i })).not.toBeInTheDocument()
   })
 })

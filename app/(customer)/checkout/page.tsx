@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { Heading, Text } from 'base-ds'
+import { CheckoutAuth } from '@/components/checkout/CheckoutAuth'
 import { CheckoutForm } from '@/components/checkout/CheckoutForm'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Address } from '@/types'
@@ -10,10 +10,11 @@ import type { Address } from '@/types'
 export default function CheckoutPage() {
   const { accessToken } = useAuthStore()
   const [addresses, setAddresses] = useState<Address[]>([])
-  const [loading, setLoading] = useState(() => Boolean(accessToken))
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (!accessToken) return
+    setLoading(true)
     fetch('/api/addresses', { headers: { Authorization: `Bearer ${accessToken}` } })
       .then((res) => (res.ok ? res.json() : []))
       .then(setAddresses)
@@ -22,16 +23,11 @@ export default function CheckoutPage() {
 
   if (!accessToken) {
     return (
-      <main className="mx-auto max-w-md px-4 py-16 text-center">
-        <Heading as="h1" size="2xl" className="mb-4">
+      <main className="mx-auto max-w-md px-4 py-8">
+        <Heading as="h1" size="2xl" className="mb-6">
           Finalizar pedido
         </Heading>
-        <Text color="muted" className="mb-6">
-          Você precisa entrar na sua conta para finalizar o pedido.
-        </Text>
-        <Link href="/login" className="text-primary hover:underline">
-          Entrar
-        </Link>
+        <CheckoutAuth />
       </main>
     )
   }

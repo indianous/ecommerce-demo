@@ -38,13 +38,13 @@ describe('CartDrawer', () => {
     expect(await screen.findByText(/carrinho está vazio/i)).toBeInTheDocument()
   })
 
-  it('links to the full cart page', async () => {
+  it('links to the checkout page', async () => {
     useCartStore.getState().addItem({ productId: 'prod-1', name: 'Laptop', price: 2999 })
     const user = userEvent.setup()
     render(<CartDrawer />)
 
     await user.click(screen.getByRole('button', { name: /carrinho/i }))
 
-    expect(await screen.findByRole('link', { name: /ver carrinho/i })).toHaveAttribute('href', '/cart')
+    expect(await screen.findByRole('link', { name: /ver carrinho/i })).toHaveAttribute('href', '/checkout')
   })
 })
