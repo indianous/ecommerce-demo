@@ -28,7 +28,14 @@ const makePage = (content: AuditLogResponse[]): AuditLogPage => ({
 })
 
 const server = setupServer(
-  http.get('/api/admin/audit-logs', () => HttpResponse.json(makePage([makeLog(), makeLog({ id: 2, entityType: 'PRODUCT', action: 'UPDATED' })]))),
+  http.get('/api/admin/audit-logs', () =>
+    HttpResponse.json(
+      makePage([
+        makeLog(),
+        makeLog({ id: 2, entityType: 'PRODUCT', action: 'UPDATED', entityId: 'uuid-product-2', actorEmail: 'admin@test.com' }),
+      ]),
+    ),
+  ),
 )
 
 beforeAll(() => server.listen())
