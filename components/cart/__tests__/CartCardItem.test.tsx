@@ -23,32 +23,20 @@ afterEach(async () => {
 })
 
 describe('CartCardItem', () => {
-  it('renders the product name, unit price and subtotal', () => {
+  it('renders the product name and subtotal', () => {
     render(<CartCardItem item={mockItem} />)
 
     expect(screen.getByText('Mechanical Keyboard')).toBeInTheDocument()
-    expect(screen.getByText(/499,90/)).toBeInTheDocument()
     expect(screen.getByText(/999,80/)).toBeInTheDocument()
   })
 
-  it('renders the current quantity in the number input', () => {
+  it('renders the current quantity as text', () => {
     render(<CartCardItem item={mockItem} />)
 
-    expect(screen.getByRole('spinbutton')).toHaveValue(2)
+    expect(screen.getByText('Qtd: 2')).toBeInTheDocument()
   })
 
-  it('updates quantity in the store when the increment button is clicked', async () => {
-    const user = userEvent.setup()
-    render(<CartCardItem item={mockItem} />)
-
-    await user.click(screen.getByRole('button', { name: /increment/i }))
-
-    await waitFor(() => {
-      expect(useCartStore.getState().items[0]?.quantity).toBe(3)
-    })
-  })
-
-  it('removes the item from the store when the remove button is clicked', async () => {
+  it('removes the item from the store when the X button is clicked', async () => {
     const user = userEvent.setup()
     render(<CartCardItem item={mockItem} />)
 

@@ -30,11 +30,18 @@ export function CartDrawer() {
           <div className="flex flex-col gap-3">
             <Text weight="bold">Total: {formatBRL(total)}</Text>
             <Link
+              href="/cart"
+              onClick={() => setOpen(false)}
+              className="rounded-md border border-border px-4 py-2 text-center text-sm font-medium text-foreground transition-colors hover:bg-muted"
+            >
+              Ver carrinho completo
+            </Link>
+            <Link
               href="/checkout"
               onClick={() => setOpen(false)}
               className="rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
             >
-              Ver carrinho completo
+              Finalizar compra
             </Link>
           </div>
         }
