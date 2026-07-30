@@ -31,6 +31,9 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
         aria-label="Sidebar navigation"
         className="hidden md:flex flex-col w-64 border-r border-border p-4 gap-2"
       >
+        <div className="mb-4">
+          <SidebarAvatar profileHref="/dashboard/profile" />
+        </div>
         <ul className="flex flex-col gap-1 flex-1">
           {navItems.map((item) => (
             <li key={item.href}>
@@ -44,9 +47,6 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
             </li>
           ))}
         </ul>
-        <div className="mt-auto">
-          <SidebarAvatar profileHref="/dashboard/profile" />
-        </div>
       </nav>
 
       <div className="flex flex-col flex-1">
@@ -76,6 +76,9 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
               aria-label="Menu de navegação"
               className="fixed inset-y-0 left-0 z-50 w-64 bg-background border-r border-border p-4 flex flex-col gap-2"
             >
+              <div className="mb-4">
+                <SidebarAvatar profileHref="/dashboard/profile" />
+              </div>
               <nav aria-label="Navegação mobile">
                 <ul className="flex flex-col gap-1">
                   {navItems.map((item) => (
@@ -92,9 +95,6 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
                   ))}
                 </ul>
               </nav>
-              <div className="mt-auto">
-                <SidebarAvatar profileHref="/dashboard/profile" />
-              </div>
             </div>
           </>
         )}
