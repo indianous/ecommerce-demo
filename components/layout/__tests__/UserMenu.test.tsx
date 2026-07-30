@@ -70,6 +70,23 @@ describe('UserMenu', () => {
     expect(screen.getByRole('menuitem', { name: /perfil/i })).toBeInTheDocument()
   })
 
+  it('shows "Meus Pedidos" link in the dropdown when authenticated', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState({
+      isAuthenticated: true,
+      accessToken: 'tok',
+      user: { id: '1', name: 'João Silva', email: 'joao@test.com', role: 'CUSTOMER' },
+      role: 'CUSTOMER',
+    })
+    renderUserMenu()
+
+    await user.click(screen.getByRole('button', { name: /menu do usuário/i }))
+
+    const link = screen.getByRole('menuitem', { name: /meus pedidos/i })
+    expect(link).toBeInTheDocument()
+    expect(link).toHaveAttribute('href', '/orders')
+  })
+
   it('calls logout and redirects to home when clicking Sair', async () => {
     const user = userEvent.setup()
     const logoutSpy = vi.spyOn(useAuthStore.getState(), 'logout')

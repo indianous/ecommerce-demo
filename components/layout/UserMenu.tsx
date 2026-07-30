@@ -37,6 +37,7 @@ export function UserMenu() {
       }
       items={[
         { label: 'Perfil', href: '/profile' },
+        { label: 'Meus Pedidos', href: '/orders' },
         { type: 'separator' },
         { label: 'Sair', onClick: handleLogout, danger: true },
       ]}

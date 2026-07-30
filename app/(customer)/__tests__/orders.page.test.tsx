@@ -62,4 +62,80 @@ describe('OrdersPage', () => {
 
     expect(await screen.findByText('order-6')).toBeInTheDocument()
   })
+
+  it('hides order items by default', async () => {
+    server.use(
+      http.get('/api/orders', () =>
+        HttpResponse.json([
+          {
+            id: 'order-1',
+            status: 'PENDING',
+            totalAmount: 500,
+            paymentMethod: 'PIX',
+            paymentStatus: 'PENDING',
+            createdAt: '2026-06-29T00:00:00',
+            items: [{ productId: 'p1', productName: 'Notebook', quantity: 2, unitPrice: 199.99, subtotal: 399.98 }],
+          },
+        ]),
+      ),
+    )
+    render(<OrdersPage />)
+    await screen.findByText('order-1')
+
+    expect(screen.queryByText('Notebook')).not.toBeInTheDocument()
+  })
+
+  it('reveals order items when the expand button is clicked', async () => {
+    const user = userEvent.setup()
+    server.use(
+      http.get('/api/orders', () =>
+        HttpResponse.json([
+          {
+            id: 'order-1',
+            status: 'PENDING',
+            totalAmount: 500,
+            paymentMethod: 'PIX',
+            paymentStatus: 'PENDING',
+            createdAt: '2026-06-29T00:00:00',
+            items: [{ productId: 'p1', productName: 'Notebook', quantity: 2, unitPrice: 199.99, subtotal: 399.98 }],
+          },
+        ]),
+      ),
+    )
+    render(<OrdersPage />)
+    await screen.findByText('order-1')
+
+    await user.click(screen.getByRole('button', { name: /expandir order-1/i }))
+
+    expect(screen.getByText('Notebook')).toBeInTheDocument()
+    expect(screen.getByText('2')).toBeInTheDocument()
+    expect(screen.getByText(/199,99/)).toBeInTheDocument()
+  })
+
+  it('collapses order items when the expand button is clicked again', async () => {
+    const user = userEvent.setup()
+    server.use(
+      http.get('/api/orders', () =>
+        HttpResponse.json([
+          {
+            id: 'order-1',
+            status: 'PENDING',
+            totalAmount: 500,
+            paymentMethod: 'PIX',
+            paymentStatus: 'PENDING',
+            createdAt: '2026-06-29T00:00:00',
+            items: [{ productId: 'p1', productName: 'Notebook', quantity: 2, unitPrice: 199.99, subtotal: 399.98 }],
+          },
+        ]),
+      ),
+    )
+    render(<OrdersPage />)
+    await screen.findByText('order-1')
+
+    await user.click(screen.getByRole('button', { name: /expandir order-1/i }))
+    expect(screen.getByText('Notebook')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /expandir order-1/i }))
+    expect(screen.queryByText('Notebook')).not.toBeInTheDocument()
+  })
 })
