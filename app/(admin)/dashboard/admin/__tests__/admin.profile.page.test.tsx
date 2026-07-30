@@ -1,7 +1,17 @@
 import { act, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
+import { ToastProvider, ToastViewport } from 'base-ds'
 import AdminProfilePage from '../profile/page'
 import { useAuthStore } from '@/stores/auth.store'
+
+function renderPage() {
+  return render(
+    <ToastProvider>
+      <AdminProfilePage />
+      <ToastViewport />
+    </ToastProvider>,
+  )
+}
 
 afterEach(async () => {
   await act(async () => {
@@ -16,7 +26,7 @@ describe('Admin ProfilePage', () => {
       accessToken: 'tok',
       user: { id: '1', name: 'Admin Silva', email: 'admin@test.com', role: 'ADMIN' },
     })
-    render(<AdminProfilePage />)
+    renderPage()
     expect(screen.getByRole('heading', { name: /meu perfil/i })).toBeInTheDocument()
   })
 
@@ -26,8 +36,19 @@ describe('Admin ProfilePage', () => {
       accessToken: 'tok',
       user: { id: '1', name: 'Admin Silva', email: 'admin@test.com', role: 'ADMIN' },
     })
-    render(<AdminProfilePage />)
+    renderPage()
     expect(screen.getByText('Admin Silva')).toBeInTheDocument()
     expect(screen.getByText('admin@test.com')).toBeInTheDocument()
+  })
+
+  it('renderiza a seção "Trocar senha" com o formulário de alteração', () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      accessToken: 'tok',
+      user: { id: '1', name: 'Admin Silva', email: 'admin@test.com', role: 'ADMIN' },
+    })
+    renderPage()
+    expect(screen.getByRole('heading', { name: /trocar senha/i })).toBeInTheDocument()
+    expect(screen.getByLabelText(/senha atual/i)).toBeInTheDocument()
   })
 })

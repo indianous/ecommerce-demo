@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Button, FormField, Heading, Input, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Address, User } from '@/types'
+import { ChangePasswordForm } from '@/components/forms/ChangePasswordForm'
 
 type NewAddress = Omit<Address, 'id' | 'isDefault'>
 
@@ -188,6 +189,13 @@ export default function ProfilePage() {
             Adicionar endereço
           </Button>
         </form>
+      </section>
+
+      <section>
+        <Heading as="h2" size="xl" className="mb-4">
+          Trocar senha
+        </Heading>
+        <ChangePasswordForm />
       </section>
     </main>
   )
