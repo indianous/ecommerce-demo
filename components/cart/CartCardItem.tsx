@@ -20,7 +20,7 @@ export function CartCardItem({ item }: CartCardItemProps) {
         type="button"
         aria-label={`Remover ${item.name}`}
         onClick={() => removeItem(item.productId)}
-        className="absolute left-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-destructive hover:text-white"
+        className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-destructive hover:text-white"
       >
         <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
           <line x1="1" y1="1" x2="7" y2="7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
