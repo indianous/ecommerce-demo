@@ -1,15 +1,20 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
-import { Heading, useToast } from 'base-ds'
+import { Button, Dialog, Heading, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { EmployeeManagementTable } from '@/components/admin/EmployeeManagementTable'
-import type { Employee, EmployeeFormData } from '@/types'
+import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions'
+import type { Employee, EmployeeFormData, EmployeePermission } from '@/types'
 
 export default function EmployeesPage() {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
+
+  const [permDialogOpen, setPermDialogOpen] = useState(false)
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
+  const [editedPerms, setEditedPerms] = useState<EmployeePermission[]>([])
 
   const fetchEmployees = useCallback(async () => {
     if (!accessToken) return
@@ -57,6 +62,41 @@ export default function EmployeesPage() {
     }
   }
 
+  const openPermissionsDialog = (employee: Employee) => {
+    setSelectedEmployee(employee)
+    setEditedPerms([...(employee.permissions ?? [])])
+    setPermDialogOpen(true)
+  }
+
+  const togglePerm = (perm: EmployeePermission) => {
+    setEditedPerms((prev) =>
+      prev.includes(perm) ? prev.filter((p) => p !== perm) : [...prev, perm]
+    )
+  }
+
+  const handleSavePermissions = async () => {
+    if (!accessToken || !selectedEmployee) return
+    const res = await fetch(`/api/admin/employees/${selectedEmployee.id}/permissions`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ permissions: editedPerms }),
+    })
+    if (res.ok) {
+      setPermDialogOpen(false)
+      toast({ variant: 'success', description: 'Permissões salvas com sucesso.' })
+      setEmployees((prev) =>
+        prev.map((e) =>
+          e.id === selectedEmployee.id ? { ...e, permissions: editedPerms } : e
+        )
+      )
+    } else {
+      toast({ variant: 'destructive', description: 'Erro ao salvar permissões.' })
+    }
+  }
+
   return (
     <div>
       <Heading as="h1" size="2xl" className="mb-6">
@@ -68,7 +108,37 @@ export default function EmployeesPage() {
         loading={loading}
         onCreate={handleCreate}
         onDelete={handleDelete}
+        onManagePermissions={openPermissionsDialog}
       />
+
+      <Dialog
+        open={permDialogOpen}
+        onClose={() => setPermDialogOpen(false)}
+        title={selectedEmployee ? `Permissões de ${selectedEmployee.name}` : 'Permissões'}
+      >
+        <div className="flex flex-col gap-3">
+          {ALL_PERMISSIONS.map((perm) => {
+            const id = `perm-dialog-${perm}`
+            return (
+              <label key={perm} htmlFor={id} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  id={id}
+                  checked={editedPerms.includes(perm)}
+                  onChange={() => togglePerm(perm)}
+                />
+                {PERMISSION_LABELS[perm]}
+              </label>
+            )
+          })}
+        </div>
+        <div className="flex justify-end gap-2 mt-4">
+          <Button variant="secondary" onClick={() => setPermDialogOpen(false)}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSavePermissions}>Salvar</Button>
+        </div>
+      </Dialog>
     </div>
   )
 }

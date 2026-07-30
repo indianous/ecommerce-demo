@@ -8,15 +8,23 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/dashboard',
 }))
 
+const mockAuthState = {
+  isAuthenticated: true,
+  accessToken: 'tok',
+  role: 'EMPLOYEE' as const,
+  user: {
+    id: '2',
+    name: 'Funcionário',
+    email: 'employee@test.com',
+    role: 'EMPLOYEE' as const,
+    permissions: [] as import('@/types').EmployeePermission[],
+  },
+  logout: vi.fn(),
+}
+
 vi.mock('@/stores/auth.store', () => ({
-  useAuthStore: (sel: (s: object) => unknown) =>
-    sel({
-      isAuthenticated: true,
-      accessToken: 'tok',
-      role: 'EMPLOYEE',
-      user: { id: '2', name: 'Funcionário', email: 'employee@test.com', role: 'EMPLOYEE' },
-      logout: vi.fn(),
-    }),
+  useAuthStore: (sel?: (s: object) => unknown) =>
+    sel ? sel(mockAuthState) : mockAuthState,
 }))
 
 describe('EmployeeLayout', () => {

@@ -10,9 +10,10 @@ interface Props {
   loading: boolean
   onCreate: (data: EmployeeFormData) => void
   onDelete: (id: string) => void
+  onManagePermissions?: (employee: Employee) => void
 }
 
-export function EmployeeManagementTable({ employees, loading, onCreate, onDelete }: Props) {
+export function EmployeeManagementTable({ employees, loading, onCreate, onDelete, onManagePermissions }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const columns: TableColumn<Employee>[] = [
@@ -22,13 +23,24 @@ export function EmployeeManagementTable({ employees, loading, onCreate, onDelete
       key: 'actions',
       header: 'Ações',
       render: (row) => (
-        <Button
-          variant="danger"
-          aria-label={`Excluir ${row.name}`}
-          onClick={() => onDelete(row.id)}
-        >
-          Excluir
-        </Button>
+        <div className="flex gap-2">
+          {onManagePermissions && (
+            <Button
+              variant="secondary"
+              aria-label={`Permissões de ${row.name}`}
+              onClick={() => onManagePermissions(row)}
+            >
+              Permissões
+            </Button>
+          )}
+          <Button
+            variant="danger"
+            aria-label={`Excluir ${row.name}`}
+            onClick={() => onDelete(row.id)}
+          >
+            Excluir
+          </Button>
+        </div>
       ),
     },
   ]

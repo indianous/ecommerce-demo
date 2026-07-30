@@ -1,10 +1,22 @@
 export type UserRole = 'CUSTOMER' | 'EMPLOYEE' | 'ADMIN'
 
+export type EmployeePermission =
+  | 'MANAGE_PRODUCTS'
+  | 'MANAGE_CUSTOMERS'
+  | 'MANAGE_ORDERS'
+  | 'MANAGE_STOCK'
+  | 'MANAGE_SHIPPING'
+  | 'MANAGE_PAYMENTS'
+  | 'RESTORE_PRODUCTS'
+  | 'MANAGE_EMPLOYEES'
+  | 'MANAGE_ORDER_STATUS_REQUESTS'
+
 export interface User {
   id: string
   name: string
   email: string
   role: UserRole
+  permissions: EmployeePermission[]
 }
 
 export interface Address {
@@ -103,6 +115,7 @@ export interface Employee {
   name: string
   email: string
   role: 'EMPLOYEE'
+  permissions: EmployeePermission[]
 }
 
 export interface EmployeeFormData {

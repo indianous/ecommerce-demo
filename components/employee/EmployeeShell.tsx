@@ -1,17 +1,33 @@
 'use client'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { SidebarAvatar } from '@/components/admin/SidebarAvatar'
+import { useAuthStore } from '@/stores/auth.store'
+import type { EmployeePermission } from '@/types'
 
-const navItems = [
-  { label: 'Pedidos', href: '/dashboard' },
-  { label: 'Produtos', href: '/products' },
+const ORDER_PERMS: EmployeePermission[] = ['MANAGE_ORDERS', 'MANAGE_SHIPPING', 'MANAGE_ORDER_STATUS_REQUESTS']
+const PRODUCT_PERMS: EmployeePermission[] = ['MANAGE_PRODUCTS', 'MANAGE_STOCK', 'RESTORE_PRODUCTS']
+
+const ALL_NAV_ITEMS = [
+  { label: 'Pedidos', href: '/dashboard', perms: ORDER_PERMS },
+  { label: 'Produtos', href: '/products', perms: PRODUCT_PERMS },
+  { label: 'Clientes', href: '/clientes', perms: ['MANAGE_CUSTOMERS'] as EmployeePermission[] },
+  { label: 'Pagamentos', href: '/pagamentos', perms: ['MANAGE_PAYMENTS'] as EmployeePermission[] },
+  { label: 'Funcionários', href: '/funcionarios', perms: ['MANAGE_EMPLOYEES'] as EmployeePermission[] },
 ]
 
 export function EmployeeShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const { user } = useAuthStore()
+
+  const navItems = useMemo(() => {
+    const permissions = user?.permissions ?? []
+    return ALL_NAV_ITEMS.filter((item) =>
+      item.perms.some((p) => permissions.includes(p))
+    )
+  }, [user?.permissions])
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), [])
 

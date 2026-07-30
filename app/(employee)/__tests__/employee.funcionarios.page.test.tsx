@@ -106,7 +106,7 @@ describe('Employee Funcionários Page — Gestão de Permissões', () => {
     await user.click(within(carlosRow).getByLabelText(/gerenciamento de produtos/i))
     await user.click(within(carlosRow).getByRole('button', { name: /salvar/i }))
 
-    await screen.findByRole('alert')
+    await screen.findByRole('status')
     expect(capturedId).toBe('emp-1')
     expect(capturedBody).toMatchObject({
       permissions: expect.arrayContaining(['MANAGE_ORDERS', 'MANAGE_PRODUCTS']),
@@ -121,7 +121,7 @@ describe('Employee Funcionários Page — Gestão de Permissões', () => {
     const carlosRow = screen.getByText('Carlos Dias').closest('tr') as HTMLElement
     await user.click(within(carlosRow).getByRole('button', { name: /salvar/i }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/permissões.*salvas/i)
+    expect(await screen.findByRole('status')).toHaveTextContent(/permissões.*salvas/i)
   })
 
   it('exibe toast de erro quando API falha', async () => {

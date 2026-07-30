@@ -126,7 +126,7 @@ describe('EmployeesPage — Gestão de Permissões', () => {
     await user.click(within(dialog).getByLabelText(/gerenciamento de pedidos/i))
     await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
 
-    await screen.findByRole('alert')
+    await screen.findByRole('status')
     expect(capturedBody).toMatchObject({ permissions: expect.arrayContaining(['MANAGE_ORDERS']) })
   })
 
@@ -138,7 +138,7 @@ describe('EmployeesPage — Gestão de Permissões', () => {
     await user.click(screen.getByRole('button', { name: /permissões de ana costa/i }))
     await user.click(screen.getByRole('button', { name: /salvar/i }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/permissões.*salvas/i)
+    expect(await screen.findByRole('status')).toHaveTextContent(/permissões.*salvas/i)
   })
 
   it('Dialog fecha ao clicar em Cancelar', async () => {
