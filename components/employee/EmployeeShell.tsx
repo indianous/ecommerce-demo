@@ -45,7 +45,7 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
           ))}
         </ul>
         <div className="mt-auto">
-          <SidebarAvatar />
+          <SidebarAvatar profileHref="/dashboard/profile" />
         </div>
       </nav>
 
@@ -93,7 +93,7 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
                 </ul>
               </nav>
               <div className="mt-auto">
-                <SidebarAvatar />
+                <SidebarAvatar profileHref="/dashboard/profile" />
               </div>
             </div>
           </>

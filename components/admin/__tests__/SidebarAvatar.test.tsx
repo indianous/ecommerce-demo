@@ -22,7 +22,7 @@ const authenticatedUser = {
 function renderSidebarAvatar(props: { collapsed?: boolean } = {}) {
   return render(
     <ToastProvider>
-      <SidebarAvatar {...props} />
+      <SidebarAvatar profileHref="/dashboard/profile" {...props} />
     </ToastProvider>,
   )
 }
@@ -41,18 +41,34 @@ describe('SidebarAvatar', () => {
     expect(screen.getByText('A')).toBeInTheDocument()
   })
 
-  it('exibe nome e e-mail quando collapsed=false', () => {
+  it('exibe o nome do usuário quando collapsed=false', () => {
     useAuthStore.setState(authenticatedUser)
     renderSidebarAvatar({ collapsed: false })
     expect(screen.getByText('Admin Silva')).toBeInTheDocument()
-    expect(screen.getByText('admin@test.com')).toBeInTheDocument()
   })
 
-  it('oculta nome e e-mail com sr-only quando collapsed=true', () => {
+  it('não exibe o e-mail do usuário no trigger', () => {
+    useAuthStore.setState(authenticatedUser)
+    renderSidebarAvatar()
+    expect(screen.queryByText('admin@test.com')).not.toBeInTheDocument()
+  })
+
+  it('oculta nome com sr-only quando collapsed=true', () => {
     useAuthStore.setState(authenticatedUser)
     renderSidebarAvatar({ collapsed: true })
     expect(screen.getByText('Admin Silva')).toHaveClass('sr-only')
-    expect(screen.getByText('admin@test.com')).toHaveClass('sr-only')
+  })
+
+  it('link "Perfil" aparece no dropdown ao clicar no avatar', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState(authenticatedUser)
+    renderSidebarAvatar()
+
+    await user.click(screen.getByRole('button', { name: /menu do admin/i }))
+
+    const profileLink = screen.getByRole('menuitem', { name: /perfil/i })
+    expect(profileLink).toBeInTheDocument()
+    expect(profileLink).toHaveAttribute('href', '/dashboard/profile')
   })
 
   it('abre DropdownMenu ao clicar no botão do Avatar', async () => {

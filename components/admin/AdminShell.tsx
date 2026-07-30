@@ -46,7 +46,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           ))}
         </ul>
         <div className="mt-auto">
-          <SidebarAvatar />
+          <SidebarAvatar profileHref="/dashboard/admin/profile" />
         </div>
       </nav>
 
@@ -94,7 +94,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 </ul>
               </nav>
               <div className="mt-auto">
-                <SidebarAvatar />
+                <SidebarAvatar profileHref="/dashboard/admin/profile" />
               </div>
             </div>
           </>

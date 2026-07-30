@@ -4,10 +4,11 @@ import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth.store'
 
 interface SidebarAvatarProps {
+  profileHref: string
   collapsed?: boolean
 }
 
-export function SidebarAvatar({ collapsed = false }: SidebarAvatarProps) {
+export function SidebarAvatar({ profileHref, collapsed = false }: SidebarAvatarProps) {
   const router = useRouter()
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
@@ -27,14 +28,17 @@ export function SidebarAvatar({ collapsed = false }: SidebarAvatarProps) {
     >
       <Avatar alt={user?.name ?? 'Admin'} fallback={initial} size="md" />
       <span className={collapsed ? 'sr-only' : undefined}>{user?.name}</span>
-      <span className={collapsed ? 'sr-only' : undefined}>{user?.email}</span>
     </button>
   )
 
   return (
     <DropdownMenu
       trigger={trigger}
-      items={[{ label: 'Sair', onClick: handleLogout }]}
+      items={[
+        { label: 'Perfil', href: profileHref },
+        { type: 'separator' },
+        { label: 'Sair', onClick: handleLogout },
+      ]}
     />
   )
 }
