@@ -10,6 +10,7 @@ import type { AdminOrderResponse } from '@/types'
 
 const mockOrder: AdminOrderResponse = {
   id: 'order-1',
+  orderNumber: 42,
   customerName: 'João Silva',
   customerEmail: 'joao@test.com',
   status: 'PENDING',

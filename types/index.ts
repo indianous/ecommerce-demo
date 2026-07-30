@@ -61,6 +61,7 @@ export interface OrderItemResponse {
 
 export interface OrderResponse {
   id: string
+  orderNumber: number
   status: OrderStatus
   totalAmount: number
   paymentMethod: PaymentMethod
@@ -80,6 +81,7 @@ export interface CartItem {
 
 export interface AdminOrderResponse {
   id: string
+  orderNumber: number
   customerName: string
   customerEmail: string
   status: OrderStatus

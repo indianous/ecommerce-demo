@@ -70,7 +70,7 @@ export function CheckoutForm({ addresses }: Props) {
     return (
       <div data-testid="order-success">
         <h2>Pedido realizado com sucesso!</h2>
-        <p>Número do pedido: {order.id}</p>
+        <p>Número do pedido: #{order.orderNumber}</p>
         {order.paymentId && (
           <p>
             Código de pagamento: <strong>{order.paymentId}</strong>

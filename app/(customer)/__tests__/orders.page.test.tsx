@@ -10,6 +10,7 @@ import type { OrderResponse } from '@/types'
 function makeOrder(i: number): OrderResponse {
   return {
     id: `order-${i}`,
+    orderNumber: i,
     status: 'PENDING',
     totalAmount: 100 + i,
     paymentMethod: 'PIX',
@@ -44,23 +45,30 @@ describe('OrdersPage', () => {
     expect(await screen.findByText(/nenhum pedido/i)).toBeInTheDocument()
   })
 
+  it('exibe o número do pedido formatado como #<orderNumber> na coluna Pedido', async () => {
+    render(<OrdersPage />)
+
+    expect(await screen.findByText('#1')).toBeInTheDocument()
+    expect(screen.queryByText('order-1')).not.toBeInTheDocument()
+  })
+
   it('renders the first page of orders with status', async () => {
     render(<OrdersPage />)
 
-    await screen.findByText('order-1')
+    await screen.findByText('#1')
     expect(screen.getAllByText('PENDING').length).toBeGreaterThan(0)
-    expect(screen.queryByText('order-6')).not.toBeInTheDocument()
+    expect(screen.queryByText('#6')).not.toBeInTheDocument()
   })
 
   it('paginates to the next page', async () => {
     const user = userEvent.setup()
     render(<OrdersPage />)
 
-    await screen.findByText('order-1')
+    await screen.findByText('#1')
 
     await user.click(screen.getByRole('button', { name: /next page/i }))
 
-    expect(await screen.findByText('order-6')).toBeInTheDocument()
+    expect(await screen.findByText('#6')).toBeInTheDocument()
   })
 
   it('hides order items by default', async () => {
@@ -69,6 +77,7 @@ describe('OrdersPage', () => {
         HttpResponse.json([
           {
             id: 'order-1',
+            orderNumber: 1,
             status: 'PENDING',
             totalAmount: 500,
             paymentMethod: 'PIX',
@@ -80,7 +89,7 @@ describe('OrdersPage', () => {
       ),
     )
     render(<OrdersPage />)
-    await screen.findByText('order-1')
+    await screen.findByText('#1')
 
     expect(screen.queryByText('Notebook')).not.toBeInTheDocument()
   })
@@ -92,6 +101,7 @@ describe('OrdersPage', () => {
         HttpResponse.json([
           {
             id: 'order-1',
+            orderNumber: 1,
             status: 'PENDING',
             totalAmount: 500,
             paymentMethod: 'PIX',
@@ -103,9 +113,9 @@ describe('OrdersPage', () => {
       ),
     )
     render(<OrdersPage />)
-    await screen.findByText('order-1')
+    await screen.findByText('#1')
 
-    await user.click(screen.getByRole('button', { name: /expandir order-1/i }))
+    await user.click(screen.getByRole('button', { name: /expandir #1/i }))
 
     expect(screen.getByText('Notebook')).toBeInTheDocument()
     expect(screen.getByText('2')).toBeInTheDocument()
@@ -119,6 +129,7 @@ describe('OrdersPage', () => {
         HttpResponse.json([
           {
             id: 'order-1',
+            orderNumber: 1,
             status: 'PENDING',
             totalAmount: 500,
             paymentMethod: 'PIX',
@@ -130,12 +141,12 @@ describe('OrdersPage', () => {
       ),
     )
     render(<OrdersPage />)
-    await screen.findByText('order-1')
+    await screen.findByText('#1')
 
-    await user.click(screen.getByRole('button', { name: /expandir order-1/i }))
+    await user.click(screen.getByRole('button', { name: /expandir #1/i }))
     expect(screen.getByText('Notebook')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: /expandir order-1/i }))
+    await user.click(screen.getByRole('button', { name: /expandir #1/i }))
     expect(screen.queryByText('Notebook')).not.toBeInTheDocument()
   })
 })

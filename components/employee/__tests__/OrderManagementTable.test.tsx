@@ -6,6 +6,7 @@ import type { AdminOrderResponse } from '@/types'
 
 const mockOrder: AdminOrderResponse = {
   id: 'order-1',
+  orderNumber: 42,
   customerName: 'João Silva',
   customerEmail: 'joao@test.com',
   status: 'PENDING',
@@ -24,6 +25,12 @@ describe('OrderManagementTable', () => {
     expect(screen.getByText('joao@test.com')).toBeInTheDocument()
     expect(screen.getByText(/R\$\s*2\.999/)).toBeInTheDocument()
     expect(screen.getByText('2 itens')).toBeInTheDocument()
+  })
+
+  it('exibe coluna "Nº Pedido" com o número formatado como #<orderNumber>', () => {
+    render(<OrderManagementTable orders={[mockOrder]} onStatusChange={vi.fn()} />)
+    expect(screen.getByRole('columnheader', { name: /nº pedido/i })).toBeInTheDocument()
+    expect(screen.getByText('#42')).toBeInTheDocument()
   })
 
   it('shows current order status in the status column', () => {

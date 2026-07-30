@@ -31,6 +31,7 @@ const mockAddress: Address = {
 
 const mockOrder: OrderResponse = {
   id: 'order-1',
+  orderNumber: 1,
   status: 'PENDING',
   totalAmount: 2999,
   paymentMethod: 'PIX',
@@ -80,6 +81,7 @@ describe('CheckoutForm', () => {
     await user.click(screen.getByRole('button', { name: /finalizar/i }))
 
     expect(await screen.findByTestId('order-success')).toBeInTheDocument()
+    expect(screen.getByText(/#1/)).toBeInTheDocument()
     expect(screen.getByText(/PIX-ABC123/)).toBeInTheDocument()
     expect(useCartStore.getState().items).toHaveLength(0)
   })

@@ -95,7 +95,7 @@ export default function OrdersPage() {
                     {order.items.length > 0 && (
                       <button
                         type="button"
-                        aria-label={`Expandir ${order.id}`}
+                        aria-label={`Expandir #${order.orderNumber}`}
                         onClick={() => toggleExpand(order.id)}
                         className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-border"
                       >
@@ -106,7 +106,7 @@ export default function OrdersPage() {
                       </button>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-foreground">{order.id}</td>
+                  <td className="px-4 py-3 text-foreground">#{order.orderNumber}</td>
                   <td className="px-4 py-3 text-foreground">{formatDate(order.createdAt)}</td>
                   <td className="px-4 py-3 text-foreground">{formatBRL(order.totalAmount)}</td>
                   <td className="px-4 py-3 text-foreground">{order.paymentMethod}</td>

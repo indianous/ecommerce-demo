@@ -36,6 +36,11 @@ export function OrderManagementTable({ orders, onStatusChange }: Props) {
 
   const columns: TableColumn<AdminOrderResponse>[] = [
     {
+      key: 'orderNumber',
+      header: 'Nº Pedido',
+      render: (order) => `#${order.orderNumber}`,
+    },
+    {
       key: 'customer',
       header: 'Cliente',
       render: (order) => (
