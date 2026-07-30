@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Button, Drawer, Text } from 'base-ds'
 import { useCartStore, selectCartTotal, selectItemCount } from '@/stores/cart.store'
+import { CartCardItem } from './CartCardItem'
 
 const formatBRL = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -43,11 +44,8 @@ export function CartDrawer() {
         ) : (
           <ul className="flex flex-col gap-3">
             {items.map((item) => (
-              <li key={item.productId} className="flex items-center justify-between gap-2">
-                <Text size="sm">
-                  {item.name} × {item.quantity}
-                </Text>
-                <Text size="sm">{formatBRL(item.price * item.quantity)}</Text>
+              <li key={item.productId}>
+                <CartCardItem item={item} />
               </li>
             ))}
           </ul>
