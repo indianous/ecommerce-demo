@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { Heading, Text } from 'base-ds'
-import { CheckoutAuth } from '@/components/checkout/CheckoutAuth'
-import { CheckoutForm } from '@/components/checkout/CheckoutForm'
+import { CheckoutAuth } from '@/components/forms/CheckoutAuth'
+import { CheckoutForm } from '@/components/forms/CheckoutForm'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Address } from '@/types'
 

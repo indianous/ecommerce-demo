@@ -1,21 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Button, FormField, Heading, Input, Text, useToast } from 'base-ds'
+import { Heading, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Address, User } from '@/types'
 import { ChangePasswordForm } from '@/components/forms/ChangePasswordForm'
-
-type NewAddress = Omit<Address, 'id' | 'isDefault'>
-
-const EMPTY_ADDRESS: NewAddress = {
-  street: '',
-  number: '',
-  district: '',
-  city: '',
-  state: '',
-  zipCode: '',
-}
+import { ProfileDataForm } from '@/components/forms/ProfileDataForm'
+import { AddressForm, EMPTY_ADDRESS, type NewAddress } from '@/components/forms/AddressForm'
 
 export default function ProfilePage() {
   const { accessToken, setUser } = useAuthStore()
@@ -102,17 +93,14 @@ export default function ProfilePage() {
         <Heading as="h1" size="2xl" className="mb-6">
           Meus dados
         </Heading>
-        <form onSubmit={handleSaveUser} className="flex flex-col gap-4">
-          <FormField label="Nome" id="profile-name">
-            <Input id="profile-name" value={name} onChange={(e) => setName(e.target.value)} />
-          </FormField>
-          <FormField label="Email" id="profile-email">
-            <Input id="profile-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </FormField>
-          <Button type="submit" isLoading={savingUser} className="self-start">
-            Salvar
-          </Button>
-        </form>
+        <ProfileDataForm
+          name={name}
+          email={email}
+          onNameChange={setName}
+          onEmailChange={setEmail}
+          onSubmit={handleSaveUser}
+          saving={savingUser}
+        />
       </section>
 
       <section>
@@ -136,59 +124,12 @@ export default function ProfilePage() {
           </ul>
         )}
 
-        <form onSubmit={handleAddAddress} className="grid grid-cols-2 gap-4">
-          <FormField label="Rua/Logradouro" id="address-street" className="col-span-2">
-            <Input
-              id="address-street"
-              value={newAddress.street}
-              onChange={(e) => setNewAddress((a) => ({ ...a, street: e.target.value }))}
-              required
-            />
-          </FormField>
-          <FormField label="Número" id="address-number">
-            <Input
-              id="address-number"
-              value={newAddress.number}
-              onChange={(e) => setNewAddress((a) => ({ ...a, number: e.target.value }))}
-              required
-            />
-          </FormField>
-          <FormField label="Bairro" id="address-district">
-            <Input
-              id="address-district"
-              value={newAddress.district}
-              onChange={(e) => setNewAddress((a) => ({ ...a, district: e.target.value }))}
-              required
-            />
-          </FormField>
-          <FormField label="Cidade" id="address-city">
-            <Input
-              id="address-city"
-              value={newAddress.city}
-              onChange={(e) => setNewAddress((a) => ({ ...a, city: e.target.value }))}
-              required
-            />
-          </FormField>
-          <FormField label="Estado" id="address-state">
-            <Input
-              id="address-state"
-              value={newAddress.state}
-              onChange={(e) => setNewAddress((a) => ({ ...a, state: e.target.value }))}
-              required
-            />
-          </FormField>
-          <FormField label="CEP" id="address-zip" className="col-span-2">
-            <Input
-              id="address-zip"
-              value={newAddress.zipCode}
-              onChange={(e) => setNewAddress((a) => ({ ...a, zipCode: e.target.value }))}
-              required
-            />
-          </FormField>
-          <Button type="submit" isLoading={savingAddress} className="col-span-2 self-start">
-            Adicionar endereço
-          </Button>
-        </form>
+        <AddressForm
+          address={newAddress}
+          onChange={(patch) => setNewAddress((a) => ({ ...a, ...patch }))}
+          onSubmit={handleAddAddress}
+          saving={savingAddress}
+        />
       </section>
 
       <section>

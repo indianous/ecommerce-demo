@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, FormField, Heading, Input, PasswordInput, Text } from 'base-ds'
+import { Button, FormField, Input, PasswordInput, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 
 type Tab = 'login' | 'register'

@@ -1,7 +1,9 @@
 'use client'
+
 import { useState } from 'react'
-import { Button, Dialog, Input, Skeleton, Table, type TableColumn } from 'base-ds'
+import { Button, Dialog, Skeleton, Table, type TableColumn } from 'base-ds'
 import type { Employee, EmployeeFormData } from '@/types'
+import { EmployeeForm } from '@/components/forms/EmployeeForm'
 
 interface Props {
   employees: Employee[]
@@ -10,30 +12,8 @@ interface Props {
   onDelete: (id: string) => void
 }
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 export function EmployeeManagementTable({ employees, loading, onCreate, onDelete }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-
-  const canSubmit = name.trim() !== '' && EMAIL_RE.test(email) && password.length >= 8
-
-  function handleSubmit() {
-    onCreate({ name, email, password })
-    setDialogOpen(false)
-    setName('')
-    setEmail('')
-    setPassword('')
-  }
-
-  function handleClose() {
-    setDialogOpen(false)
-    setName('')
-    setEmail('')
-    setPassword('')
-  }
 
   const columns: TableColumn<Employee>[] = [
     { key: 'name', header: 'Nome' },
@@ -71,43 +51,16 @@ export function EmployeeManagementTable({ employees, loading, onCreate, onDelete
 
       <Dialog
         open={dialogOpen}
-        onClose={handleClose}
+        onClose={() => setDialogOpen(false)}
         title="Novo funcionário"
-        footer={
-          <div className="flex gap-2 justify-end">
-            <Button variant="secondary" onClick={handleClose}>Cancelar</Button>
-            <Button onClick={handleSubmit} disabled={!canSubmit}>Salvar</Button>
-          </div>
-        }
       >
-        <div className="flex flex-col gap-4">
-          <div>
-            <label htmlFor="emp-name" className="block text-sm font-medium mb-1">Nome</label>
-            <Input
-              id="emp-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-          <div>
-            <label htmlFor="emp-email" className="block text-sm font-medium mb-1">E-mail</label>
-            <Input
-              id="emp-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <div>
-            <label htmlFor="emp-password" className="block text-sm font-medium mb-1">Senha</label>
-            <Input
-              id="emp-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-        </div>
+        <EmployeeForm
+          onSave={(data) => {
+            onCreate(data)
+            setDialogOpen(false)
+          }}
+          onCancel={() => setDialogOpen(false)}
+        />
       </Dialog>
     </div>
   )
