@@ -110,3 +110,30 @@ export interface EmployeeFormData {
   email: string
   password: string
 }
+
+export type AuditEntityType = 'PRODUCT' | 'CATEGORY' | 'ORDER' | 'USER' | 'ADDRESS'
+export type AuditAction =
+  | 'CREATED'
+  | 'UPDATED'
+  | 'DELETED'
+  | 'DEACTIVATED'
+  | 'STATUS_UPDATED'
+  | 'PASSWORD_CHANGED'
+
+export interface AuditLogResponse {
+  id: number
+  entityType: AuditEntityType
+  entityId: string
+  action: AuditAction
+  actorEmail: string | null
+  actorRole: string | null
+  createdAt: string
+}
+
+export interface AuditLogPage {
+  content: AuditLogResponse[]
+  totalElements: number
+  totalPages: number
+  size: number
+  number: number
+}
