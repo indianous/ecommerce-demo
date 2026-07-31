@@ -38,6 +38,8 @@ export interface Category {
   description?: string
 }
 
+export type ProductStatus = 'AVAILABLE' | 'UNAVAILABLE'
+
 export interface Product {
   id: string
   categoryId: string
@@ -48,6 +50,9 @@ export interface Product {
   stockQuantity: number
   imageUrl?: string
   active: boolean
+  status: ProductStatus
+  createdAt: string
+  updatedAt: string
 }
 
 export interface ProductPage {
@@ -59,8 +64,17 @@ export interface ProductPage {
   last: boolean
 }
 
+export interface AdminProductPage {
+  content: Product[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  last: boolean
+}
+
 export type PaymentMethod = 'PIX' | 'CREDIT_CARD' | 'BOLETO'
-export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
+export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'RETURNED' | 'DELIVERED' | 'CANCELLED'
 export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED'
 
 export interface OrderItemResponse {
@@ -105,6 +119,69 @@ export interface AdminOrderResponse {
   itemCount: number
 }
 
+export interface AdminOrderPage {
+  content: AdminOrderResponse[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  last: boolean
+}
+
+export interface OrderStatusHistoryResponse {
+  id: string
+  fromStatus: OrderStatus | null
+  toStatus: OrderStatus
+  changedByEmail: string | null
+  reason: string | null
+  attachmentUrls: string[]
+  createdAt: string
+}
+
+export interface AdminOrderDetailResponse extends AdminOrderResponse {
+  items: OrderItemResponse[]
+  address: Address
+  statusHistory: OrderStatusHistoryResponse[]
+}
+
+export type OrderChangeRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+
+export interface OrderChangeRequest {
+  id: string
+  orderId: string
+  orderNumber: number
+  requestedByEmail: string
+  fromStatus: OrderStatus
+  toStatus: OrderStatus
+  justification: string
+  attachmentUrls: string[]
+  status: OrderChangeRequestStatus
+  resolvedByEmail: string | null
+  resolvedAt: string | null
+  createdAt: string
+}
+
+export interface OrderChangeRequestPage {
+  content: OrderChangeRequest[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  last: boolean
+}
+
+export interface UpdateOrderStatusPayload {
+  status: OrderStatus
+  reason: string
+  attachmentUrls?: string[]
+}
+
+export interface CreateOrderChangeRequestPayload {
+  toStatus: OrderStatus
+  justification: string
+  attachmentUrls?: string[]
+}
+
 export interface ApiError {
   message: string
   status: number
@@ -116,12 +193,49 @@ export interface Employee {
   email: string
   role: 'EMPLOYEE'
   permissions: EmployeePermission[]
+  photoUrl?: string
 }
 
 export interface EmployeeFormData {
   name: string
   email: string
   password: string
+}
+
+export interface EmployeePage {
+  content: Employee[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  last: boolean
+}
+
+export interface EmployeeDetailResponse extends Employee {
+  createdAt: string
+}
+
+export interface CustomerResponse {
+  id: string
+  name: string
+  email: string
+}
+
+export interface CustomerPage {
+  content: CustomerResponse[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  last: boolean
+}
+
+export interface CustomerDetailResponse {
+  id: string
+  name: string
+  email: string
+  createdAt: string
+  addresses: Address[]
 }
 
 export type AuditEntityType = 'PRODUCT' | 'CATEGORY' | 'ORDER' | 'USER' | 'ADDRESS'
