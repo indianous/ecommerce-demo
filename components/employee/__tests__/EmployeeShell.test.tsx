@@ -141,9 +141,21 @@ describe('EmployeeShell — Sidebar (desktop)', () => {
 
   it('item correspondente ao pathname atual recebe aria-current="page"', () => {
     useAuthStore.setState(makeEmployee(['MANAGE_ORDERS', 'MANAGE_PRODUCTS']))
-    renderEmployeeShell('/dashboard')
+    renderEmployeeShell('/pedidos')
     expect(screen.getByRole('link', { name: /pedidos/i })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: /produtos/i })).not.toHaveAttribute('aria-current')
+  })
+
+  it('MANAGE_ORDER_STATUS_REQUESTS exibe item "Solicitações"', () => {
+    useAuthStore.setState(makeEmployee(['MANAGE_ORDER_STATUS_REQUESTS']))
+    renderEmployeeShell()
+    expect(screen.getByRole('link', { name: /solicitações/i })).toBeInTheDocument()
+  })
+
+  it('sem MANAGE_ORDER_STATUS_REQUESTS não exibe "Solicitações"', () => {
+    useAuthStore.setState(makeEmployee(['MANAGE_ORDERS']))
+    renderEmployeeShell()
+    expect(screen.queryByRole('link', { name: /solicitações/i })).not.toBeInTheDocument()
   })
 
   it('renderiza {children} na área de conteúdo principal', () => {

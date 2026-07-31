@@ -10,7 +10,8 @@ const ORDER_PERMS: EmployeePermission[] = ['MANAGE_ORDERS', 'MANAGE_SHIPPING', '
 const PRODUCT_PERMS: EmployeePermission[] = ['MANAGE_PRODUCTS', 'MANAGE_STOCK', 'RESTORE_PRODUCTS']
 
 const ALL_NAV_ITEMS = [
-  { label: 'Pedidos', href: '/dashboard', perms: ORDER_PERMS },
+  { label: 'Pedidos', href: '/pedidos', perms: ORDER_PERMS },
+  { label: 'Solicitações', href: '/solicitacoes', perms: ['MANAGE_ORDER_STATUS_REQUESTS'] as EmployeePermission[] },
   { label: 'Produtos', href: '/products', perms: PRODUCT_PERMS },
   { label: 'Clientes', href: '/clientes', perms: ['MANAGE_CUSTOMERS'] as EmployeePermission[] },
   { label: 'Pagamentos', href: '/pagamentos', perms: ['MANAGE_PAYMENTS'] as EmployeePermission[] },
