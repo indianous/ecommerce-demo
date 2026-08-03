@@ -1,0 +1,90 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Heading, Skeleton, useToast } from 'base-ds'
+import { useAuthStore } from '@/stores/auth.store'
+import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { ProductForm, type ProductFormState } from '@/components/forms/ProductForm'
+import type { Category } from '@/types'
+
+export function ProductEditContent({ id }: { id: string }) {
+  const { accessToken } = useAuthStore()
+  const { toast } = useToast()
+  const router = useRouter()
+  const [categories, setCategories] = useState<Category[]>([])
+  const [form, setForm] = useState<ProductFormState | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!accessToken) return
+    Promise.all([
+      fetch('/api/categories').then((r) => (r.ok ? r.json() : [])),
+      fetch(`/api/admin/products/${id}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }).then((r) => (r.ok ? r.json() : null)),
+    ]).then(([cats, product]) => {
+      setCategories(cats)
+      if (product) {
+        setForm({
+          name: product.name,
+          description: product.description ?? '',
+          price: product.price,
+          stockQuantity: product.stockQuantity,
+          categoryId: product.categoryId,
+          imageUrl: product.imageUrl ?? '',
+        })
+      }
+      setLoading(false)
+    })
+  }, [accessToken, id])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!accessToken || !form) return
+    setSaving(true)
+    try {
+      const category = categories.find((c) => c.id === form.categoryId)
+      const body = { ...form, categoryName: category?.name ?? '', active: true }
+      const res = await fetch(`/api/admin/products/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify(body),
+      })
+      if (!res.ok) throw new Error()
+      toast({ variant: 'success', description: 'Produto atualizado com sucesso.' })
+      router.push('/dashboard/products')
+    } catch {
+      toast({ variant: 'destructive', description: 'Erro ao atualizar produto.' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) return <div role="status"><Skeleton variant="line" height={40} className="mb-2" /></div>
+  if (!form) return <p>Produto não encontrado.</p>
+
+  return (
+    <PermissionGuard permissions={['MANAGE_PRODUCTS']}>
+      <main className="mx-auto max-w-2xl px-4 py-8">
+        <div className="mb-6 flex items-center gap-4">
+          <Link href="/dashboard/products" className="text-sm text-muted-foreground hover:underline">
+            ← Voltar
+          </Link>
+          <Heading as="h1" size="2xl">Editar Produto</Heading>
+        </div>
+        <ProductForm
+          form={form}
+          onFormChange={(patch) => setForm((f) => (f ? { ...f, ...patch } : f))}
+          categories={categories}
+          editingId={id}
+          saving={saving}
+          onSubmit={handleSubmit}
+          accessToken={accessToken}
+        />
+      </main>
+    </PermissionGuard>
+  )
+}

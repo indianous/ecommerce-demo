@@ -5,8 +5,9 @@ import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const replaceMock = vi.fn()
+const pushMock = vi.fn()
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: replaceMock }),
+  useRouter: () => ({ replace: replaceMock, push: pushMock }),
 }))
 import { ToastProvider, ToastViewport } from 'base-ds'
 import ProductsManagementPage from '../dashboard/products/page'
@@ -122,6 +123,7 @@ beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
   replaceMock.mockClear()
+  pushMock.mockClear()
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
   })
@@ -173,32 +175,25 @@ describe('ProductsManagementPage — listagem', () => {
   })
 })
 
-describe('ProductsManagementPage — criar produto', () => {
-  it('opens the create dialog with empty fields', async () => {
+describe('ProductsManagementPage — navegação', () => {
+  it('botão "Novo produto" navega para /dashboard/products/new', async () => {
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Teclado Mecânico')
 
     await user.click(screen.getByRole('button', { name: /novo produto/i }))
 
-    const dialog = await screen.findByRole('dialog')
-    expect(dialog).toBeInTheDocument()
-    expect(within(dialog).getByLabelText(/^nome/i)).toHaveValue('')
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/products/new')
   })
 
-  it('creates a new product', async () => {
+  it('botão "Editar" navega para /dashboard/products/:id/edit', async () => {
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Teclado Mecânico')
 
-    await user.click(screen.getByRole('button', { name: /novo produto/i }))
-    const dialog = await screen.findByRole('dialog')
+    await user.click(screen.getByRole('button', { name: /editar teclado mecânico/i }))
 
-    await user.type(within(dialog).getByLabelText(/^nome/i), 'Mouse Gamer')
-    await user.selectOptions(within(dialog).getByLabelText(/^categoria/i), 'cat-1')
-    await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
-
-    expect(await screen.findByText('Mouse Gamer')).toBeInTheDocument()
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/products/prod-1/edit')
   })
 })
 
@@ -287,72 +282,6 @@ describe('ProductsManagementPage — aba Excluídos', () => {
   })
 })
 
-describe('ProductsManagementPage — upload de imagem', () => {
-  it('exibe input de arquivo no formulário de produto', async () => {
-    const user = userEvent.setup()
-    renderPage()
-    await screen.findByText('Teclado Mecânico')
-
-    await user.click(screen.getByRole('button', { name: /novo produto/i }))
-    await screen.findByRole('dialog')
-
-    expect(document.querySelector('input[type="file"]')).toBeInTheDocument()
-  })
-
-  it('faz POST para /api/upload/image ao selecionar um arquivo', async () => {
-    const user = userEvent.setup()
-    renderPage()
-    await screen.findByText('Teclado Mecânico')
-
-    await user.click(screen.getByRole('button', { name: /novo produto/i }))
-    await screen.findByRole('dialog')
-
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
-    const file = new File(['bytes'], 'foto.jpg', { type: 'image/jpeg' })
-    await user.upload(fileInput, file)
-
-    await waitFor(() => {
-      expect(screen.getByRole('img', { name: /preview/i })).toBeInTheDocument()
-    })
-  })
-
-  it('exibe preview com a URL retornada pelo servidor após upload', async () => {
-    const user = userEvent.setup()
-    renderPage()
-    await screen.findByText('Teclado Mecânico')
-
-    await user.click(screen.getByRole('button', { name: /novo produto/i }))
-    await screen.findByRole('dialog')
-
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
-    await user.upload(fileInput, new File(['bytes'], 'foto.jpg', { type: 'image/jpeg' }))
-
-    const preview = await screen.findByRole('img', { name: /preview/i })
-    expect(preview).toHaveAttribute('src', '/uploads/uuid-test.jpg')
-  })
-
-  it('inclui imageUrl no payload ao salvar o produto', async () => {
-    const user = userEvent.setup()
-    renderPage()
-    await screen.findByText('Teclado Mecânico')
-
-    await user.click(screen.getByRole('button', { name: /novo produto/i }))
-    const dialog = await screen.findByRole('dialog')
-
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
-    await user.upload(fileInput, new File(['bytes'], 'foto.jpg', { type: 'image/jpeg' }))
-
-    await screen.findByRole('img', { name: /preview/i })
-
-    await user.type(within(dialog).getByLabelText(/^nome/i), 'Produto com Imagem')
-    await user.selectOptions(within(dialog).getByLabelText(/^categoria/i), 'cat-1')
-    await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
-
-    await waitFor(() => {
-      expect(lastSavedBody.imageUrl).toBe('/uploads/uuid-test.jpg')
-    })
-  })
-})
 
 describe('ProductsManagementPage — controle de acesso', () => {
   it('redireciona para /dashboard quando usuário não tem permissão de produtos', async () => {

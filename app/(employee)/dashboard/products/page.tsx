@@ -1,11 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Badge, Button, Dialog, Heading, Table, useToast, type TableColumn } from 'base-ds'
+import { useRouter } from 'next/navigation'
+import { Badge, Button, Heading, Table, useToast, type TableColumn } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import type { AdminProductPage, Category, Product, ProductStatus } from '@/types'
-import { ProductForm, EMPTY_PRODUCT_FORM, type ProductFormState } from '@/components/forms/ProductForm'
 
 const formatBRL = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -18,6 +18,7 @@ type Tab = 'active' | 'deleted'
 export default function ProductsManagementPage() {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
+  const router = useRouter()
 
   const [tab, setTab] = useState<Tab>('active')
   const [search, setSearch] = useState('')
@@ -27,11 +28,6 @@ export default function ProductsManagementPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(() => Boolean(accessToken))
-
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [form, setForm] = useState<ProductFormState>(EMPTY_PRODUCT_FORM)
-  const [saving, setSaving] = useState(false)
 
   const fetchProducts = useCallback(async () => {
     if (!accessToken) return
@@ -66,60 +62,6 @@ export default function ProductsManagementPage() {
   useEffect(() => {
     fetchProducts()
   }, [fetchProducts])
-
-  const openCreateDialog = () => {
-    setEditingId(null)
-    setForm(EMPTY_PRODUCT_FORM)
-    setDialogOpen(true)
-  }
-
-  const openEditDialog = (product: Product) => {
-    setEditingId(product.id)
-    setForm({
-      name: product.name,
-      description: product.description ?? '',
-      price: product.price,
-      stockQuantity: product.stockQuantity,
-      categoryId: product.categoryId,
-      imageUrl: product.imageUrl ?? '',
-    })
-    setDialogOpen(true)
-  }
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!accessToken) return
-    setSaving(true)
-    try {
-      const category = categories.find((c) => c.id === form.categoryId)
-      const body = { ...form, categoryName: category?.name ?? '', active: true }
-
-      const res = editingId
-        ? await fetch(`/api/admin/products/${editingId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-            body: JSON.stringify(body),
-          })
-        : await fetch('/api/admin/products', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-            body: JSON.stringify(body),
-          })
-
-      if (!res.ok) throw new Error()
-      const saved: Product = await res.json()
-
-      setProducts((prev) =>
-        editingId ? prev.map((p) => (p.id === editingId ? saved : p)) : [...prev, saved],
-      )
-      setDialogOpen(false)
-      toast({ variant: 'success', description: 'Produto salvo com sucesso.' })
-    } catch {
-      toast({ variant: 'destructive', description: 'Erro ao salvar produto.' })
-    } finally {
-      setSaving(false)
-    }
-  }
 
   const handleDelete = async (product: Product) => {
     if (!accessToken) return
@@ -188,7 +130,7 @@ export default function ProductsManagementPage() {
       header: 'Ações',
       render: (p) => (
         <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" size="sm" aria-label={`Editar ${p.name}`} onClick={() => openEditDialog(p)}>
+          <Button variant="outline" size="sm" aria-label={`Editar ${p.name}`} onClick={() => router.push(`/dashboard/products/${p.id}/edit`)}>
             Editar
           </Button>
           <Button
@@ -230,7 +172,7 @@ export default function ProductsManagementPage() {
           Gestão de Produtos
         </Heading>
         {tab === 'active' && (
-          <Button onClick={openCreateDialog}>Novo produto</Button>
+          <Button onClick={() => router.push('/dashboard/products/new')}>Novo produto</Button>
         )}
       </div>
 
@@ -299,22 +241,6 @@ export default function ProductsManagementPage() {
       )}
 
       <Table columns={tab === 'active' ? activeColumns : deletedColumns} data={products} />
-
-      <Dialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        title={editingId ? 'Editar produto' : 'Novo produto'}
-      >
-        <ProductForm
-          form={form}
-          onFormChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
-          categories={categories}
-          editingId={editingId}
-          saving={saving}
-          onSubmit={handleSave}
-          accessToken={accessToken}
-        />
-      </Dialog>
     </main>
     </PermissionGuard>
   )
