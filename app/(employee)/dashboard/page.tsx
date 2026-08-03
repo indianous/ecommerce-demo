@@ -1,57 +1,83 @@
 'use client'
-
-import { useCallback, useEffect, useState } from 'react'
-import { useToast } from 'base-ds'
+import Link from 'next/link'
+import { Heading } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
-import { OrderManagementTable } from '@/components/employee/OrderManagementTable'
-import type { AdminOrderResponse, OrderStatus } from '@/types'
+import type { EmployeePermission } from '@/types'
+
+interface DashboardCard {
+  label: string
+  description: string
+  href: string
+  perms: EmployeePermission[]
+}
+
+const CARDS: DashboardCard[] = [
+  {
+    label: 'Pedidos',
+    description: 'Gerencie pedidos e atualize status',
+    href: '/pedidos',
+    perms: ['MANAGE_ORDERS', 'MANAGE_SHIPPING', 'MANAGE_ORDER_STATUS_REQUESTS'],
+  },
+  {
+    label: 'Solicitações',
+    description: 'Aprove ou rejeite solicitações de retrocesso',
+    href: '/solicitacoes',
+    perms: ['MANAGE_ORDER_STATUS_REQUESTS'],
+  },
+  {
+    label: 'Produtos',
+    description: 'Gerencie o catálogo de produtos',
+    href: '/products',
+    perms: ['MANAGE_PRODUCTS', 'MANAGE_STOCK', 'RESTORE_PRODUCTS'],
+  },
+  {
+    label: 'Clientes',
+    description: 'Consulte clientes e seus endereços',
+    href: '/clientes',
+    perms: ['MANAGE_CUSTOMERS'],
+  },
+  {
+    label: 'Pagamentos',
+    description: 'Visualize e gerencie pagamentos',
+    href: '/pagamentos',
+    perms: ['MANAGE_PAYMENTS'],
+  },
+  {
+    label: 'Funcionários',
+    description: 'Gerencie permissões da equipe',
+    href: '/funcionarios',
+    perms: ['MANAGE_EMPLOYEES'],
+  },
+]
 
 export default function DashboardPage() {
-  const { accessToken } = useAuthStore()
-  const { toast } = useToast()
-  const [orders, setOrders] = useState<AdminOrderResponse[]>([])
-  const [loading, setLoading] = useState(true)
+  const { user } = useAuthStore()
+  const permissions = user?.permissions ?? []
 
-  const fetchOrders = useCallback(async () => {
-    if (!accessToken) return
-    try {
-      const res = await fetch('/api/admin/orders', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      if (!res.ok) throw new Error()
-      setOrders(await res.json())
-    } catch {
-      toast({ variant: 'destructive', description: 'Erro ao carregar pedidos.' })
-    } finally {
-      setLoading(false)
-    }
-  }, [accessToken, toast])
-
-  useEffect(() => {
-    fetchOrders()
-  }, [fetchOrders])
-
-  const handleStatusChange = async (orderId: string, status: OrderStatus) => {
-    if (!accessToken) return
-    const res = await fetch(`/api/admin/orders/${orderId}/status`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ status }),
-    })
-    if (res.ok) {
-      setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status } : o)))
-    }
-  }
-
-  if (loading) return <main><p>Carregando pedidos...</p></main>
+  const visibleCards = CARDS.filter((card) =>
+    card.perms.some((p) => permissions.includes(p)),
+  )
 
   return (
-    <main>
-      <h1>Gestão de Pedidos</h1>
-      <OrderManagementTable orders={orders} onStatusChange={handleStatusChange} />
-    </main>
+    <div>
+      <Heading as="h1" size="2xl" className="mb-6">
+        Bem-vindo{user?.name ? `, ${user.name}` : ''}
+      </Heading>
+
+      {visibleCards.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {visibleCards.map((card) => (
+            <Link
+              key={card.href}
+              href={card.href}
+              className="block p-5 border border-border rounded-lg hover:bg-muted transition-colors"
+            >
+              <h2 className="font-semibold text-base mb-1">{card.label}</h2>
+              <p className="text-sm text-muted-foreground">{card.description}</p>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
