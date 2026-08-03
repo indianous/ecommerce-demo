@@ -10,12 +10,12 @@ const ORDER_PERMS: EmployeePermission[] = ['MANAGE_ORDERS', 'MANAGE_SHIPPING', '
 const PRODUCT_PERMS: EmployeePermission[] = ['MANAGE_PRODUCTS', 'MANAGE_STOCK', 'RESTORE_PRODUCTS']
 
 const ALL_NAV_ITEMS = [
-  { label: 'Pedidos', href: '/orders', perms: ORDER_PERMS },
-  { label: 'Solicitações', href: '/change-requests', perms: ['MANAGE_ORDER_STATUS_REQUESTS'] as EmployeePermission[] },
-  { label: 'Produtos', href: '/products', perms: PRODUCT_PERMS },
-  { label: 'Clientes', href: '/customers', perms: ['MANAGE_CUSTOMERS'] as EmployeePermission[] },
-  { label: 'Pagamentos', href: '/payments', perms: ['MANAGE_PAYMENTS'] as EmployeePermission[] },
-  { label: 'Funcionários', href: '/employees', perms: ['MANAGE_EMPLOYEES'] as EmployeePermission[] },
+  { label: 'Pedidos', href: '/dashboard/orders', perms: ORDER_PERMS },
+  { label: 'Solicitações', href: '/dashboard/change-requests', perms: ['MANAGE_ORDER_STATUS_REQUESTS'] as EmployeePermission[] },
+  { label: 'Produtos', href: '/dashboard/products', perms: PRODUCT_PERMS },
+  { label: 'Clientes', href: '/dashboard/customers', perms: ['MANAGE_CUSTOMERS'] as EmployeePermission[] },
+  { label: 'Pagamentos', href: '/dashboard/payments', perms: ['MANAGE_PAYMENTS'] as EmployeePermission[] },
+  { label: 'Funcionários', href: '/dashboard/employees', perms: ['MANAGE_EMPLOYEES'] as EmployeePermission[] },
 ]
 
 export function EmployeeShell({ children }: { children: React.ReactNode }) {

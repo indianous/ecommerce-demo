@@ -1,6 +1,6 @@
 import { act, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import PagamentosPage from '../payments/page'
+import PagamentosPage from '../dashboard/payments/page'
 import { useAuthStore } from '@/stores/auth.store'
 
 const replaceMock = vi.fn()

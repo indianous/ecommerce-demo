@@ -9,7 +9,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: replaceMock }),
 }))
 import { ToastProvider, ToastViewport } from 'base-ds'
-import SolicitacoesPage from '../change-requests/page'
+import SolicitacoesPage from '../dashboard/change-requests/page'
 import { useAuthStore } from '@/stores/auth.store'
 import type { OrderChangeRequest } from '@/types'
 

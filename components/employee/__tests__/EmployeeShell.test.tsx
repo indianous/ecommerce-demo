@@ -141,7 +141,7 @@ describe('EmployeeShell — Sidebar (desktop)', () => {
 
   it('item correspondente ao pathname atual recebe aria-current="page"', () => {
     useAuthStore.setState(makeEmployee(['MANAGE_ORDERS', 'MANAGE_PRODUCTS']))
-    renderEmployeeShell('/orders')
+    renderEmployeeShell('/dashboard/orders')
     expect(screen.getByRole('link', { name: /pedidos/i })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: /produtos/i })).not.toHaveAttribute('aria-current')
   })
@@ -189,7 +189,7 @@ describe('EmployeeShell — Hamburger e Drawer (mobile)', () => {
   it('item ativo no Drawer recebe aria-current="page"', async () => {
     const user = userEvent.setup()
     useAuthStore.setState(makeEmployee(['MANAGE_ORDERS', 'MANAGE_PRODUCTS']))
-    renderEmployeeShell('/products')
+    renderEmployeeShell('/dashboard/products')
 
     await user.click(screen.getByRole('button', { name: /abrir menu/i }))
 
