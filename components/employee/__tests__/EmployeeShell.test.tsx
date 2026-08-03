@@ -76,10 +76,11 @@ describe('EmployeeShell — Sidebar (desktop)', () => {
     expect(screen.queryByRole('link', { name: /produtos/i })).not.toBeInTheDocument()
   })
 
-  it('MANAGE_SHIPPING exibe item "Pedidos" (mesmo sem MANAGE_ORDERS)', () => {
+  it('MANAGE_SHIPPING exibe item "Envios" (sem MANAGE_ORDERS)', () => {
     useAuthStore.setState(makeEmployee(['MANAGE_SHIPPING']))
     renderEmployeeShell()
-    expect(screen.getByRole('link', { name: /pedidos/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /envios/i })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /^pedidos$/i })).not.toBeInTheDocument()
   })
 
   it('MANAGE_ORDER_STATUS_REQUESTS exibe item "Pedidos"', () => {
@@ -95,7 +96,7 @@ describe('EmployeeShell — Sidebar (desktop)', () => {
     expect(screen.queryByRole('link', { name: /pedidos/i })).not.toBeInTheDocument()
   })
 
-  it('MANAGE_STOCK exibe item "Produtos" (mesmo sem MANAGE_PRODUCTS)', () => {
+  it('MANAGE_STOCK exibe item "Produtos" (via mesmo href)', () => {
     useAuthStore.setState(makeEmployee(['MANAGE_STOCK']))
     renderEmployeeShell()
     expect(screen.getByRole('link', { name: /produtos/i })).toBeInTheDocument()

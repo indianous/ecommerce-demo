@@ -16,7 +16,13 @@ const CARDS: DashboardCard[] = [
     label: 'Pedidos',
     description: 'Gerencie pedidos e atualize status',
     href: '/dashboard/orders',
-    perms: ['MANAGE_ORDERS', 'MANAGE_SHIPPING', 'MANAGE_ORDER_STATUS_REQUESTS'],
+    perms: ['MANAGE_ORDERS', 'MANAGE_ORDER_STATUS_REQUESTS'],
+  },
+  {
+    label: 'Envios',
+    description: 'Pedidos confirmados aguardando envio',
+    href: '/dashboard/shipping',
+    perms: ['MANAGE_SHIPPING'],
   },
   {
     label: 'Solicitações',
@@ -28,7 +34,13 @@ const CARDS: DashboardCard[] = [
     label: 'Produtos',
     description: 'Gerencie o catálogo de produtos',
     href: '/dashboard/products',
-    perms: ['MANAGE_PRODUCTS', 'MANAGE_STOCK', 'RESTORE_PRODUCTS'],
+    perms: ['MANAGE_PRODUCTS', 'RESTORE_PRODUCTS'],
+  },
+  {
+    label: 'Estoque',
+    description: 'Atualize a quantidade em estoque dos produtos',
+    href: '/dashboard/products',
+    perms: ['MANAGE_STOCK'],
   },
   {
     label: 'Clientes',

@@ -255,22 +255,46 @@ describe('ProductsManagementPage — ações', () => {
 })
 
 describe('ProductsManagementPage — aba Excluídos', () => {
+  it('aba "Excluídos" não aparece para usuários sem RESTORE_PRODUCTS', async () => {
+    renderPage() // beforeEach usa MANAGE_PRODUCTS
+    await screen.findByText('Teclado Mecânico')
+    expect(screen.queryByRole('button', { name: /excluídos/i })).not.toBeInTheDocument()
+  })
+
+  it('aba "Excluídos" aparece para usuários com RESTORE_PRODUCTS', async () => {
+    useAuthStore.setState({
+      accessToken: 'mock-token',
+      isAuthenticated: true,
+      user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['RESTORE_PRODUCTS'] },
+    })
+    renderPage()
+    expect(await screen.findByRole('button', { name: /excluídos/i })).toBeInTheDocument()
+  })
+
   it('aba "Excluídos" chama API com ?active=false e exibe produtos excluídos', async () => {
+    useAuthStore.setState({
+      accessToken: 'mock-token',
+      isAuthenticated: true,
+      user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['RESTORE_PRODUCTS'] },
+    })
     const user = userEvent.setup()
     renderPage()
-    await screen.findByText('Teclado Mecânico')
 
-    await user.click(screen.getByRole('button', { name: /excluídos/i }))
+    await user.click(await screen.findByRole('button', { name: /excluídos/i }))
 
     expect(await screen.findByText('Headset Antigo')).toBeInTheDocument()
   })
 
   it('aba Excluídos exibe botão Restaurar que chama PATCH /restore', async () => {
+    useAuthStore.setState({
+      accessToken: 'mock-token',
+      isAuthenticated: true,
+      user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['RESTORE_PRODUCTS'] },
+    })
     const user = userEvent.setup()
     renderPage()
-    await screen.findByText('Teclado Mecânico')
 
-    await user.click(screen.getByRole('button', { name: /excluídos/i }))
+    await user.click(await screen.findByRole('button', { name: /excluídos/i }))
     await screen.findByText('Headset Antigo')
 
     await user.click(screen.getByRole('button', { name: /restaurar/i }))
@@ -279,6 +303,36 @@ describe('ProductsManagementPage — aba Excluídos', () => {
       expect(lastRestoreId).toBe('prod-deleted')
       expect(screen.queryByText('Headset Antigo')).not.toBeInTheDocument()
     })
+  })
+})
+
+describe('ProductsManagementPage — gestão de estoque', () => {
+  it('"Atualizar estoque" não aparece para usuários sem MANAGE_STOCK', async () => {
+    renderPage() // MANAGE_PRODUCTS
+    await screen.findByText('Teclado Mecânico')
+    expect(screen.queryByRole('button', { name: /atualizar estoque/i })).not.toBeInTheDocument()
+  })
+
+  it('"Atualizar estoque" aparece para usuários com MANAGE_STOCK', async () => {
+    useAuthStore.setState({
+      accessToken: 'mock-token',
+      isAuthenticated: true,
+      user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_STOCK'] },
+    })
+    renderPage()
+    expect(await screen.findByRole('button', { name: /atualizar estoque/i })).toBeInTheDocument()
+  })
+
+  it('"Atualizar estoque" navega para /dashboard/products/:id/stock', async () => {
+    useAuthStore.setState({
+      accessToken: 'mock-token',
+      isAuthenticated: true,
+      user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_STOCK'] },
+    })
+    const user = userEvent.setup()
+    renderPage()
+    await user.click(await screen.findByRole('button', { name: /atualizar estoque/i }))
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/products/prod-1/stock')
   })
 })
 

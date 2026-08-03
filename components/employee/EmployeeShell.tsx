@@ -6,13 +6,11 @@ import { SidebarAvatar } from '@/components/admin/SidebarAvatar'
 import { useAuthStore } from '@/stores/auth.store'
 import type { EmployeePermission } from '@/types'
 
-const ORDER_PERMS: EmployeePermission[] = ['MANAGE_ORDERS', 'MANAGE_SHIPPING', 'MANAGE_ORDER_STATUS_REQUESTS']
-const PRODUCT_PERMS: EmployeePermission[] = ['MANAGE_PRODUCTS', 'MANAGE_STOCK', 'RESTORE_PRODUCTS']
-
 const ALL_NAV_ITEMS = [
-  { label: 'Pedidos', href: '/dashboard/orders', perms: ORDER_PERMS },
+  { label: 'Pedidos', href: '/dashboard/orders', perms: ['MANAGE_ORDERS', 'MANAGE_ORDER_STATUS_REQUESTS'] as EmployeePermission[] },
+  { label: 'Envios', href: '/dashboard/shipping', perms: ['MANAGE_SHIPPING'] as EmployeePermission[] },
   { label: 'Solicitações', href: '/dashboard/change-requests', perms: ['MANAGE_ORDER_STATUS_REQUESTS'] as EmployeePermission[] },
-  { label: 'Produtos', href: '/dashboard/products', perms: PRODUCT_PERMS },
+  { label: 'Produtos', href: '/dashboard/products', perms: ['MANAGE_PRODUCTS', 'MANAGE_STOCK', 'RESTORE_PRODUCTS'] as EmployeePermission[] },
   { label: 'Clientes', href: '/dashboard/customers', perms: ['MANAGE_CUSTOMERS'] as EmployeePermission[] },
   { label: 'Pagamentos', href: '/dashboard/payments', perms: ['MANAGE_PAYMENTS'] as EmployeePermission[] },
   { label: 'Funcionários', href: '/dashboard/employees', perms: ['MANAGE_EMPLOYEES'] as EmployeePermission[] },

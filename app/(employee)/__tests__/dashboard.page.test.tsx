@@ -53,10 +53,10 @@ describe('DashboardPage — cards por permissão', () => {
     expect(screen.getByRole('heading', { name: /pedidos/i })).toBeInTheDocument()
   })
 
-  it('exibe card "Pedidos" quando tem MANAGE_SHIPPING (mesmo sem MANAGE_ORDERS)', async () => {
+  it('exibe card "Envios" quando tem MANAGE_SHIPPING (sem MANAGE_ORDERS)', async () => {
     useAuthStore.setState(makeEmployee(['MANAGE_SHIPPING']))
     await act(async () => { renderDashboard() })
-    expect(screen.getByRole('heading', { name: /pedidos/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /envios/i })).toBeInTheDocument()
   })
 
   it('exibe card "Pedidos" quando tem MANAGE_ORDER_STATUS_REQUESTS', async () => {
@@ -77,10 +77,10 @@ describe('DashboardPage — cards por permissão', () => {
     expect(screen.getByRole('heading', { name: /produtos/i })).toBeInTheDocument()
   })
 
-  it('exibe card "Produtos" quando tem MANAGE_STOCK', async () => {
+  it('exibe card "Estoque" quando tem MANAGE_STOCK', async () => {
     useAuthStore.setState(makeEmployee(['MANAGE_STOCK']))
     await act(async () => { renderDashboard() })
-    expect(screen.getByRole('heading', { name: /produtos/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /estoque/i })).toBeInTheDocument()
   })
 
   it('exibe card "Produtos" quando tem RESTORE_PRODUCTS', async () => {

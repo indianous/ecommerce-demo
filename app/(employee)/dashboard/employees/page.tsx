@@ -21,7 +21,8 @@ export default function EmployeeFuncionariosPage() {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       if (!res.ok) throw new Error()
-      const data: Employee[] = await res.json()
+      const json = await res.json()
+      const data: Employee[] = json.content ?? json
       setEmployees(data)
       const permsMap: Record<string, EmployeePermission[]> = {}
       data.forEach((emp) => { permsMap[emp.id] = [...(emp.permissions ?? [])] })

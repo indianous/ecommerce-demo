@@ -16,9 +16,14 @@ const formatDate = (iso: string) =>
 type Tab = 'active' | 'deleted'
 
 export default function ProductsManagementPage() {
-  const { accessToken } = useAuthStore()
+  const { accessToken, user } = useAuthStore()
   const { toast } = useToast()
   const router = useRouter()
+
+  const perms = user?.permissions ?? []
+  const canManageProducts = perms.includes('MANAGE_PRODUCTS')
+  const canManageStock = perms.includes('MANAGE_STOCK')
+  const canRestore = perms.includes('RESTORE_PRODUCTS')
 
   const [tab, setTab] = useState<Tab>('active')
   const [search, setSearch] = useState('')
@@ -129,20 +134,31 @@ export default function ProductsManagementPage() {
       header: 'Ações',
       render: (p) => (
         <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" size="sm" aria-label={`Editar ${p.name}`} onClick={() => router.push(`/dashboard/products/${p.id}/edit`)}>
-            Editar
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={p.status === 'AVAILABLE' ? `Tornar Indisponível ${p.name}` : `Tornar Disponível ${p.name}`}
-            onClick={() => handleToggleStatus(p)}
-          >
-            {p.status === 'AVAILABLE' ? 'Tornar Indisponível' : 'Tornar Disponível'}
-          </Button>
-          <Button variant="danger" size="sm" aria-label={`Excluir ${p.name}`} onClick={() => handleDelete(p)}>
-            Excluir
-          </Button>
+          {canManageProducts && (
+            <Button variant="outline" size="sm" aria-label={`Editar ${p.name}`} onClick={() => router.push(`/dashboard/products/${p.id}/edit`)}>
+              Editar
+            </Button>
+          )}
+          {canManageProducts && (
+            <Button
+              variant="outline"
+              size="sm"
+              aria-label={p.status === 'AVAILABLE' ? `Tornar Indisponível ${p.name}` : `Tornar Disponível ${p.name}`}
+              onClick={() => handleToggleStatus(p)}
+            >
+              {p.status === 'AVAILABLE' ? 'Tornar Indisponível' : 'Tornar Disponível'}
+            </Button>
+          )}
+          {canManageStock && (
+            <Button variant="outline" size="sm" aria-label={`Atualizar estoque ${p.name}`} onClick={() => router.push(`/dashboard/products/${p.id}/stock`)}>
+              Atualizar estoque
+            </Button>
+          )}
+          {canManageProducts && (
+            <Button variant="danger" size="sm" aria-label={`Excluir ${p.name}`} onClick={() => handleDelete(p)}>
+              Excluir
+            </Button>
+          )}
         </div>
       ),
     },
@@ -170,7 +186,7 @@ export default function ProductsManagementPage() {
         <Heading as="h1" size="2xl">
           Gestão de Produtos
         </Heading>
-        {tab === 'active' && (
+        {tab === 'active' && canManageProducts && (
           <Button onClick={() => router.push('/dashboard/products/new')}>Novo produto</Button>
         )}
       </div>
@@ -190,19 +206,21 @@ export default function ProductsManagementPage() {
         >
           Produtos
         </button>
-        <button
-          type="button"
-          role="button"
-          aria-selected={tab === 'deleted'}
-          onClick={() => setTab('deleted')}
-          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-            tab === 'deleted'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          Excluídos
-        </button>
+        {canRestore && (
+          <button
+            type="button"
+            role="button"
+            aria-selected={tab === 'deleted'}
+            onClick={() => setTab('deleted')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              tab === 'deleted'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Excluídos
+          </button>
+        )}
       </div>
 
       {tab === 'active' && (
