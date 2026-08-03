@@ -4,7 +4,7 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { ToastProvider, ToastViewport } from 'base-ds'
-import EmployeesPage from '../funcionarios/page'
+import EmployeesPage from '../employees/page'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Employee } from '@/types'
 

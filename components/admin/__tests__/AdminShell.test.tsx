@@ -94,7 +94,7 @@ describe('AdminShell — Hamburger e Drawer (mobile)', () => {
   it('item ativo no Drawer recebe aria-current="page"', async () => {
     const user = userEvent.setup()
     useAuthStore.setState(authenticatedAdmin)
-    renderAdminShell('/dashboard/admin/funcionarios')
+    renderAdminShell('/dashboard/admin/employees')
 
     await user.click(screen.getByRole('button', { name: /abrir menu/i }))
 

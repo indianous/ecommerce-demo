@@ -15,13 +15,13 @@ const CARDS: DashboardCard[] = [
   {
     label: 'Pedidos',
     description: 'Gerencie pedidos e atualize status',
-    href: '/pedidos',
+    href: '/orders',
     perms: ['MANAGE_ORDERS', 'MANAGE_SHIPPING', 'MANAGE_ORDER_STATUS_REQUESTS'],
   },
   {
     label: 'Solicitações',
     description: 'Aprove ou rejeite solicitações de retrocesso',
-    href: '/solicitacoes',
+    href: '/change-requests',
     perms: ['MANAGE_ORDER_STATUS_REQUESTS'],
   },
   {
@@ -33,19 +33,19 @@ const CARDS: DashboardCard[] = [
   {
     label: 'Clientes',
     description: 'Consulte clientes e seus endereços',
-    href: '/clientes',
+    href: '/customers',
     perms: ['MANAGE_CUSTOMERS'],
   },
   {
     label: 'Pagamentos',
     description: 'Visualize e gerencie pagamentos',
-    href: '/pagamentos',
+    href: '/payments',
     perms: ['MANAGE_PAYMENTS'],
   },
   {
     label: 'Funcionários',
     description: 'Gerencie permissões da equipe',
-    href: '/funcionarios',
+    href: '/employees',
     perms: ['MANAGE_EMPLOYEES'],
   },
 ]

@@ -6,8 +6,8 @@ import { SidebarAvatar } from './SidebarAvatar'
 
 const navItems = [
   { label: 'Pedidos', href: '/dashboard/admin' },
-  { label: 'Produtos', href: '/dashboard/admin/produtos' },
-  { label: 'Funcionários', href: '/dashboard/admin/funcionarios' },
+  { label: 'Produtos', href: '/dashboard/admin/products' },
+  { label: 'Funcionários', href: '/dashboard/admin/employees' },
   { label: 'Auditoria', href: '/dashboard/admin/audit-logs' },
 ]
 
