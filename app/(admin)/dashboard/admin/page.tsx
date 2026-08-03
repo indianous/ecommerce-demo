@@ -18,7 +18,8 @@ export default function AdminDashboardPage() {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       if (!res.ok) throw new Error()
-      setOrders(await res.json())
+      const data = await res.json()
+      setOrders(data.content ?? data)
     } catch {
       toast({ variant: 'destructive', description: 'Erro ao carregar pedidos.' })
     } finally {

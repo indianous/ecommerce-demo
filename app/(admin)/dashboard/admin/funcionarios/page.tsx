@@ -23,7 +23,8 @@ export default function EmployeesPage() {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       if (!res.ok) throw new Error()
-      setEmployees(await res.json())
+      const data = await res.json()
+      setEmployees(data.content ?? data)
     } catch {
       toast({ variant: 'destructive', description: 'Erro ao carregar funcionários.' })
     } finally {
