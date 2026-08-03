@@ -37,12 +37,11 @@ export default function ProductsManagementPage() {
       if (tab === 'deleted') {
         url += '?active=false'
       } else {
-        const params = new URLSearchParams()
+        const params = new URLSearchParams({ active: 'true' })
         if (search) params.set('search', search)
         if (categoryId) params.set('categoryId', categoryId)
         if (statusFilter) params.set('status', statusFilter)
-        const qs = params.toString()
-        if (qs) url += '?' + qs
+        url += '?' + params.toString()
       }
       const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
       if (res.ok) {
