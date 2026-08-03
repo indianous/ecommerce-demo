@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Badge, Button, Heading, Input, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
+import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import type {
   AdminOrderDetailResponse,
   AdminOrderResponse,
@@ -336,9 +337,10 @@ export default function PedidosPage() {
   useEffect(() => { fetchOrders() }, [fetchOrders])
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <Heading as="h1" size="2xl" className="mb-6">
-        Gestão de Pedidos
+    <PermissionGuard permissions={['MANAGE_ORDERS', 'MANAGE_SHIPPING', 'MANAGE_ORDER_STATUS_REQUESTS']}>
+      <main className="mx-auto max-w-5xl px-4 py-8">
+        <Heading as="h1" size="2xl" className="mb-6">
+          Gestão de Pedidos
       </Heading>
 
       <div className="mb-4 flex flex-wrap gap-3">
@@ -414,5 +416,6 @@ export default function PedidosPage() {
         </div>
       )}
     </main>
+    </PermissionGuard>
   )
 }

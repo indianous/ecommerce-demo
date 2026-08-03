@@ -2,7 +2,12 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+
+const replaceMock = vi.fn()
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: replaceMock }),
+}))
 import { ToastProvider, ToastViewport } from 'base-ds'
 import SolicitacoesPage from '../solicitacoes/page'
 import { useAuthStore } from '@/stores/auth.store'
@@ -66,6 +71,7 @@ beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
   requests = [mockRequest]
+  replaceMock.mockClear()
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
   })
@@ -73,7 +79,11 @@ afterEach(async () => {
 afterAll(() => server.close())
 
 beforeEach(() => {
-  useAuthStore.setState({ accessToken: 'mock-token', isAuthenticated: true })
+  useAuthStore.setState({
+    accessToken: 'mock-token',
+    isAuthenticated: true,
+    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDER_STATUS_REQUESTS'] },
+  })
 })
 
 function renderPage() {
@@ -191,5 +201,23 @@ describe('Solicitações Page', () => {
     expect(screen.queryByRole('button', { name: /aceitar/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /negar/i })).not.toBeInTheDocument()
     expect(screen.getByText('Aprovada')).toBeInTheDocument()
+  })
+})
+
+describe('SolicitacoesPage — controle de acesso', () => {
+  it('redireciona para /dashboard quando usuário não tem MANAGE_ORDER_STATUS_REQUESTS', async () => {
+    useAuthStore.setState({
+      accessToken: 'tok',
+      isAuthenticated: true,
+      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] },
+    })
+    await act(async () => {
+      render(
+        <ToastProvider>
+          <SolicitacoesPage />
+        </ToastProvider>,
+      )
+    })
+    expect(replaceMock).toHaveBeenCalledWith('/dashboard')
   })
 })

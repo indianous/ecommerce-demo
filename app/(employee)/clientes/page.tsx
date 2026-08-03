@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Button, Heading, Input, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
+import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import type { CustomerDetailResponse, CustomerResponse } from '@/types'
 
 export default function ClientesPage() {
@@ -57,9 +58,10 @@ export default function ClientesPage() {
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <Heading as="h1" size="2xl" className="mb-6">
-        Gestão de Clientes
+    <PermissionGuard permissions={['MANAGE_CUSTOMERS']}>
+      <main className="mx-auto max-w-5xl px-4 py-8">
+        <Heading as="h1" size="2xl" className="mb-6">
+          Gestão de Clientes
       </Heading>
 
       <form onSubmit={handleSearch} className="flex gap-2 mb-4">
@@ -138,5 +140,6 @@ export default function ClientesPage() {
         </section>
       )}
     </main>
+    </PermissionGuard>
   )
 }

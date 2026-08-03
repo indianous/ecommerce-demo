@@ -2,7 +2,12 @@ import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+
+const replaceMock = vi.fn()
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: replaceMock }),
+}))
 import { ToastProvider, ToastViewport } from 'base-ds'
 import EmployeeFuncionariosPage from '../funcionarios/page'
 import { useAuthStore } from '@/stores/auth.store'
@@ -35,6 +40,7 @@ const server = setupServer(
 beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
+  replaceMock.mockClear()
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
   })
@@ -139,5 +145,23 @@ describe('Employee Funcionários Page — Gestão de Permissões', () => {
     await user.click(within(carlosRow).getByRole('button', { name: /salvar/i }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/erro ao salvar/i)
+  })
+})
+
+describe('EmployeeFuncionariosPage — controle de acesso', () => {
+  it('redireciona para /dashboard quando usuário não tem MANAGE_EMPLOYEES', async () => {
+    useAuthStore.setState({
+      accessToken: 'tok',
+      isAuthenticated: true,
+      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] },
+    })
+    await act(async () => {
+      render(
+        <ToastProvider>
+          <EmployeeFuncionariosPage />
+        </ToastProvider>,
+      )
+    })
+    expect(replaceMock).toHaveBeenCalledWith('/dashboard')
   })
 })

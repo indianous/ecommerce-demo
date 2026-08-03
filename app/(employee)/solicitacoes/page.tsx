@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Badge, Button, Heading, Input, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
+import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import type { OrderChangeRequest, OrderChangeRequestStatus, OrderStatus } from '@/types'
 
 const STATUS_LABELS: Record<OrderChangeRequestStatus, string> = {
@@ -181,9 +182,10 @@ export default function SolicitacoesPage() {
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <Heading as="h1" size="2xl" className="mb-6">
-        Solicitações de Status
+    <PermissionGuard permissions={['MANAGE_ORDER_STATUS_REQUESTS']}>
+      <main className="mx-auto max-w-5xl px-4 py-8">
+        <Heading as="h1" size="2xl" className="mb-6">
+          Solicitações de Status
       </Heading>
 
       <div className="flex gap-3 mb-4 flex-wrap">
@@ -272,5 +274,6 @@ export default function SolicitacoesPage() {
         </table>
       )}
     </main>
+    </PermissionGuard>
   )
 }

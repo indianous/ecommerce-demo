@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Badge, Button, Dialog, Heading, Table, useToast, type TableColumn } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
+import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import type { AdminProductPage, Category, Product, ProductStatus } from '@/types'
 import { ProductForm, EMPTY_PRODUCT_FORM, type ProductFormState } from '@/components/forms/ProductForm'
 
@@ -222,7 +223,8 @@ export default function ProductsManagementPage() {
   ]
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
+    <PermissionGuard permissions={['MANAGE_PRODUCTS', 'MANAGE_STOCK', 'RESTORE_PRODUCTS']}>
+      <main className="mx-auto max-w-5xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <Heading as="h1" size="2xl">
           Gestão de Produtos
@@ -314,5 +316,6 @@ export default function ProductsManagementPage() {
         />
       </Dialog>
     </main>
+    </PermissionGuard>
   )
 }

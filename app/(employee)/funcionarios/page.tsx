@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Button, Heading, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
+import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions'
 import type { Employee, EmployeePermission } from '@/types'
 
@@ -66,9 +67,10 @@ export default function EmployeeFuncionariosPage() {
   }
 
   return (
-    <div>
-      <Heading as="h1" size="2xl" className="mb-6">
-        Gestão de Funcionários
+    <PermissionGuard permissions={['MANAGE_EMPLOYEES']}>
+      <div>
+        <Heading as="h1" size="2xl" className="mb-6">
+          Gestão de Funcionários
       </Heading>
 
       {loading ? (
@@ -129,5 +131,6 @@ export default function EmployeeFuncionariosPage() {
         </table>
       )}
     </div>
+    </PermissionGuard>
   )
 }
