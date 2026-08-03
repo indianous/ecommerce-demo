@@ -2,9 +2,13 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), back: vi.fn(), replace: vi.fn() }),
+}))
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { PedidoDetailPage } from '../dashboard/orders/page'
+import { OrderDetailContent } from '../dashboard/orders/[id]/OrderDetailContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { AdminOrderDetailResponse, OrderStatus } from '@/types'
 
@@ -75,19 +79,23 @@ afterEach(async () => {
 afterAll(() => server.close())
 
 beforeEach(() => {
-  useAuthStore.setState({ accessToken: 'mock-token', isAuthenticated: true })
+  useAuthStore.setState({
+    accessToken: 'mock-token',
+    isAuthenticated: true,
+    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] },
+  })
 })
 
 function renderDetail(id = 'o-1') {
   return render(
     <ToastProvider>
-      <PedidoDetailPage id={id} />
+      <OrderDetailContent id={id} />
       <ToastViewport />
     </ToastProvider>,
   )
 }
 
-describe('PedidoDetailPage', () => {
+describe('OrderDetailContent', () => {
   it('exibe número do pedido, nome do cliente, status', async () => {
     renderDetail()
     expect(await screen.findByText(/100/)).toBeInTheDocument()

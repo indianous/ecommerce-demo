@@ -5,8 +5,9 @@ import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const replaceMock = vi.fn()
+const pushMock = vi.fn()
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: replaceMock }),
+  useRouter: () => ({ replace: replaceMock, push: pushMock }),
 }))
 import { ToastProvider, ToastViewport } from 'base-ds'
 import PedidosPage from '../dashboard/orders/page'
@@ -63,6 +64,7 @@ afterEach(async () => {
   server.resetHandlers()
   lastOrdersUrl = ''
   replaceMock.mockClear()
+  pushMock.mockClear()
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
   })
@@ -123,14 +125,14 @@ describe('PedidosPage — listagem', () => {
     })
   })
 
-  it('clicar em botão Ver detalhe exibe dados do pedido', async () => {
+  it('clicar em botão Ver detalhe navega para /dashboard/orders/:id', async () => {
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Ana Lima')
 
     await user.click(screen.getByRole('button', { name: /ver detalhe/i }))
 
-    expect(await screen.findByText('Teclado')).toBeInTheDocument()
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/orders/o-1')
   })
 })
 

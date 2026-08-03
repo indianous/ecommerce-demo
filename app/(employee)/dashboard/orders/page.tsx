@@ -1,15 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Badge, Button, Heading, Input, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
-import type {
-  AdminOrderDetailResponse,
-  AdminOrderResponse,
-  AdminOrderPage,
-  OrderStatus,
-} from '@/types'
+import type { AdminOrderResponse, AdminOrderPage, OrderStatus } from '@/types'
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   PENDING: 'Pendente',
@@ -18,15 +14,6 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
   RETURNED: 'Devolvido',
   DELIVERED: 'Entregue',
   CANCELLED: 'Cancelado',
-}
-
-const ACTION_LABELS: Record<OrderStatus, string> = {
-  PENDING: 'Pendente',
-  CONFIRMED: 'Confirmar',
-  SHIPPED: 'Enviar',
-  RETURNED: 'Devolver',
-  DELIVERED: 'Entregar',
-  CANCELLED: 'Cancelar',
 }
 
 const STATUS_BADGE_VARIANT: Record<OrderStatus, 'default' | 'success' | 'warning' | 'destructive' | 'secondary'> = {
@@ -38,282 +25,19 @@ const STATUS_BADGE_VARIANT: Record<OrderStatus, 'default' | 'success' | 'warning
   CANCELLED: 'destructive',
 }
 
-const NEXT_STATES: Record<OrderStatus, OrderStatus[]> = {
-  PENDING: ['CONFIRMED', 'CANCELLED'],
-  CONFIRMED: ['SHIPPED', 'CANCELLED'],
-  SHIPPED: ['DELIVERED', 'RETURNED'],
-  RETURNED: ['SHIPPED', 'CANCELLED'],
-  DELIVERED: [],
-  CANCELLED: [],
-}
-
 const ALL_STATUSES: OrderStatus[] = ['PENDING', 'CONFIRMED', 'SHIPPED', 'RETURNED', 'DELIVERED', 'CANCELLED']
-const TERMINAL_STATES: OrderStatus[] = ['DELIVERED', 'CANCELLED']
 
 const formatBRL = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 
-const formatDate = (iso: string) =>
-  new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(iso))
-
-export function PedidoDetailPage({ id }: { id: string }) {
-  const { accessToken } = useAuthStore()
-  const { toast } = useToast()
-  const [order, setOrder] = useState<AdminOrderDetailResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [transitionTarget, setTransitionTarget] = useState<OrderStatus | null>(null)
-  const [showRetroForm, setShowRetroForm] = useState(false)
-  const [reason, setReason] = useState('')
-  const [retroStatus, setRetroStatus] = useState<OrderStatus | ''>('')
-  const [retroJustification, setRetroJustification] = useState('')
-  const [saving, setSaving] = useState(false)
-
-  const fetchOrder = useCallback(async () => {
-    if (!accessToken) return
-    try {
-      const res = await fetch(`/api/admin/orders/${id}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      if (!res.ok) throw new Error()
-      setOrder(await res.json())
-    } catch {
-      toast({ variant: 'destructive', description: 'Erro ao carregar pedido.' })
-    } finally {
-      setLoading(false)
-    }
-  }, [accessToken, id, toast])
-
-  useEffect(() => { fetchOrder() }, [fetchOrder])
-
-  const handleStatusTransition = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!order || !transitionTarget || !accessToken) return
-    setSaving(true)
-    try {
-      const res = await fetch(`/api/admin/orders/${id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ status: transitionTarget, reason }),
-      })
-      if (!res.ok) throw new Error()
-      setOrder(await res.json())
-      setTransitionTarget(null)
-      setReason('')
-      toast({ variant: 'success', description: 'Status atualizado com sucesso.' })
-    } catch {
-      toast({ variant: 'destructive', description: 'Erro ao atualizar status.' })
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleChangeRequest = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!order || !retroStatus || !accessToken) return
-    setSaving(true)
-    try {
-      const res = await fetch(`/api/admin/orders/${id}/change-requests`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ toStatus: retroStatus, justification: retroJustification }),
-      })
-      if (!res.ok) throw new Error()
-      setShowRetroForm(false)
-      setRetroStatus('')
-      setRetroJustification('')
-      toast({ variant: 'success', description: 'Solicitação enviada com sucesso.' })
-    } catch {
-      toast({ variant: 'destructive', description: 'Erro ao enviar solicitação.' })
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  if (loading) return <div role="status"><Skeleton variant="line" height={40} className="mb-2" /></div>
-  if (!order) return <p>Pedido não encontrado.</p>
-
-  const nextStates = NEXT_STATES[order.status]
-  const isTerminal = TERMINAL_STATES.includes(order.status)
-  const retroStates = ALL_STATUSES.filter(
-    (s) => s !== order.status && !nextStates.includes(s)
-  )
-
-  return (
-    <section aria-label="Detalhe do pedido">
-      <div className="mb-4 flex flex-wrap gap-4 items-start">
-        <div>
-          <p className="text-sm text-muted-foreground">Nº do Pedido</p>
-          <p className="font-semibold">{order.orderNumber}</p>
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">Cliente</p>
-          <p className="font-semibold">{order.customerName}</p>
-          <p className="text-sm">{order.customerEmail}</p>
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">Status</p>
-          <Badge variant={STATUS_BADGE_VARIANT[order.status]}>{STATUS_LABELS[order.status]}</Badge>
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">Total</p>
-          <p className="font-semibold">{formatBRL(order.totalAmount)}</p>
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">Pagamento</p>
-          <p>{order.paymentMethod}</p>
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <h3 className="text-sm font-semibold mb-2">Itens</h3>
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr>
-              <th className="text-left p-2 border-b">Produto</th>
-              <th className="text-left p-2 border-b">Qtd</th>
-              <th className="text-left p-2 border-b">Preço unit.</th>
-              <th className="text-left p-2 border-b">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {order.items.map((item) => (
-              <tr key={item.productId} className="border-b">
-                <td className="p-2">{item.productName}</td>
-                <td className="p-2">{item.quantity}</td>
-                <td className="p-2">{formatBRL(item.unitPrice)}</td>
-                <td className="p-2">{formatBRL(item.subtotal)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="mb-6">
-        <h3 className="text-sm font-semibold mb-2">Histórico de status</h3>
-        <ul className="flex flex-col gap-2">
-          {order.statusHistory.map((h) => (
-            <li key={h.id} className="text-sm border-l-2 border-border pl-3">
-              <span>{h.fromStatus ? STATUS_LABELS[h.fromStatus] : 'Criação'} → {STATUS_LABELS[h.toStatus]}</span>
-              {h.reason && <span className="ml-2 text-muted-foreground">— {h.reason}</span>}
-              <span className="ml-2 text-muted-foreground">{formatDate(h.createdAt)}</span>
-              {h.changedByEmail && <span className="ml-2 text-muted-foreground">({h.changedByEmail})</span>}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {nextStates.length > 0 && !transitionTarget && !showRetroForm && (
-        <div className="mb-4 flex flex-wrap gap-2">
-          {nextStates.map((s) => (
-            <Button key={s} size="sm" onClick={() => setTransitionTarget(s)}>
-              {ACTION_LABELS[s]}
-            </Button>
-          ))}
-        </div>
-      )}
-
-      {transitionTarget && (
-        <form
-          aria-label="Justificativa de mudança de status"
-          onSubmit={handleStatusTransition}
-          className="mb-4 flex flex-col gap-3 p-4 border rounded-md"
-        >
-          <p className="font-medium">
-            Mudar para: <Badge variant={STATUS_BADGE_VARIANT[transitionTarget]}>{STATUS_LABELS[transitionTarget]}</Badge>
-          </p>
-          <label htmlFor="transition-reason" className="text-sm font-medium">
-            Justificativa
-          </label>
-          <textarea
-            id="transition-reason"
-            required
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            rows={3}
-            className="border rounded p-2 text-sm resize-none"
-            placeholder="Descreva o motivo da mudança..."
-          />
-          <div className="flex gap-2">
-            <Button type="submit" disabled={saving}>
-              Confirmar mudança
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => { setTransitionTarget(null); setReason('') }}
-            >
-              Cancelar
-            </Button>
-          </div>
-        </form>
-      )}
-
-      {!isTerminal && !showRetroForm && !transitionTarget && (
-        <Button variant="outline" size="sm" onClick={() => setShowRetroForm(true)}>
-          Solicitar retrocesso
-        </Button>
-      )}
-
-      {showRetroForm && (
-        <form
-          aria-label="Formulário de solicitação retroativa"
-          onSubmit={handleChangeRequest}
-          className="mb-4 flex flex-col gap-3 p-4 border rounded-md"
-        >
-          <p className="font-medium">Solicitar retrocesso de status</p>
-          <label htmlFor="retro-status" className="text-sm font-medium">
-            Estado destino
-          </label>
-          <select
-            id="retro-status"
-            value={retroStatus}
-            onChange={(e) => setRetroStatus(e.target.value as OrderStatus)}
-            required
-            className="border rounded p-2 text-sm"
-          >
-            <option value="">Selecione...</option>
-            {retroStates.map((s) => (
-              <option key={s} value={s}>{STATUS_LABELS[s]}</option>
-            ))}
-          </select>
-          <label htmlFor="retro-justification" className="text-sm font-medium">
-            Justificativa
-          </label>
-          <textarea
-            id="retro-justification"
-            required
-            value={retroJustification}
-            onChange={(e) => setRetroJustification(e.target.value)}
-            rows={3}
-            className="border rounded p-2 text-sm resize-none"
-            placeholder="Descreva o motivo da solicitação..."
-          />
-          <div className="flex gap-2">
-            <Button type="submit" disabled={saving}>
-              Enviar solicitação
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => { setShowRetroForm(false); setRetroStatus(''); setRetroJustification('') }}
-            >
-              Cancelar
-            </Button>
-          </div>
-        </form>
-      )}
-    </section>
-  )
-}
-
 export default function PedidosPage() {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
+  const router = useRouter()
   const [orders, setOrders] = useState<AdminOrderResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<OrderStatus | ''>('')
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
 
   const fetchOrders = useCallback(async () => {
     if (!accessToken) return
@@ -398,7 +122,7 @@ export default function PedidosPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => setSelectedOrderId(selectedOrderId === order.id ? null : order.id)}
+                    onClick={() => router.push('/dashboard/orders/' + order.id)}
                     aria-label={`Ver detalhe do pedido ${order.orderNumber}`}
                   >
                     Ver detalhe
@@ -410,11 +134,6 @@ export default function PedidosPage() {
         </table>
       )}
 
-      {selectedOrderId && (
-        <div className="border rounded-md p-4 mt-4">
-          <PedidoDetailPage id={selectedOrderId} />
-        </div>
-      )}
     </main>
     </PermissionGuard>
   )
