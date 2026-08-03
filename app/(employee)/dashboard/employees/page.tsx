@@ -1,18 +1,21 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Heading, Skeleton, useToast } from 'base-ds'
+import { Button, Dialog, Heading, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { EmployeeManagementTable } from '@/components/admin/EmployeeManagementTable'
 import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions'
-import type { Employee, EmployeePermission } from '@/types'
+import type { Employee, EmployeeFormData, EmployeePermission } from '@/types'
 
 export default function EmployeeFuncionariosPage() {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
-  const [editedPerms, setEditedPerms] = useState<Record<string, EmployeePermission[]>>({})
-  const [saving, setSaving] = useState<Record<string, boolean>>({})
+
+  const [permDialogOpen, setPermDialogOpen] = useState(false)
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
+  const [editedPerms, setEditedPerms] = useState<EmployeePermission[]>([])
 
   const fetchEmployees = useCallback(async () => {
     if (!accessToken) return
@@ -21,12 +24,8 @@ export default function EmployeeFuncionariosPage() {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       if (!res.ok) throw new Error()
-      const json = await res.json()
-      const data: Employee[] = json.content ?? json
-      setEmployees(data)
-      const permsMap: Record<string, EmployeePermission[]> = {}
-      data.forEach((emp) => { permsMap[emp.id] = [...(emp.permissions ?? [])] })
-      setEditedPerms(permsMap)
+      const data = await res.json()
+      setEmployees(data.content ?? data)
     } catch {
       toast({ variant: 'destructive', description: 'Erro ao carregar funcionários.' })
     } finally {
@@ -36,34 +35,59 @@ export default function EmployeeFuncionariosPage() {
 
   useEffect(() => { fetchEmployees() }, [fetchEmployees])
 
-  const togglePerm = (empId: string, perm: EmployeePermission) => {
-    setEditedPerms((prev) => {
-      const current = prev[empId] ?? []
-      const next = current.includes(perm)
-        ? current.filter((p) => p !== perm)
-        : [...current, perm]
-      return { ...prev, [empId]: next }
+  const handleCreate = async (data: EmployeeFormData) => {
+    if (!accessToken) return
+    const res = await fetch('/api/admin/employees', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify(data),
     })
+    if (res.ok) {
+      const created: Employee = await res.json()
+      setEmployees((prev) => [...prev, created])
+    }
   }
 
-  const handleSave = async (empId: string) => {
+  const handleDelete = async (id: string) => {
     if (!accessToken) return
-    setSaving((prev) => ({ ...prev, [empId]: true }))
-    try {
-      const res = await fetch(`/api/admin/employees/${empId}/permissions`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ permissions: editedPerms[empId] ?? [] }),
-      })
-      if (!res.ok) throw new Error()
+    const res = await fetch(`/api/admin/employees/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    if (res.ok || res.status === 204) {
+      setEmployees((prev) => prev.filter((e) => e.id !== id))
+    }
+  }
+
+  const openPermissionsDialog = (employee: Employee) => {
+    setSelectedEmployee(employee)
+    setEditedPerms([...(employee.permissions ?? [])])
+    setPermDialogOpen(true)
+  }
+
+  const togglePerm = (perm: EmployeePermission) => {
+    setEditedPerms((prev) =>
+      prev.includes(perm) ? prev.filter((p) => p !== perm) : [...prev, perm]
+    )
+  }
+
+  const handleSavePermissions = async () => {
+    if (!accessToken || !selectedEmployee) return
+    const res = await fetch(`/api/admin/employees/${selectedEmployee.id}/permissions`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({ permissions: editedPerms }),
+    })
+    if (res.ok) {
+      setPermDialogOpen(false)
       toast({ variant: 'success', description: 'Permissões salvas com sucesso.' })
-    } catch {
+      setEmployees((prev) =>
+        prev.map((e) =>
+          e.id === selectedEmployee.id ? { ...e, permissions: editedPerms } : e
+        )
+      )
+    } else {
       toast({ variant: 'destructive', description: 'Erro ao salvar permissões.' })
-    } finally {
-      setSaving((prev) => ({ ...prev, [empId]: false }))
     }
   }
 
@@ -72,66 +96,45 @@ export default function EmployeeFuncionariosPage() {
       <div>
         <Heading as="h1" size="2xl" className="mb-6">
           Gestão de Funcionários
-      </Heading>
+        </Heading>
 
-      {loading ? (
-        <div role="status">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} variant="line" height={40} className="mb-2" />
-          ))}
-        </div>
-      ) : (
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr>
-              <th className="text-left p-2 border-b">Nome</th>
-              <th className="text-left p-2 border-b">E-mail</th>
-              <th className="text-left p-2 border-b">Permissões</th>
-              <th className="text-left p-2 border-b">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {employees.map((emp) => (
-              <tr key={emp.id} className="border-b">
-                <td className="p-2 align-top">{emp.name}</td>
-                <td className="p-2 align-top">{emp.email}</td>
-                <td className="p-2">
-                  <div className="flex flex-wrap gap-x-4 gap-y-1">
-                    {ALL_PERMISSIONS.map((perm) => {
-                      const id = `perm-${emp.id}-${perm}`
-                      return (
-                        <label
-                          key={perm}
-                          htmlFor={id}
-                          className="flex items-center gap-1 cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            id={id}
-                            checked={(editedPerms[emp.id] ?? []).includes(perm)}
-                            onChange={() => togglePerm(emp.id, perm)}
-                          />
-                          {PERMISSION_LABELS[perm]}
-                        </label>
-                      )
-                    })}
-                  </div>
-                </td>
-                <td className="p-2 align-top">
-                  <Button
-                    size="sm"
-                    onClick={() => handleSave(emp.id)}
-                    disabled={saving[emp.id]}
-                  >
-                    Salvar
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
+        <EmployeeManagementTable
+          employees={employees}
+          loading={loading}
+          onCreate={handleCreate}
+          onDelete={handleDelete}
+          onManagePermissions={openPermissionsDialog}
+        />
+
+        <Dialog
+          open={permDialogOpen}
+          onClose={() => setPermDialogOpen(false)}
+          title={selectedEmployee ? `Permissões de ${selectedEmployee.name}` : 'Permissões'}
+        >
+          <div className="flex flex-col gap-3">
+            {ALL_PERMISSIONS.map((perm) => {
+              const id = `perm-dialog-${perm}`
+              return (
+                <label key={perm} htmlFor={id} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id={id}
+                    checked={editedPerms.includes(perm)}
+                    onChange={() => togglePerm(perm)}
+                  />
+                  {PERMISSION_LABELS[perm]}
+                </label>
+              )
+            })}
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="secondary" onClick={() => setPermDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSavePermissions}>Salvar</Button>
+          </div>
+        </Dialog>
+      </div>
     </PermissionGuard>
   )
 }

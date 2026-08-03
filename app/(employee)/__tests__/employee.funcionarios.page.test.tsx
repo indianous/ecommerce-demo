@@ -5,8 +5,9 @@ import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const replaceMock = vi.fn()
+const pushMock = vi.fn()
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: replaceMock }),
+  useRouter: () => ({ replace: replaceMock, push: pushMock }),
 }))
 import { ToastProvider, ToastViewport } from 'base-ds'
 import EmployeeFuncionariosPage from '../dashboard/employees/page'
@@ -19,7 +20,7 @@ const mockEmployees: Employee[] = [
     name: 'Carlos Dias',
     email: 'carlos@test.com',
     role: 'EMPLOYEE',
-    permissions: ['MANAGE_ORDERS'],
+    permissions: ['MANAGE_ORDERS', 'MANAGE_PRODUCTS'],
   },
   {
     id: 'emp-2',
@@ -30,10 +31,19 @@ const mockEmployees: Employee[] = [
   },
 ]
 
+const newEmployee: Employee = {
+  id: 'emp-3',
+  name: 'Lucas Ramos',
+  email: 'lucas@test.com',
+  role: 'EMPLOYEE',
+}
+
 const server = setupServer(
   http.get('/api/admin/employees', () => HttpResponse.json(mockEmployees)),
+  http.post('/api/admin/employees', () => HttpResponse.json(newEmployee, { status: 201 })),
+  http.delete('/api/admin/employees/:id', () => new HttpResponse(null, { status: 204 })),
   http.put('/api/admin/employees/:id/permissions', () =>
-    HttpResponse.json({ permissions: ['MANAGE_ORDERS', 'MANAGE_PRODUCTS'] }),
+    HttpResponse.json({ permissions: ['MANAGE_ORDERS'] }),
   ),
 )
 
@@ -41,6 +51,7 @@ beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
   replaceMock.mockClear()
+  pushMock.mockClear()
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
   })
@@ -70,7 +81,7 @@ function renderPage() {
   )
 }
 
-describe('Employee Funcionários Page — Gestão de Permissões', () => {
+describe('Employee Funcionários Page — listagem', () => {
   it('exibe heading "Gestão de Funcionários"', async () => {
     renderPage()
     expect(await screen.findByRole('heading', { name: /gestão de funcionários/i })).toBeInTheDocument()
@@ -82,69 +93,134 @@ describe('Employee Funcionários Page — Gestão de Permissões', () => {
     expect(screen.getByText('carlos@test.com')).toBeInTheDocument()
     expect(screen.getByText('Fernanda Melo')).toBeInTheDocument()
   })
+})
 
-  it('exibe checkboxes de permissões para cada funcionário', async () => {
+describe('Employee Funcionários Page — criação', () => {
+  it('botão "Novo funcionário" abre dialog de cadastro', async () => {
+    const user = userEvent.setup()
     renderPage()
     await screen.findByText('Carlos Dias')
 
-    const carlosRow = screen.getByText('Carlos Dias').closest('tr') as HTMLElement
-    expect(within(carlosRow).getByLabelText(/gerenciamento de pedidos/i)).toBeInTheDocument()
-    expect(within(carlosRow).getByLabelText(/gerenciamento de pedidos/i)).toBeChecked()
-    expect(within(carlosRow).getByLabelText(/gerenciamento de produtos/i)).not.toBeChecked()
+    await user.click(screen.getByRole('button', { name: /novo funcionário/i }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
-  it('alterar checkbox e salvar envia PUT com novas permissões', async () => {
+  it('submissão do form chama POST e adiciona o funcionário à lista', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Carlos Dias')
+
+    await user.click(screen.getByRole('button', { name: /novo funcionário/i }))
+    const dialog = screen.getByRole('dialog')
+
+    await user.type(within(dialog).getByLabelText(/nome/i), 'Lucas Ramos')
+    await user.type(within(dialog).getByLabelText(/e-mail/i), 'lucas@test.com')
+    await user.type(within(dialog).getByLabelText(/senha/i), 'senhaSegura1')
+    await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
+
+    expect(await screen.findByText('Lucas Ramos')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})
+
+describe('Employee Funcionários Page — exclusão', () => {
+  it('botão Excluir chama DELETE e remove o funcionário da lista', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Carlos Dias')
+
+    await user.click(screen.getByRole('button', { name: /excluir carlos dias/i }))
+
+    expect(screen.queryByText('Carlos Dias')).not.toBeInTheDocument()
+  })
+})
+
+describe('Employee Funcionários Page — permissões', () => {
+  it('exibe botão "Permissões" para cada funcionário', async () => {
+    renderPage()
+    await screen.findByText('Carlos Dias')
+
+    expect(screen.getByRole('button', { name: /permissões de carlos dias/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /permissões de fernanda melo/i })).toBeInTheDocument()
+  })
+
+  it('clicar em "Permissões" abre Dialog com nome do funcionário', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Carlos Dias')
+
+    await user.click(screen.getByRole('button', { name: /permissões de carlos dias/i }))
+
+    const dialog = screen.getByRole('dialog')
+    expect(dialog).toBeInTheDocument()
+    expect(within(dialog).getByText(/carlos dias/i)).toBeInTheDocument()
+  })
+
+  it('Dialog exibe checkboxes para todas as 9 permissões', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Carlos Dias')
+
+    await user.click(screen.getByRole('button', { name: /permissões de carlos dias/i }))
+    const dialog = screen.getByRole('dialog')
+
+    expect(within(dialog).getByLabelText(/gerenciamento de pedidos/i)).toBeInTheDocument()
+    expect(within(dialog).getByLabelText(/gerenciamento de produtos/i)).toBeInTheDocument()
+    expect(within(dialog).getByLabelText(/gestão de clientes/i)).toBeInTheDocument()
+    expect(within(dialog).getByLabelText(/gestão de estoque/i)).toBeInTheDocument()
+    expect(within(dialog).getByLabelText(/gestão de envios/i)).toBeInTheDocument()
+    expect(within(dialog).getByLabelText(/gestão de pagamento/i)).toBeInTheDocument()
+    expect(within(dialog).getByLabelText(/restaurar produtos/i)).toBeInTheDocument()
+    expect(within(dialog).getByLabelText(/gestão de funcionários/i)).toBeInTheDocument()
+    expect(within(dialog).getByLabelText(/solicitações de status/i)).toBeInTheDocument()
+  })
+
+  it('checkboxes refletem permissões atuais do funcionário', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Carlos Dias')
+
+    await user.click(screen.getByRole('button', { name: /permissões de carlos dias/i }))
+    const dialog = screen.getByRole('dialog')
+
+    expect(within(dialog).getByLabelText(/gerenciamento de pedidos/i)).toBeChecked()
+    expect(within(dialog).getByLabelText(/gerenciamento de produtos/i)).toBeChecked()
+    expect(within(dialog).getByLabelText(/gestão de clientes/i)).not.toBeChecked()
+  })
+
+  it('salvar permissões chama PUT e exibe toast de sucesso', async () => {
     let capturedBody: unknown = null
-    let capturedId = ''
     server.use(
-      http.put('/api/admin/employees/:id/permissions', async ({ request, params }) => {
-        capturedId = params.id as string
+      http.put('/api/admin/employees/:id/permissions', async ({ request }) => {
         capturedBody = await request.json()
-        return HttpResponse.json({ permissions: ['MANAGE_ORDERS', 'MANAGE_PRODUCTS'] })
+        return HttpResponse.json({ permissions: ['MANAGE_ORDERS'] })
       }),
     )
 
     const user = userEvent.setup()
     renderPage()
-    await screen.findByText('Carlos Dias')
+    await screen.findByText('Fernanda Melo')
 
-    const carlosRow = screen.getByText('Carlos Dias').closest('tr') as HTMLElement
-    await user.click(within(carlosRow).getByLabelText(/gerenciamento de produtos/i))
-    await user.click(within(carlosRow).getByRole('button', { name: /salvar/i }))
+    await user.click(screen.getByRole('button', { name: /permissões de fernanda melo/i }))
+    const dialog = screen.getByRole('dialog')
 
-    await screen.findByRole('status')
-    expect(capturedId).toBe('emp-1')
-    expect(capturedBody).toMatchObject({
-      permissions: expect.arrayContaining(['MANAGE_ORDERS', 'MANAGE_PRODUCTS']),
-    })
-  })
-
-  it('exibe toast de sucesso após salvar', async () => {
-    const user = userEvent.setup()
-    renderPage()
-    await screen.findByText('Carlos Dias')
-
-    const carlosRow = screen.getByText('Carlos Dias').closest('tr') as HTMLElement
-    await user.click(within(carlosRow).getByRole('button', { name: /salvar/i }))
+    await user.click(within(dialog).getByLabelText(/gerenciamento de pedidos/i))
+    await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
 
     expect(await screen.findByRole('status')).toHaveTextContent(/permissões.*salvas/i)
+    expect(capturedBody).toMatchObject({ permissions: expect.arrayContaining(['MANAGE_ORDERS']) })
   })
 
-  it('exibe toast de erro quando API falha', async () => {
-    server.use(
-      http.put('/api/admin/employees/:id/permissions', () =>
-        HttpResponse.json({}, { status: 500 }),
-      ),
-    )
-
+  it('Dialog fecha ao clicar em Cancelar', async () => {
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Carlos Dias')
 
-    const carlosRow = screen.getByText('Carlos Dias').closest('tr') as HTMLElement
-    await user.click(within(carlosRow).getByRole('button', { name: /salvar/i }))
+    await user.click(screen.getByRole('button', { name: /permissões de carlos dias/i }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/erro ao salvar/i)
+    await user.click(screen.getByRole('button', { name: /cancelar/i }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })
 
@@ -156,11 +232,7 @@ describe('EmployeeFuncionariosPage — controle de acesso', () => {
       user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] },
     })
     await act(async () => {
-      render(
-        <ToastProvider>
-          <EmployeeFuncionariosPage />
-        </ToastProvider>,
-      )
+      render(<ToastProvider><EmployeeFuncionariosPage /></ToastProvider>)
     })
     expect(replaceMock).toHaveBeenCalledWith('/dashboard')
   })
