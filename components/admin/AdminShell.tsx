@@ -5,9 +5,15 @@ import { usePathname } from 'next/navigation'
 import { SidebarAvatar } from './SidebarAvatar'
 
 const navItems = [
-  { label: 'Pedidos', href: '/dashboard/admin' },
+  { label: 'Pedidos', href: '/dashboard/admin/orders' },
+  { label: 'Envios', href: '/dashboard/admin/shipping' },
+  { label: 'Solicitações', href: '/dashboard/admin/change-requests' },
   { label: 'Produtos', href: '/dashboard/admin/products' },
+  { label: 'Estoque', href: '/dashboard/admin/stock' },
+  { label: 'Excluídos', href: '/dashboard/admin/products/deleted' },
+  { label: 'Clientes', href: '/dashboard/admin/customers' },
   { label: 'Funcionários', href: '/dashboard/admin/employees' },
+  { label: 'Pagamentos', href: '/dashboard/admin/payments' },
   { label: 'Auditoria', href: '/dashboard/admin/audit-logs' },
 ]
 

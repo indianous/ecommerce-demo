@@ -120,4 +120,30 @@ describe('PermissionGuard', () => {
 
     expect(replaceMock).not.toHaveBeenCalled()
   })
+
+  it('admin com role ADMIN e sem permissions vê o conteúdo', async () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      accessToken: 'tok',
+      role: 'ADMIN' as const,
+      user: {
+        id: '1',
+        name: 'Admin',
+        email: 'admin@test.com',
+        role: 'ADMIN' as const,
+        permissions: [],
+      },
+    })
+
+    await act(async () => {
+      render(
+        <PermissionGuard permissions={['MANAGE_ORDERS']}>
+          <p>conteúdo protegido</p>
+        </PermissionGuard>,
+      )
+    })
+
+    expect(screen.getByText('conteúdo protegido')).toBeInTheDocument()
+    expect(replaceMock).not.toHaveBeenCalled()
+  })
 })

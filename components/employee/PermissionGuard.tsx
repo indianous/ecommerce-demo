@@ -13,7 +13,7 @@ export function PermissionGuard({ permissions, children }: Props) {
   const { user, isAuthenticated } = useAuthStore()
   const router = useRouter()
 
-  const hasAccess = permissions.some((p) => user?.permissions?.includes(p))
+  const hasAccess = user?.role === 'ADMIN' || permissions.some((p) => user?.permissions?.includes(p))
 
   useEffect(() => {
     if (isAuthenticated && !hasAccess) {

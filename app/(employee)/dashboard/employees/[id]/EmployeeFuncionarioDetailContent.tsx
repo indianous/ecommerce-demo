@@ -9,7 +9,7 @@ import { DuelingPicklist } from '@/components/ui/DuelingPicklist'
 import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions'
 import type { AuditLogResponse, EmployeeDetailResponse, EmployeePermission } from '@/types'
 
-export function EmployeeFuncionarioDetailContent({ id }: { id: string }) {
+export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/employees' }: { id: string; backPath?: string }) {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
   const [employee, setEmployee] = useState<EmployeeDetailResponse | null>(null)
@@ -71,7 +71,7 @@ export function EmployeeFuncionarioDetailContent({ id }: { id: string }) {
     <PermissionGuard permissions={['MANAGE_EMPLOYEES']}>
       <main className="mx-auto max-w-4xl px-4 py-8">
         <div className="mb-6 flex items-center gap-4">
-          <Link href="/dashboard/employees" className="text-sm text-muted-foreground hover:underline">
+          <Link href={backPath} className="text-sm text-muted-foreground hover:underline">
             ← Voltar
           </Link>
         </div>

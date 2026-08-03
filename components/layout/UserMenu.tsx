@@ -27,6 +27,9 @@ export function UserMenu() {
 
   const initials = user?.name?.charAt(0).toUpperCase() ?? '?'
 
+  const dashboardHref =
+    user?.role === 'ADMIN' ? '/dashboard/admin' : user?.role === 'EMPLOYEE' ? '/dashboard' : null
+
   return (
     <DropdownMenu
       align="end"
@@ -36,6 +39,7 @@ export function UserMenu() {
         </Button>
       }
       items={[
+        ...(dashboardHref ? [{ label: 'Dashboard', href: dashboardHref }, { type: 'separator' as const }] : []),
         { label: 'Perfil', href: '/profile' },
         { label: 'Meus Pedidos', href: '/orders' },
         { type: 'separator' },

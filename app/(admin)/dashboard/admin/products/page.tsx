@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation'
+import { ProductsContent } from '@/app/(employee)/dashboard/products/ProductsContent'
 
-export default function AdminProdutosPage() {
-  redirect('/dashboard/products')
+export default function AdminProductsPage() {
+  return <ProductsContent basePath="/dashboard/admin/products" />
 }

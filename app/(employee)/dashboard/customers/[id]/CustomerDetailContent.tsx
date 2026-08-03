@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import type { CustomerDetailResponse } from '@/types'
 
-export function CustomerDetailContent({ id }: { id: string }) {
+export function CustomerDetailContent({ id, backPath = '/dashboard/customers' }: { id: string; backPath?: string }) {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
   const [customer, setCustomer] = useState<CustomerDetailResponse | null>(null)
@@ -43,7 +43,7 @@ export function CustomerDetailContent({ id }: { id: string }) {
     <PermissionGuard permissions={['MANAGE_CUSTOMERS']}>
       <main className="mx-auto max-w-2xl px-4 py-8">
         <div className="mb-6 flex items-center gap-4">
-          <Link href="/dashboard/customers" className="text-sm text-muted-foreground hover:underline">
+          <Link href={backPath} className="text-sm text-muted-foreground hover:underline">
             ← Voltar
           </Link>
           <Heading as="h1" size="2xl">{customer.name}</Heading>

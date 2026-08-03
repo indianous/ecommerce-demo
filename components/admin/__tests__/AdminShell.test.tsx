@@ -48,17 +48,24 @@ describe('AdminShell — Sidebar (desktop)', () => {
     expect(nav).toHaveClass('hidden')
   })
 
-  it('exibe os três itens de menu: Pedidos, Produtos, Funcionários', () => {
+  it('exibe todos os itens de menu de navegação', () => {
     useAuthStore.setState(authenticatedAdmin)
     renderAdminShell()
     expect(screen.getByRole('link', { name: /pedidos/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /envios/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /solicitações/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /produtos/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /estoque/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /excluídos/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /clientes/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /funcionários/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /pagamentos/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /auditoria/i })).toBeInTheDocument()
   })
 
   it('item correspondente ao pathname atual recebe aria-current="page"', () => {
     useAuthStore.setState(authenticatedAdmin)
-    renderAdminShell('/dashboard/admin')
+    renderAdminShell('/dashboard/admin/orders')
     expect(screen.getByRole('link', { name: /pedidos/i })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: /produtos/i })).not.toHaveAttribute('aria-current')
   })

@@ -9,7 +9,7 @@ import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ProductForm, EMPTY_PRODUCT_FORM, type ProductFormState } from '@/components/forms/ProductForm'
 import type { Category } from '@/types'
 
-export function ProductCreateContent() {
+export function ProductCreateContent({ backPath = '/dashboard/products' }: { backPath?: string }) {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
   const router = useRouter()
@@ -36,7 +36,7 @@ export function ProductCreateContent() {
       })
       if (!res.ok) throw new Error()
       toast({ variant: 'success', description: 'Produto criado com sucesso.' })
-      router.push('/dashboard/products')
+      router.push(backPath)
     } catch {
       toast({ variant: 'destructive', description: 'Erro ao criar produto.' })
     } finally {
@@ -48,7 +48,7 @@ export function ProductCreateContent() {
     <PermissionGuard permissions={['MANAGE_PRODUCTS']}>
       <main className="mx-auto max-w-2xl px-4 py-8">
         <div className="mb-6 flex items-center gap-4">
-          <Link href="/dashboard/products" className="text-sm text-muted-foreground hover:underline">
+          <Link href={backPath} className="text-sm text-muted-foreground hover:underline">
             ← Voltar
           </Link>
           <Heading as="h1" size="2xl">Novo Produto</Heading>

@@ -1,12 +1,16 @@
 import { act, render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ToastProvider, ToastViewport } from 'base-ds'
-import AdminDashboardPage from '../page'
+import AdminOrdersPage from '../orders/page'
 import { useAuthStore } from '@/stores/auth.store'
 import type { AdminOrderResponse } from '@/types'
+
+const pushMock = vi.fn()
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: pushMock, replace: vi.fn() }),
+}))
 
 const mockOrder: AdminOrderResponse = {
   id: 'order-1',
@@ -22,13 +26,15 @@ const mockOrder: AdminOrderResponse = {
 }
 
 const server = setupServer(
-  http.get('/api/admin/orders', () => HttpResponse.json([mockOrder])),
-  http.patch('/api/admin/orders/:id/status', () => HttpResponse.json({ ...mockOrder, status: 'CONFIRMED' })),
+  http.get('/api/admin/orders', () =>
+    HttpResponse.json({ content: [mockOrder], totalElements: 1, totalPages: 1, size: 20, number: 0 }),
+  ),
 )
 
 beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
+  pushMock.mockClear()
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
   })
@@ -36,19 +42,24 @@ afterEach(async () => {
 afterAll(() => server.close())
 
 beforeEach(() => {
-  useAuthStore.setState({ accessToken: 'mock-token', isAuthenticated: true })
+  useAuthStore.setState({
+    accessToken: 'mock-token',
+    isAuthenticated: true,
+    role: 'ADMIN' as const,
+    user: { id: '1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN' as const, permissions: [] },
+  })
 })
 
 function renderPage() {
   return render(
     <ToastProvider>
-      <AdminDashboardPage />
+      <AdminOrdersPage />
       <ToastViewport />
     </ToastProvider>,
   )
 }
 
-describe('AdminDashboardPage — Gestão de Pedidos', () => {
+describe('AdminOrdersPage — Gestão de Pedidos', () => {
   it('exibe heading "Gestão de Pedidos"', async () => {
     renderPage()
     expect(await screen.findByRole('heading', { name: /gestão de pedidos/i })).toBeInTheDocument()
@@ -71,14 +82,13 @@ describe('AdminDashboardPage — Gestão de Pedidos', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(/erro ao carregar pedidos/i)
   })
 
-  it('altera status do pedido ao acionar o select de status', async () => {
-    const user = userEvent.setup()
+  it('botão "Ver detalhe" navega para a rota de detalhe admin', async () => {
     renderPage()
     await screen.findByText('João Silva')
 
-    const select = screen.getByRole('combobox', { name: /status/i })
-    await user.selectOptions(select, 'CONFIRMED')
+    const btn = screen.getByRole('button', { name: /ver detalhe do pedido 42/i })
+    btn.click()
 
-    expect(await screen.findByText(/confirmed/i)).toBeInTheDocument()
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/admin/orders/order-1')
   })
 })

@@ -51,7 +51,7 @@ const formatBRL = (v: number) =>
 const formatDate = (iso: string) =>
   new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(iso))
 
-export function OrderDetailContent({ id }: { id: string }) {
+export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id: string; backPath?: string }) {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
   const [order, setOrder] = useState<AdminOrderDetailResponse | null>(null)
@@ -136,7 +136,7 @@ export function OrderDetailContent({ id }: { id: string }) {
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="mb-6 flex items-center gap-4">
           <Link
-            href="/dashboard/orders"
+            href={backPath}
             className="text-sm text-muted-foreground hover:underline"
           >
             ← Voltar
