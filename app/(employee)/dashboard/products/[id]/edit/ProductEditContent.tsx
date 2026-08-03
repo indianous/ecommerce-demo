@@ -32,7 +32,6 @@ export function ProductEditContent({ id }: { id: string }) {
           name: product.name,
           description: product.description ?? '',
           price: product.price,
-          stockQuantity: product.stockQuantity,
           categoryId: product.categoryId,
           imageUrl: product.imageUrl ?? '',
         })

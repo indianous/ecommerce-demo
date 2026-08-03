@@ -96,16 +96,18 @@ describe('EmployeeShell — Sidebar (desktop)', () => {
     expect(screen.queryByRole('link', { name: /pedidos/i })).not.toBeInTheDocument()
   })
 
-  it('MANAGE_STOCK exibe item "Produtos" (via mesmo href)', () => {
+  it('MANAGE_STOCK exibe item "Estoque"', () => {
     useAuthStore.setState(makeEmployee(['MANAGE_STOCK']))
     renderEmployeeShell()
-    expect(screen.getByRole('link', { name: /produtos/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /^estoque$/i })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /^produtos$/i })).not.toBeInTheDocument()
   })
 
-  it('RESTORE_PRODUCTS exibe item "Produtos"', () => {
+  it('RESTORE_PRODUCTS exibe item "Excluídos"', () => {
     useAuthStore.setState(makeEmployee(['RESTORE_PRODUCTS']))
     renderEmployeeShell()
-    expect(screen.getByRole('link', { name: /produtos/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /^excluídos$/i })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /^produtos$/i })).not.toBeInTheDocument()
   })
 
   it('MANAGE_CUSTOMERS exibe item "Clientes"', () => {

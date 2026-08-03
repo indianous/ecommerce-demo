@@ -92,6 +92,12 @@ describe('ProductCreateContent', () => {
     })
   })
 
+  it('não exibe campo de estoque no formulário de criação', async () => {
+    renderCreate()
+    await screen.findByLabelText(/^nome/i)
+    expect(screen.queryByLabelText(/estoque/i)).not.toBeInTheDocument()
+  })
+
   it('exibe input de arquivo no formulário', async () => {
     renderCreate()
     await screen.findByLabelText(/^nome/i)

@@ -5,8 +5,9 @@ import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const replaceMock = vi.fn()
+const pushMock = vi.fn()
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: replaceMock }),
+  useRouter: () => ({ replace: replaceMock, push: pushMock }),
 }))
 import { ToastProvider, ToastViewport } from 'base-ds'
 import ClientesPage from '../dashboard/customers/page'
@@ -16,26 +17,6 @@ const mockCustomers = [
   { id: 'c-1', name: 'João Silva', email: 'joao@test.com' },
   { id: 'c-2', name: 'Maria Costa', email: 'maria@test.com' },
 ]
-
-const mockDetail = {
-  id: 'c-1',
-  name: 'João Silva',
-  email: 'joao@test.com',
-  createdAt: '2024-01-01T00:00:00Z',
-  addresses: [
-    {
-      id: 'a-1',
-      street: 'Rua das Flores',
-      number: '123',
-      complement: 'Apto 4',
-      district: 'Centro',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01000-000',
-      isDefault: true,
-    },
-  ],
-}
 
 let capturedSearch = ''
 
@@ -55,11 +36,6 @@ const server = setupServer(
       last: true,
     })
   }),
-  http.get('/api/admin/customers/:id', ({ params }) =>
-    params.id === 'c-1'
-      ? HttpResponse.json(mockDetail)
-      : HttpResponse.json({ message: 'Not found' }, { status: 404 }),
-  ),
 )
 
 beforeAll(() => server.listen())
@@ -67,6 +43,7 @@ afterEach(async () => {
   server.resetHandlers()
   capturedSearch = ''
   replaceMock.mockClear()
+  pushMock.mockClear()
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
   })
@@ -118,28 +95,20 @@ describe('Clientes Page', () => {
     })
   })
 
-  it('clicar em cliente abre detalhe com endereços', async () => {
+  it('clicar em "Ver detalhe" navega para /dashboard/customers/:id', async () => {
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('João Silva')
 
     await user.click(screen.getAllByRole('button', { name: /ver detalhe/i })[0])
 
-    expect(await screen.findByRole('region', { name: /detalhe do cliente/i })).toBeInTheDocument()
-    expect(screen.getByText(/rua das flores/i)).toBeInTheDocument()
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/customers/c-1')
   })
 
-  it('detalhe exibe rua, número, bairro, cidade, estado, CEP', async () => {
-    const user = userEvent.setup()
+  it('não exibe detalhe inline na página de lista', async () => {
     renderPage()
     await screen.findByText('João Silva')
-
-    await user.click(screen.getAllByRole('button', { name: /ver detalhe/i })[0])
-
-    await screen.findByRole('region', { name: /detalhe do cliente/i })
-    expect(screen.getByText(/rua das flores.*123/i)).toBeInTheDocument()
-    expect(screen.getByText(/centro.*são paulo.*sp/i)).toBeInTheDocument()
-    expect(screen.getByText(/01000-000/i)).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: /detalhe do cliente/i })).not.toBeInTheDocument()
   })
 
   it('exibe toast de erro quando API falha', async () => {

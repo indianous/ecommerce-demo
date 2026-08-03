@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -36,26 +36,10 @@ const mockUnavailableProduct: Product = {
   status: 'UNAVAILABLE',
 }
 
-const mockDeletedProduct: Product = {
-  id: 'prod-deleted',
-  categoryId: 'cat-1',
-  categoryName: 'Eletrônicos',
-  name: 'Headset Antigo',
-  price: 299.9,
-  stockQuantity: 0,
-  active: false,
-  status: 'UNAVAILABLE',
-  createdAt: '2023-06-01T00:00:00Z',
-  updatedAt: '2024-03-15T10:00:00Z',
-}
-
 let products: Product[] = []
-let deletedProducts: Product[] = []
 
-let lastSavedBody: Record<string, unknown> = {}
 let lastPatchStatusBody: Record<string, unknown> = {}
 let lastPatchStatusId = ''
-let lastRestoreId = ''
 
 const makePage = (content: Product[]) => ({
   content,
@@ -68,32 +52,7 @@ const makePage = (content: Product[]) => ({
 
 const server = setupServer(
   http.get('/api/categories', () => HttpResponse.json([mockCategory])),
-  http.get('/api/admin/products', ({ request }) => {
-    const url = new URL(request.url)
-    if (url.searchParams.get('active') === 'false') {
-      return HttpResponse.json(makePage(deletedProducts))
-    }
-    return HttpResponse.json(makePage(products))
-  }),
-  http.post('/api/admin/products', async ({ request }) => {
-    const body = (await request.json()) as Omit<Product, 'id'>
-    lastSavedBody = body as Record<string, unknown>
-    const created: Product = {
-      ...(body as Product),
-      id: 'prod-2',
-      status: 'AVAILABLE',
-      createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z',
-    }
-    products = [...products, created]
-    return HttpResponse.json(created, { status: 201 })
-  }),
-  http.put('/api/admin/products/:id', async ({ request, params }) => {
-    const body = (await request.json()) as Product
-    const updated = { ...body, id: params.id as string }
-    products = products.map((p) => (p.id === params.id ? updated : p))
-    return HttpResponse.json(updated)
-  }),
+  http.get('/api/admin/products', () => HttpResponse.json(makePage(products))),
   http.delete('/api/admin/products/:id', ({ params }) => {
     products = products.filter((p) => p.id !== params.id)
     return new HttpResponse(null, { status: 204 })
@@ -108,15 +67,6 @@ const server = setupServer(
     products = products.map((p) => (p.id === params.id ? updated : p))
     return HttpResponse.json(updated)
   }),
-  http.patch('/api/admin/products/:id/restore', ({ params }) => {
-    lastRestoreId = params.id as string
-    const restored = deletedProducts.find((p) => p.id === params.id)
-    deletedProducts = deletedProducts.filter((p) => p.id !== params.id)
-    return HttpResponse.json({ ...restored, active: true, status: 'UNAVAILABLE' })
-  }),
-  http.post('/api/upload/image', () =>
-    HttpResponse.json({ url: '/uploads/uuid-test.jpg' }),
-  ),
 )
 
 beforeAll(() => server.listen())
@@ -132,11 +82,8 @@ afterAll(() => server.close())
 
 beforeEach(() => {
   products = [mockProduct]
-  deletedProducts = [mockDeletedProduct]
-  lastSavedBody = {}
   lastPatchStatusBody = {}
   lastPatchStatusId = ''
-  lastRestoreId = ''
   useAuthStore.setState({
     accessToken: 'mock-token',
     isAuthenticated: true,
@@ -173,6 +120,13 @@ describe('ProductsManagementPage — listagem', () => {
     const matches = screen.getAllByText('Indisponível')
     expect(matches.some((el) => el.tagName !== 'OPTION')).toBe(true)
   })
+
+  it('não exibe abas "Estoque" ou "Excluídos" na página de produtos', async () => {
+    renderPage()
+    await screen.findByText('Teclado Mecânico')
+    expect(screen.queryByRole('button', { name: /^estoque$/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^excluídos$/i })).not.toBeInTheDocument()
+  })
 })
 
 describe('ProductsManagementPage — navegação', () => {
@@ -199,18 +153,6 @@ describe('ProductsManagementPage — navegação', () => {
 
 describe('ProductsManagementPage — ações', () => {
   it('deletes a product', async () => {
-    const user = userEvent.setup()
-    renderPage()
-    await screen.findByText('Teclado Mecânico')
-
-    await user.click(screen.getByRole('button', { name: /excluir teclado mecânico/i }))
-
-    await waitFor(() => {
-      expect(screen.queryByText('Teclado Mecânico')).not.toBeInTheDocument()
-    })
-  })
-
-  it('botão Excluir chama DELETE e remove produto da lista principal', async () => {
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Teclado Mecânico')
@@ -253,89 +195,6 @@ describe('ProductsManagementPage — ações', () => {
     })
   })
 })
-
-describe('ProductsManagementPage — aba Excluídos', () => {
-  it('aba "Excluídos" não aparece para usuários sem RESTORE_PRODUCTS', async () => {
-    renderPage() // beforeEach usa MANAGE_PRODUCTS
-    await screen.findByText('Teclado Mecânico')
-    expect(screen.queryByRole('button', { name: /excluídos/i })).not.toBeInTheDocument()
-  })
-
-  it('aba "Excluídos" aparece para usuários com RESTORE_PRODUCTS', async () => {
-    useAuthStore.setState({
-      accessToken: 'mock-token',
-      isAuthenticated: true,
-      user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['RESTORE_PRODUCTS'] },
-    })
-    renderPage()
-    expect(await screen.findByRole('button', { name: /excluídos/i })).toBeInTheDocument()
-  })
-
-  it('aba "Excluídos" chama API com ?active=false e exibe produtos excluídos', async () => {
-    useAuthStore.setState({
-      accessToken: 'mock-token',
-      isAuthenticated: true,
-      user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['RESTORE_PRODUCTS'] },
-    })
-    const user = userEvent.setup()
-    renderPage()
-
-    await user.click(await screen.findByRole('button', { name: /excluídos/i }))
-
-    expect(await screen.findByText('Headset Antigo')).toBeInTheDocument()
-  })
-
-  it('aba Excluídos exibe botão Restaurar que chama PATCH /restore', async () => {
-    useAuthStore.setState({
-      accessToken: 'mock-token',
-      isAuthenticated: true,
-      user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['RESTORE_PRODUCTS'] },
-    })
-    const user = userEvent.setup()
-    renderPage()
-
-    await user.click(await screen.findByRole('button', { name: /excluídos/i }))
-    await screen.findByText('Headset Antigo')
-
-    await user.click(screen.getByRole('button', { name: /restaurar/i }))
-
-    await waitFor(() => {
-      expect(lastRestoreId).toBe('prod-deleted')
-      expect(screen.queryByText('Headset Antigo')).not.toBeInTheDocument()
-    })
-  })
-})
-
-describe('ProductsManagementPage — gestão de estoque', () => {
-  it('"Atualizar estoque" não aparece para usuários sem MANAGE_STOCK', async () => {
-    renderPage() // MANAGE_PRODUCTS
-    await screen.findByText('Teclado Mecânico')
-    expect(screen.queryByRole('button', { name: /atualizar estoque/i })).not.toBeInTheDocument()
-  })
-
-  it('"Atualizar estoque" aparece para usuários com MANAGE_STOCK', async () => {
-    useAuthStore.setState({
-      accessToken: 'mock-token',
-      isAuthenticated: true,
-      user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_STOCK'] },
-    })
-    renderPage()
-    expect(await screen.findByRole('button', { name: /atualizar estoque/i })).toBeInTheDocument()
-  })
-
-  it('"Atualizar estoque" navega para /dashboard/products/:id/stock', async () => {
-    useAuthStore.setState({
-      accessToken: 'mock-token',
-      isAuthenticated: true,
-      user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_STOCK'] },
-    })
-    const user = userEvent.setup()
-    renderPage()
-    await user.click(await screen.findByRole('button', { name: /atualizar estoque/i }))
-    expect(pushMock).toHaveBeenCalledWith('/dashboard/products/prod-1/stock')
-  })
-})
-
 
 describe('ProductsManagementPage — controle de acesso', () => {
   it('redireciona para /dashboard quando usuário não tem permissão de produtos', async () => {

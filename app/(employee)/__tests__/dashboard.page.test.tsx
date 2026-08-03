@@ -83,10 +83,10 @@ describe('DashboardPage — cards por permissão', () => {
     expect(screen.getByRole('heading', { name: /estoque/i })).toBeInTheDocument()
   })
 
-  it('exibe card "Produtos" quando tem RESTORE_PRODUCTS', async () => {
+  it('exibe card "Excluídos" quando tem RESTORE_PRODUCTS', async () => {
     useAuthStore.setState(makeEmployee(['RESTORE_PRODUCTS']))
     await act(async () => { renderDashboard() })
-    expect(screen.getByRole('heading', { name: /produtos/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /excluídos/i })).toBeInTheDocument()
   })
 
   it('exibe card "Clientes" quando tem MANAGE_CUSTOMERS', async () => {

@@ -7,7 +7,6 @@ export type ProductFormState = {
   name: string
   description: string
   price: number
-  stockQuantity: number
   categoryId: string
   imageUrl: string
 }
@@ -16,7 +15,6 @@ export const EMPTY_PRODUCT_FORM: ProductFormState = {
   name: '',
   description: '',
   price: 0,
-  stockQuantity: 0,
   categoryId: '',
   imageUrl: '',
 }
@@ -76,15 +74,6 @@ export function ProductForm({
           min={0}
           step={0.01}
           onChange={(value) => onFormChange({ price: value })}
-        />
-      </FormField>
-
-      <FormField label="Estoque" id="product-stock">
-        <NumberInput
-          id="product-stock"
-          value={form.stockQuantity}
-          min={0}
-          onChange={(value) => onFormChange({ stockQuantity: value })}
         />
       </FormField>
 

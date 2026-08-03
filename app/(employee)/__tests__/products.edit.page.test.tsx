@@ -104,6 +104,12 @@ describe('ProductEditContent', () => {
     })
   })
 
+  it('não exibe campo de estoque no formulário de edição', async () => {
+    renderEdit()
+    await screen.findByDisplayValue('Teclado Mecânico')
+    expect(screen.queryByLabelText(/estoque/i)).not.toBeInTheDocument()
+  })
+
   it('exibe mensagem quando produto não é encontrado', async () => {
     server.use(http.get('/api/admin/products/:id', () => new HttpResponse(null, { status: 404 })))
     renderEdit('nao-existe')

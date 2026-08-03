@@ -10,22 +10,13 @@ import type { AdminProductPage, Category, Product, ProductStatus } from '@/types
 const formatBRL = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 
-const formatDate = (iso: string) =>
-  new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(iso))
-
-type Tab = 'active' | 'deleted'
-
 export default function ProductsManagementPage() {
   const { accessToken, user } = useAuthStore()
   const { toast } = useToast()
   const router = useRouter()
 
-  const perms = user?.permissions ?? []
-  const canManageProducts = perms.includes('MANAGE_PRODUCTS')
-  const canManageStock = perms.includes('MANAGE_STOCK')
-  const canRestore = perms.includes('RESTORE_PRODUCTS')
+  const canManageProducts = user?.permissions?.includes('MANAGE_PRODUCTS') ?? false
 
-  const [tab, setTab] = useState<Tab>('active')
   const [search, setSearch] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [statusFilter, setStatusFilter] = useState<ProductStatus | ''>('')
@@ -38,17 +29,13 @@ export default function ProductsManagementPage() {
     if (!accessToken) return
     setLoading(true)
     try {
-      let url = '/api/admin/products'
-      if (tab === 'deleted') {
-        url += '?active=false'
-      } else {
-        const params = new URLSearchParams({ active: 'true' })
-        if (search) params.set('search', search)
-        if (categoryId) params.set('categoryId', categoryId)
-        if (statusFilter) params.set('status', statusFilter)
-        url += '?' + params.toString()
-      }
-      const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
+      const params = new URLSearchParams({ active: 'true' })
+      if (search) params.set('search', search)
+      if (categoryId) params.set('categoryId', categoryId)
+      if (statusFilter) params.set('status', statusFilter)
+      const res = await fetch(`/api/admin/products?${params}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
       if (res.ok) {
         const data: AdminProductPage = await res.json()
         setProducts(data.content)
@@ -56,16 +43,14 @@ export default function ProductsManagementPage() {
     } finally {
       setLoading(false)
     }
-  }, [accessToken, tab, search, categoryId, statusFilter])
+  }, [accessToken, search, categoryId, statusFilter])
 
   useEffect(() => {
     if (!accessToken) return
-    fetch('/api/categories').then((r) => r.ok ? r.json() : []).then(setCategories)
+    fetch('/api/categories').then((r) => (r.ok ? r.json() : [])).then(setCategories)
   }, [accessToken])
 
-  useEffect(() => {
-    fetchProducts()
-  }, [fetchProducts])
+  useEffect(() => { fetchProducts() }, [fetchProducts])
 
   const handleDelete = async (product: Product) => {
     if (!accessToken) return
@@ -98,24 +83,9 @@ export default function ProductsManagementPage() {
     }
   }
 
-  const handleRestore = async (product: Product) => {
-    if (!accessToken) return
-    try {
-      const res = await fetch(`/api/admin/products/${product.id}/restore`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      if (!res.ok) throw new Error()
-      setProducts((prev) => prev.filter((p) => p.id !== product.id))
-      toast({ variant: 'success', description: 'Produto restaurado.' })
-    } catch {
-      toast({ variant: 'destructive', description: 'Erro ao restaurar produto.' })
-    }
-  }
-
   if (loading) return <main className="px-4 py-8"><p>Carregando produtos...</p></main>
 
-  const activeColumns: TableColumn<Product>[] = [
+  const columns: TableColumn<Product>[] = [
     { key: 'name', header: 'Nome', render: (p) => p.name },
     { key: 'categoryName', header: 'Categoria', render: (p) => p.categoryName },
     { key: 'price', header: 'Preço', render: (p) => formatBRL(p.price) },
@@ -149,11 +119,6 @@ export default function ProductsManagementPage() {
               {p.status === 'AVAILABLE' ? 'Tornar Indisponível' : 'Tornar Disponível'}
             </Button>
           )}
-          {canManageStock && (
-            <Button variant="outline" size="sm" aria-label={`Atualizar estoque ${p.name}`} onClick={() => router.push(`/dashboard/products/${p.id}/stock`)}>
-              Atualizar estoque
-            </Button>
-          )}
           {canManageProducts && (
             <Button variant="danger" size="sm" aria-label={`Excluir ${p.name}`} onClick={() => handleDelete(p)}>
               Excluir
@@ -164,66 +129,16 @@ export default function ProductsManagementPage() {
     },
   ]
 
-  const deletedColumns: TableColumn<Product>[] = [
-    { key: 'name', header: 'Nome', render: (p) => p.name },
-    { key: 'categoryName', header: 'Categoria', render: (p) => p.categoryName },
-    { key: 'updatedAt', header: 'Excluído em', render: (p) => formatDate(p.updatedAt) },
-    {
-      key: 'actions',
-      header: 'Ações',
-      render: (p) => (
-        <Button variant="outline" size="sm" aria-label={`Restaurar ${p.name}`} onClick={() => handleRestore(p)}>
-          Restaurar
-        </Button>
-      ),
-    },
-  ]
-
   return (
-    <PermissionGuard permissions={['MANAGE_PRODUCTS', 'MANAGE_STOCK', 'RESTORE_PRODUCTS']}>
+    <PermissionGuard permissions={['MANAGE_PRODUCTS']}>
       <main className="mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <Heading as="h1" size="2xl">
-          Gestão de Produtos
-        </Heading>
-        {tab === 'active' && canManageProducts && (
-          <Button onClick={() => router.push('/dashboard/products/new')}>Novo produto</Button>
-        )}
-      </div>
+        <div className="mb-6 flex items-center justify-between">
+          <Heading as="h1" size="2xl">Gestão de Produtos</Heading>
+          {canManageProducts && (
+            <Button onClick={() => router.push('/dashboard/products/new')}>Novo produto</Button>
+          )}
+        </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-border">
-        <button
-          type="button"
-          role="button"
-          aria-selected={tab === 'active'}
-          onClick={() => setTab('active')}
-          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-            tab === 'active'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          Produtos
-        </button>
-        {canRestore && (
-          <button
-            type="button"
-            role="button"
-            aria-selected={tab === 'deleted'}
-            onClick={() => setTab('deleted')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-              tab === 'deleted'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Excluídos
-          </button>
-        )}
-      </div>
-
-      {tab === 'active' && (
         <div className="flex gap-4 mb-4 flex-wrap">
           <input
             type="search"
@@ -255,10 +170,9 @@ export default function ProductsManagementPage() {
             <option value="UNAVAILABLE">Indisponível</option>
           </select>
         </div>
-      )}
 
-      <Table columns={tab === 'active' ? activeColumns : deletedColumns} data={products} />
-    </main>
+        <Table columns={columns} data={products} />
+      </main>
     </PermissionGuard>
   )
 }

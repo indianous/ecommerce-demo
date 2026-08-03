@@ -34,13 +34,19 @@ const CARDS: DashboardCard[] = [
     label: 'Produtos',
     description: 'Gerencie o catálogo de produtos',
     href: '/dashboard/products',
-    perms: ['MANAGE_PRODUCTS', 'RESTORE_PRODUCTS'],
+    perms: ['MANAGE_PRODUCTS'],
   },
   {
     label: 'Estoque',
     description: 'Atualize a quantidade em estoque dos produtos',
-    href: '/dashboard/products',
+    href: '/dashboard/stock',
     perms: ['MANAGE_STOCK'],
+  },
+  {
+    label: 'Excluídos',
+    description: 'Restaure produtos excluídos do catálogo',
+    href: '/dashboard/products/deleted',
+    perms: ['RESTORE_PRODUCTS'],
   },
   {
     label: 'Clientes',
