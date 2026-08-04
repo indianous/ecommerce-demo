@@ -10,6 +10,11 @@ export type EmployeePermission =
   | 'RESTORE_PRODUCTS'
   | 'MANAGE_EMPLOYEES'
   | 'MANAGE_ORDER_STATUS_REQUESTS'
+  | 'MANAGE_SITE'
+
+export interface SiteSettings {
+  placeholderImageUrl: string | null
+}
 
 export interface User {
   id: string

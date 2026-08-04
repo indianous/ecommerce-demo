@@ -2,6 +2,7 @@ import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import { ProductCard } from '../ProductCard'
+import { SiteSettingsContext } from '@/contexts/SiteSettingsContext'
 import { useCartStore } from '@/stores/cart.store'
 import type { Product } from '@/types'
 
@@ -80,5 +81,32 @@ describe('ProductCard', () => {
     await user.click(btn)
 
     expect(useCartStore.getState().items[0].quantity).toBe(2)
+  })
+})
+
+describe('ProductCard — imagem placeholder', () => {
+  const productSemImagem: Product = { ...mockProduct, imageUrl: undefined }
+
+  it('renderiza imagem do produto quando imageUrl está presente', () => {
+    render(<ProductCard product={mockProduct} />)
+    const img = screen.getByRole('img', { name: /mechanical keyboard/i })
+    expect(img).toHaveAttribute('src', mockProduct.imageUrl)
+  })
+
+  it('renderiza placeholder do contexto quando imageUrl é nulo', () => {
+    render(
+      <SiteSettingsContext.Provider value={{ placeholderImageUrl: 'https://cdn.example.com/ph.jpg' }}>
+        <ProductCard product={productSemImagem} />
+      </SiteSettingsContext.Provider>,
+    )
+    const img = screen.getByRole('img', { name: /mechanical keyboard/i })
+    expect(img).toHaveAttribute('src', 'https://cdn.example.com/ph.jpg')
+  })
+
+  it('renderiza SVG de fallback quando imageUrl e placeholderImageUrl são nulos', () => {
+    render(<ProductCard product={productSemImagem} />)
+    const fallback = screen.getByRole('img', { name: /mechanical keyboard/i })
+    expect(fallback.tagName.toLowerCase()).toBe('div')
+    expect(fallback.querySelector('svg')).toBeInTheDocument()
   })
 })

@@ -16,6 +16,7 @@ const ALL_NAV_ITEMS = [
   { label: 'Clientes', href: '/dashboard/customers', perms: ['MANAGE_CUSTOMERS'] as EmployeePermission[] },
   { label: 'Pagamentos', href: '/dashboard/payments', perms: ['MANAGE_PAYMENTS'] as EmployeePermission[] },
   { label: 'Funcionários', href: '/dashboard/employees', perms: ['MANAGE_EMPLOYEES'] as EmployeePermission[] },
+  { label: 'Site', href: '/dashboard/site', perms: ['MANAGE_SITE'] as EmployeePermission[] },
 ]
 
 export function EmployeeShell({ children }: { children: React.ReactNode }) {

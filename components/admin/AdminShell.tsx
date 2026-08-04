@@ -15,6 +15,7 @@ const navItems = [
   { label: 'Funcionários', href: '/dashboard/admin/employees' },
   { label: 'Pagamentos', href: '/dashboard/admin/payments' },
   { label: 'Auditoria', href: '/dashboard/admin/audit-logs' },
+  { label: 'Site', href: '/dashboard/admin/site' },
 ]
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
