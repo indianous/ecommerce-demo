@@ -115,6 +115,7 @@ export interface AdminOrderResponse {
   paymentMethod: PaymentMethod
   paymentStatus: PaymentStatus
   paymentId?: string
+  receiptUrl?: string
   createdAt: string
   itemCount: number
 }
