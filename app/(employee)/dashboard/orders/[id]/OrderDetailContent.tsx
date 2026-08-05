@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Badge, Button, Heading, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
-import type { AdminOrderDetailResponse, OrderStatus } from '@/types'
+import type { AdminOrderDetailResponse, OrderStatus, PaymentStatus } from '@/types'
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   PENDING: 'Pendente',
@@ -31,6 +31,20 @@ const STATUS_BADGE_VARIANT: Record<OrderStatus, 'default' | 'success' | 'warning
   RETURNED: 'warning',
   DELIVERED: 'success',
   CANCELLED: 'destructive',
+}
+
+const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+  PENDING: 'Pendente',
+  PAID: 'Pago',
+  FAILED: 'Rejeitado',
+  REFUNDED: 'Reembolsado',
+}
+
+const PAYMENT_STATUS_BADGE_VARIANT: Record<PaymentStatus, 'default' | 'success' | 'warning' | 'destructive' | 'secondary'> = {
+  PENDING: 'warning',
+  PAID: 'success',
+  FAILED: 'destructive',
+  REFUNDED: 'secondary',
 }
 
 const NEXT_STATES: Record<OrderStatus, OrderStatus[]> = {
@@ -163,6 +177,14 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
           <div>
             <p className="text-sm text-muted-foreground">Pagamento</p>
             <p>{order.paymentMethod}</p>
+            <Badge variant={PAYMENT_STATUS_BADGE_VARIANT[order.paymentStatus]}>
+              {PAYMENT_STATUS_LABELS[order.paymentStatus]}
+            </Badge>
+            {order.paymentStatus === 'FAILED' && order.paymentRejectionReason && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                Motivo: {order.paymentRejectionReason}
+              </p>
+            )}
           </div>
         </div>
 

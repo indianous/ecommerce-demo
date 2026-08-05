@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   const authorization = request.headers.get('Authorization')
   const formData = await request.formData()
 
-  const res = await fetch(`${API}/upload/image`, {
+  const res = await fetch(`${API}/upload/receipt`, {
     method: 'POST',
     headers: {
       ...(authorization ? { Authorization: authorization } : {}),
