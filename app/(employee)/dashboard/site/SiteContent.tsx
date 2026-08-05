@@ -1,55 +1,310 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Button, FileUpload, FormField, Heading, Image, Skeleton, useToast } from 'base-ds'
-import { useAuthStore } from '@/stores/auth.store'
-import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { useEffect, useState } from "react";
+import { Button, Card, Dialog, Heading, Image, Skeleton, useToast } from "base-ds";
+import { useAuthStore } from "@/stores/auth.store";
+import { PermissionGuard } from "@/components/employee/PermissionGuard";
+import { PlaceholderImageForm } from "@/components/forms/PlaceholderImageForm";
+import { FaviconForm } from "@/components/forms/FaviconForm";
+import { LogoForm } from "@/components/forms/LogoForm";
+import { SiteMetadataForm } from "@/components/forms/SiteMetadataForm";
+import { BannerForm } from "@/components/forms/BannerForm";
+import { MarkdownContentForm } from "@/components/forms/MarkdownContentForm";
+import { ContactForm } from "@/components/forms/ContactForm";
+import { SocialLinksForm } from "@/components/forms/SocialLinksForm";
+import type { Banner } from "@/types";
+
+type DialogId =
+  | "logo" | "placeholder" | "favicon" | "metadata"
+  | "banners" | "about" | "contact"
+  | "social" | "privacy" | "terms" | "refund";
 
 export function SiteContent() {
-  const { accessToken } = useAuthStore()
-  const { toast } = useToast()
+  const { accessToken } = useAuthStore();
+  const { toast } = useToast();
 
-  const [currentUrl, setCurrentUrl] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [file, setFile] = useState<File | null>(null)
-  const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(true);
+  const [openDialog, setOpenDialog] = useState<DialogId | null>(null);
+
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoSaving, setLogoSaving] = useState(false);
+
+  const [placeholderUrl, setPlaceholderUrl] = useState<string | null>(null);
+  const [placeholderFile, setPlaceholderFile] = useState<File | null>(null);
+  const [placeholderSaving, setPlaceholderSaving] = useState(false);
+
+  const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
+  const [faviconFile, setFaviconFile] = useState<File | null>(null);
+  const [faviconSaving, setFaviconSaving] = useState(false);
+
+  const [siteTitle, setSiteTitle] = useState("");
+  const [defaultDescription, setDefaultDescription] = useState("");
+  const [metadataSaving, setMetadataSaving] = useState(false);
+
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerLinkUrl, setBannerLinkUrl] = useState("");
+  const [bannerSaving, setBannerSaving] = useState(false);
+
+  const [aboutUsContent, setAboutUsContent] = useState("");
+  const [aboutUsSaving, setAboutUsSaving] = useState(false);
+
+  const [contactDescription, setContactDescription] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactSaving, setContactSaving] = useState(false);
+
+  const [instagramUrl, setInstagramUrl] = useState("");
+  const [tiktokUrl, setTiktokUrl] = useState("");
+  const [facebookUrl, setFacebookUrl] = useState("");
+  const [socialSaving, setSocialSaving] = useState(false);
+
+  const [privacyContent, setPrivacyContent] = useState("");
+  const [privacySaving, setPrivacySaving] = useState(false);
+
+  const [termsContent, setTermsContent] = useState("");
+  const [termsSaving, setTermsSaving] = useState(false);
+
+  const [refundContent, setRefundContent] = useState("");
+  const [refundSaving, setRefundSaving] = useState(false);
 
   useEffect(() => {
-    fetch('/api/site/settings')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        setCurrentUrl(data?.placeholderImageUrl ?? null)
-        setLoading(false)
+    Promise.all([
+      fetch("/api/site/settings").then((r) => (r.ok ? r.json() : null)),
+      fetch("/api/site/banners").then((r) => (r.ok ? r.json() : [])),
+    ])
+      .then(([settings, bannersData]) => {
+        if (settings) {
+          setLogoUrl(settings.logoUrl ?? null);
+          setPlaceholderUrl(settings.placeholderImageUrl ?? null);
+          setFaviconUrl(settings.faviconUrl ?? null);
+          setSiteTitle(settings.siteTitle ?? "");
+          setDefaultDescription(settings.defaultDescription ?? "");
+          setAboutUsContent(settings.aboutUsContent ?? "");
+          setContactDescription(settings.contactDescription ?? "");
+          setContactPhone(settings.contactPhone ?? "");
+          setContactEmail(settings.contactEmail ?? "");
+          setInstagramUrl(settings.instagramUrl ?? "");
+          setTiktokUrl(settings.tiktokUrl ?? "");
+          setFacebookUrl(settings.facebookUrl ?? "");
+          setPrivacyContent(settings.privacyPolicyContent ?? "");
+          setTermsContent(settings.termsContent ?? "");
+          setRefundContent(settings.refundPolicyContent ?? "");
+        }
+        if (Array.isArray(bannersData)) setBanners(bannersData);
+        setLoading(false);
       })
-      .catch(() => setLoading(false))
-  }, [])
+      .catch(() => setLoading(false));
+  }, []);
 
-  const handleSave = async () => {
-    if (!file || !accessToken) return
-    setSaving(true)
+  const authHeader = () => ({ Authorization: `Bearer ${accessToken}` });
+  const close = () => setOpenDialog(null);
+
+  const handleLogoSave = async () => {
+    if (!logoFile || !accessToken) return;
+    setLogoSaving(true);
     try {
-      const fd = new FormData()
-      fd.append('file', file)
-      const res = await fetch('/api/site/settings/placeholder-image', {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${accessToken}` },
-        body: fd,
-      })
-      if (!res.ok) throw new Error()
-      const data = await res.json()
-      setCurrentUrl(data.placeholderImageUrl)
-      setFile(null)
-      toast({ variant: 'success', description: 'Placeholder atualizado com sucesso.' })
+      const fd = new FormData();
+      fd.append("file", logoFile);
+      const res = await fetch("/api/site/settings/logo", { method: "PUT", headers: authHeader(), body: fd });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setLogoUrl(data.logoUrl);
+      setLogoFile(null);
+      close();
+      toast({ variant: "success", description: "Logo atualizado com sucesso." });
     } catch {
-      toast({ variant: 'destructive', description: 'Erro ao salvar placeholder.' })
-    } finally {
-      setSaving(false)
+      toast({ variant: "destructive", description: "Erro ao salvar logo." });
+    } finally { setLogoSaving(false); }
+  };
+
+  const handlePlaceholderSave = async () => {
+    if (!placeholderFile || !accessToken) return;
+    setPlaceholderSaving(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", placeholderFile);
+      const res = await fetch("/api/site/settings/placeholder-image", { method: "PUT", headers: authHeader(), body: fd });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setPlaceholderUrl(data.placeholderImageUrl);
+      setPlaceholderFile(null);
+      close();
+      toast({ variant: "success", description: "Placeholder atualizado com sucesso." });
+    } catch {
+      toast({ variant: "destructive", description: "Erro ao salvar placeholder." });
+    } finally { setPlaceholderSaving(false); }
+  };
+
+  const handleFaviconSave = async () => {
+    if (!faviconFile || !accessToken) return;
+    setFaviconSaving(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", faviconFile);
+      const res = await fetch("/api/site/settings/favicon", { method: "PUT", headers: authHeader(), body: fd });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setFaviconUrl(data.faviconUrl);
+      setFaviconFile(null);
+      close();
+      toast({ variant: "success", description: "Favicon atualizado com sucesso." });
+    } catch {
+      toast({ variant: "destructive", description: "Erro ao salvar favicon." });
+    } finally { setFaviconSaving(false); }
+  };
+
+  const handleMetadataSave = async () => {
+    if (!accessToken) return;
+    setMetadataSaving(true);
+    try {
+      const res = await fetch("/api/site/settings/metadata", {
+        method: "PUT",
+        headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ siteTitle, defaultDescription }),
+      });
+      if (!res.ok) throw new Error();
+      close();
+      toast({ variant: "success", description: "Metadados atualizados com sucesso." });
+    } catch {
+      toast({ variant: "destructive", description: "Erro ao salvar metadados." });
+    } finally { setMetadataSaving(false); }
+  };
+
+  const handleBannerSave = async () => {
+    if (!bannerFile || !accessToken) return;
+    setBannerSaving(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", bannerFile);
+      if (bannerLinkUrl) fd.append("linkUrl", bannerLinkUrl);
+      const res = await fetch("/api/site/banners", { method: "POST", headers: authHeader(), body: fd });
+      if (!res.ok) throw new Error();
+      const newBanner = await res.json();
+      setBanners((prev) => [...prev, newBanner]);
+      setBannerFile(null);
+      setBannerLinkUrl("");
+      toast({ variant: "success", description: "Banner adicionado com sucesso." });
+    } catch {
+      toast({ variant: "destructive", description: "Erro ao salvar banner." });
+    } finally { setBannerSaving(false); }
+  };
+
+  const handleBannerRemove = async (id: string) => {
+    if (!accessToken) return;
+    try {
+      const res = await fetch(`/api/site/banners/${id}`, { method: "DELETE", headers: authHeader() });
+      if (!res.ok && res.status !== 204) throw new Error();
+      setBanners((prev) => prev.filter((b) => b.id !== id));
+      toast({ variant: "success", description: "Banner removido." });
+    } catch {
+      toast({ variant: "destructive", description: "Erro ao remover banner." });
     }
-  }
+  };
+
+  const handleAboutUsSave = async () => {
+    if (!accessToken) return;
+    setAboutUsSaving(true);
+    try {
+      const res = await fetch("/api/site/settings/about-us", {
+        method: "PUT", headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ content: aboutUsContent }),
+      });
+      if (!res.ok) throw new Error();
+      close();
+      toast({ variant: "success", description: "Sobre nós atualizado com sucesso." });
+    } catch {
+      toast({ variant: "destructive", description: "Erro ao salvar sobre nós." });
+    } finally { setAboutUsSaving(false); }
+  };
+
+  const handleContactSave = async () => {
+    if (!accessToken) return;
+    setContactSaving(true);
+    try {
+      const res = await fetch("/api/site/settings/contact", {
+        method: "PUT", headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ description: contactDescription, phone: contactPhone, email: contactEmail }),
+      });
+      if (!res.ok) throw new Error();
+      close();
+      toast({ variant: "success", description: "Contato atualizado com sucesso." });
+    } catch {
+      toast({ variant: "destructive", description: "Erro ao salvar contato." });
+    } finally { setContactSaving(false); }
+  };
+
+  const handleSocialSave = async () => {
+    if (!accessToken) return;
+    setSocialSaving(true);
+    try {
+      const res = await fetch("/api/site/settings/social-links", {
+        method: "PUT", headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ instagramUrl, tiktokUrl, facebookUrl }),
+      });
+      if (!res.ok) throw new Error();
+      close();
+      toast({ variant: "success", description: "Redes sociais atualizadas com sucesso." });
+    } catch {
+      toast({ variant: "destructive", description: "Erro ao salvar redes sociais." });
+    } finally { setSocialSaving(false); }
+  };
+
+  const handlePrivacySave = async () => {
+    if (!accessToken) return;
+    setPrivacySaving(true);
+    try {
+      const res = await fetch("/api/site/settings/privacy-policy", {
+        method: "PUT", headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ content: privacyContent }),
+      });
+      if (!res.ok) throw new Error();
+      close();
+      toast({ variant: "success", description: "Política de privacidade atualizada com sucesso." });
+    } catch {
+      toast({ variant: "destructive", description: "Erro ao salvar política de privacidade." });
+    } finally { setPrivacySaving(false); }
+  };
+
+  const handleTermsSave = async () => {
+    if (!accessToken) return;
+    setTermsSaving(true);
+    try {
+      const res = await fetch("/api/site/settings/terms", {
+        method: "PUT", headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ content: termsContent }),
+      });
+      if (!res.ok) throw new Error();
+      close();
+      toast({ variant: "success", description: "Termos e condições atualizados com sucesso." });
+    } catch {
+      toast({ variant: "destructive", description: "Erro ao salvar termos e condições." });
+    } finally { setTermsSaving(false); }
+  };
+
+  const handleRefundSave = async () => {
+    if (!accessToken) return;
+    setRefundSaving(true);
+    try {
+      const res = await fetch("/api/site/settings/refund-policy", {
+        method: "PUT", headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ content: refundContent }),
+      });
+      if (!res.ok) throw new Error();
+      close();
+      toast({ variant: "success", description: "Política de reembolso atualizada com sucesso." });
+    } catch {
+      toast({ variant: "destructive", description: "Erro ao salvar política de reembolso." });
+    } finally { setRefundSaving(false); }
+  };
+
+  const configured = (v: string | null | undefined) =>
+    v ? "Configurado" : "Não configurado";
 
   return (
-    <PermissionGuard permissions={['MANAGE_SITE']}>
-      <main className="mx-auto max-w-2xl px-4 py-8">
+    <PermissionGuard permissions={["MANAGE_SITE"]}>
+      <main className="mx-auto max-w-5xl px-4 py-8">
         <Heading as="h1" size="2xl" className="mb-6">
           Gestão do Site
         </Heading>
@@ -60,50 +315,241 @@ export function SiteContent() {
             <Skeleton variant="line" height={120} />
           </div>
         ) : (
-          <div className="flex flex-col gap-6">
-            <section>
-              <Heading as="h2" size="lg" className="mb-3">
-                Imagem placeholder de produto
-              </Heading>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
-              {currentUrl && (
-                <div className="mb-4">
-                  <p className="text-sm text-muted-foreground mb-2">Placeholder atual:</p>
-                  <Image
-                    src={currentUrl}
-                    alt="Placeholder atual"
-                    aspectRatio="landscape"
-                    objectFit="contain"
-                    className="max-w-xs rounded border"
-                  />
+            <section aria-labelledby="logo-heading">
+              <Card variant="outlined" className="h-full">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <Heading as="h2" id="logo-heading" size="base">Logo da loja</Heading>
+                    <Button type="button" size="sm" onClick={() => setOpenDialog("logo")}>Editar</Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">SVG utilizado como logotipo da loja.</p>
+                  {logoUrl
+                    ? <img src={logoUrl} alt="Logo atual" className="h-10 rounded border object-contain" />
+                    : <span className="text-xs text-muted-foreground">{configured(logoUrl)}</span>}
                 </div>
-              )}
-
-              <FormField label="Nova imagem de placeholder" id="placeholder-upload">
-                <FileUpload
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={([f]) => setFile(f ?? null)}
-                />
-              </FormField>
-
-              {file && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Arquivo selecionado: <span className="font-medium">{file.name}</span>
-                </p>
-              )}
-
-              <div className="mt-4">
-                <Button
-                  onClick={handleSave}
-                  disabled={!file || saving}
-                >
-                  {saving ? 'Salvando...' : 'Salvar'}
-                </Button>
-              </div>
+              </Card>
             </section>
+
+            <section aria-labelledby="placeholder-heading">
+              <Card variant="outlined" className="h-full">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <Heading as="h2" id="placeholder-heading" size="base">Placeholder de produto</Heading>
+                    <Button type="button" size="sm" onClick={() => setOpenDialog("placeholder")}>Editar</Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Imagem exibida quando um produto não tem foto.</p>
+                  {placeholderUrl
+                    ? <Image src={placeholderUrl} alt="Placeholder atual" aspectRatio="landscape" objectFit="contain" className="max-w-[120px] rounded border" />
+                    : <span className="text-xs text-muted-foreground">{configured(placeholderUrl)}</span>}
+                </div>
+              </Card>
+            </section>
+
+            <section aria-labelledby="favicon-heading">
+              <Card variant="outlined" className="h-full">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <Heading as="h2" id="favicon-heading" size="base">Favicon do site</Heading>
+                    <Button type="button" size="sm" onClick={() => setOpenDialog("favicon")}>Editar</Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Ícone exibido na aba do navegador.</p>
+                  {faviconUrl
+                    ? <Image src={faviconUrl} alt="Favicon atual" className="w-8 h-8 rounded border" />
+                    : <span className="text-xs text-muted-foreground">{configured(faviconUrl)}</span>}
+                </div>
+              </Card>
+            </section>
+
+            <section aria-labelledby="metadata-heading">
+              <Card variant="outlined" className="h-full">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <Heading as="h2" id="metadata-heading" size="base">Metadados do site</Heading>
+                    <Button type="button" size="sm" onClick={() => setOpenDialog("metadata")}>Editar</Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Nome da loja e descrição padrão para SEO.</p>
+                  <span className="text-xs text-muted-foreground">{siteTitle || "Não configurado"}</span>
+                </div>
+              </Card>
+            </section>
+
+            <section aria-labelledby="banners-heading">
+              <Card variant="outlined" className="h-full">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <Heading as="h2" id="banners-heading" size="base">Banners</Heading>
+                    <Button type="button" size="sm" onClick={() => setOpenDialog("banners")}>Gerenciar</Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Imagens de destaque exibidas na home.</p>
+                  <span className="text-xs text-muted-foreground">
+                    {banners.length > 0 ? `${banners.length} banner(s) cadastrado(s)` : "Nenhum banner"}
+                  </span>
+                </div>
+              </Card>
+            </section>
+
+            <section aria-labelledby="about-heading">
+              <Card variant="outlined" className="h-full">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <Heading as="h2" id="about-heading" size="base">Sobre nós</Heading>
+                    <Button type="button" size="sm" onClick={() => setOpenDialog("about")}>Editar</Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Conteúdo da página /about-us.</p>
+                  <span className="text-xs text-muted-foreground">{configured(aboutUsContent)}</span>
+                </div>
+              </Card>
+            </section>
+
+            <section aria-labelledby="contact-heading">
+              <Card variant="outlined" className="h-full">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <Heading as="h2" id="contact-heading" size="base">Contato</Heading>
+                    <Button type="button" size="sm" onClick={() => setOpenDialog("contact")}>Editar</Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Informações exibidas na página /contact.</p>
+                  <span className="text-xs text-muted-foreground">{configured(contactEmail || contactPhone)}</span>
+                </div>
+              </Card>
+            </section>
+
+            <section aria-labelledby="social-heading">
+              <Card variant="outlined" className="h-full">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <Heading as="h2" id="social-heading" size="base">Redes sociais</Heading>
+                    <Button type="button" size="sm" onClick={() => setOpenDialog("social")}>Editar</Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Links de Instagram, TikTok e Facebook.</p>
+                  <span className="text-xs text-muted-foreground">
+                    {[instagramUrl && "Instagram", tiktokUrl && "TikTok", facebookUrl && "Facebook"]
+                      .filter(Boolean).join(", ") || "Não configurado"}
+                  </span>
+                </div>
+              </Card>
+            </section>
+
+            <section aria-labelledby="privacy-heading">
+              <Card variant="outlined" className="h-full">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <Heading as="h2" id="privacy-heading" size="base">Política de privacidade</Heading>
+                    <Button type="button" size="sm" onClick={() => setOpenDialog("privacy")}>Editar</Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Conteúdo da página /privacy-policy.</p>
+                  <span className="text-xs text-muted-foreground">{configured(privacyContent)}</span>
+                </div>
+              </Card>
+            </section>
+
+            <section aria-labelledby="terms-heading">
+              <Card variant="outlined" className="h-full">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <Heading as="h2" id="terms-heading" size="base">Termos e condições</Heading>
+                    <Button type="button" size="sm" onClick={() => setOpenDialog("terms")}>Editar</Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Conteúdo da página /terms-and-conditions.</p>
+                  <span className="text-xs text-muted-foreground">{configured(termsContent)}</span>
+                </div>
+              </Card>
+            </section>
+
+            <section aria-labelledby="refund-heading">
+              <Card variant="outlined" className="h-full">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <Heading as="h2" id="refund-heading" size="base">Política de reembolso</Heading>
+                    <Button type="button" size="sm" onClick={() => setOpenDialog("refund")}>Editar</Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Conteúdo da página /refund-policy.</p>
+                  <span className="text-xs text-muted-foreground">{configured(refundContent)}</span>
+                </div>
+              </Card>
+            </section>
+
           </div>
         )}
+
+        <Dialog open={openDialog === "logo"} onClose={close} title="Logo da loja">
+          <LogoForm file={logoFile} onFileChange={setLogoFile} onSave={handleLogoSave} saving={logoSaving} />
+        </Dialog>
+
+        <Dialog open={openDialog === "placeholder"} onClose={close} title="Placeholder de produto">
+          <PlaceholderImageForm file={placeholderFile} onFileChange={setPlaceholderFile} onSave={handlePlaceholderSave} saving={placeholderSaving} />
+        </Dialog>
+
+        <Dialog open={openDialog === "favicon"} onClose={close} title="Favicon do site">
+          <FaviconForm file={faviconFile} onFileChange={setFaviconFile} onSave={handleFaviconSave} saving={faviconSaving} />
+        </Dialog>
+
+        <Dialog open={openDialog === "metadata"} onClose={close} title="Metadados do site">
+          <SiteMetadataForm
+            siteTitle={siteTitle} defaultDescription={defaultDescription}
+            onSiteTitle={setSiteTitle} onDefaultDescription={setDefaultDescription}
+            onSave={handleMetadataSave} saving={metadataSaving}
+          />
+        </Dialog>
+
+        <Dialog open={openDialog === "banners"} onClose={close} title="Banners" className="max-w-xl">
+          {banners.length > 0 && (
+            <ul className="mb-4 flex flex-col gap-2">
+              {banners.map((banner) => (
+                <li key={banner.id} className="flex items-center gap-3 rounded border p-2">
+                  <img src={banner.imageUrl} alt="Banner" className="h-10 w-16 rounded object-cover" />
+                  {banner.linkUrl && (
+                    <span className="text-sm text-muted-foreground truncate flex-1">{banner.linkUrl}</span>
+                  )}
+                  <Button type="button" variant="destructive" size="sm" onClick={() => handleBannerRemove(banner.id)}>
+                    Remover
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <BannerForm
+            file={bannerFile} linkUrl={bannerLinkUrl}
+            onFileChange={setBannerFile} onLinkUrl={setBannerLinkUrl}
+            onSave={handleBannerSave} saving={bannerSaving}
+          />
+        </Dialog>
+
+        <Dialog open={openDialog === "about"} onClose={close} title="Sobre nós" className="max-w-2xl">
+          <MarkdownContentForm label="Conteúdo" value={aboutUsContent} onChange={setAboutUsContent} onSave={handleAboutUsSave} saving={aboutUsSaving} />
+        </Dialog>
+
+        <Dialog open={openDialog === "contact"} onClose={close} title="Contato" className="max-w-xl">
+          <ContactForm
+            description={contactDescription} phone={contactPhone} email={contactEmail}
+            onDescription={setContactDescription} onPhone={setContactPhone} onEmail={setContactEmail}
+            onSave={handleContactSave} saving={contactSaving}
+          />
+        </Dialog>
+
+        <Dialog open={openDialog === "social"} onClose={close} title="Redes sociais">
+          <SocialLinksForm
+            instagramUrl={instagramUrl} tiktokUrl={tiktokUrl} facebookUrl={facebookUrl}
+            onInstagram={setInstagramUrl} onTiktok={setTiktokUrl} onFacebook={setFacebookUrl}
+            onSave={handleSocialSave} saving={socialSaving}
+          />
+        </Dialog>
+
+        <Dialog open={openDialog === "privacy"} onClose={close} title="Política de privacidade" className="max-w-2xl">
+          <MarkdownContentForm label="Conteúdo" value={privacyContent} onChange={setPrivacyContent} onSave={handlePrivacySave} saving={privacySaving} />
+        </Dialog>
+
+        <Dialog open={openDialog === "terms"} onClose={close} title="Termos e condições" className="max-w-2xl">
+          <MarkdownContentForm label="Conteúdo" value={termsContent} onChange={setTermsContent} onSave={handleTermsSave} saving={termsSaving} />
+        </Dialog>
+
+        <Dialog open={openDialog === "refund"} onClose={close} title="Política de reembolso" className="max-w-2xl">
+          <MarkdownContentForm label="Conteúdo" value={refundContent} onChange={setRefundContent} onSave={handleRefundSave} saving={refundSaving} />
+        </Dialog>
+
       </main>
     </PermissionGuard>
-  )
+  );
 }

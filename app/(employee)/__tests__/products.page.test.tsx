@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -50,8 +50,11 @@ const makePage = (content: Product[]) => ({
   last: true,
 })
 
+let categories: Category[] = []
+
 const server = setupServer(
-  http.get('/api/categories', () => HttpResponse.json([mockCategory])),
+  http.get('/api/categories', () => HttpResponse.json(categories)),
+  http.post('/api/admin/categories', () => HttpResponse.json({ id: 'cat-2', name: 'Eletrodomésticos', slug: 'eletrodomesticos' }, { status: 201 })),
   http.get('/api/admin/products', () => HttpResponse.json(makePage(products))),
   http.delete('/api/admin/products/:id', ({ params }) => {
     products = products.filter((p) => p.id !== params.id)
@@ -82,6 +85,7 @@ afterAll(() => server.close())
 
 beforeEach(() => {
   products = [mockProduct]
+  categories = [mockCategory]
   lastPatchStatusBody = {}
   lastPatchStatusId = ''
   useAuthStore.setState({
@@ -193,6 +197,52 @@ describe('ProductsManagementPage — ações', () => {
       expect(lastPatchStatusId).toBe('prod-unavail')
       expect(lastPatchStatusBody).toMatchObject({ status: 'AVAILABLE' })
     })
+  })
+})
+
+describe('ProductsManagementPage — criar categoria', () => {
+  it('exibe botão "Nova categoria" para usuário com MANAGE_PRODUCTS', async () => {
+    renderPage()
+    await screen.findByText('Teclado Mecânico')
+    expect(screen.getByRole('button', { name: /nova categoria/i })).toBeInTheDocument()
+  })
+
+  it('botão "Salvar" de categoria fica desabilitado sem nome', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Teclado Mecânico')
+
+    await user.click(screen.getByRole('button', { name: /nova categoria/i }))
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('button', { name: /salvar/i })).toBeDisabled()
+  })
+
+  it('"Salvar" categoria chama POST, exibe toast de sucesso e atualiza filtro de categorias', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Teclado Mecânico')
+
+    await user.click(screen.getByRole('button', { name: /nova categoria/i }))
+    const dialog = screen.getByRole('dialog')
+    await user.type(within(dialog).getByRole('textbox'), 'Eletrodomésticos')
+    await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent(/categoria criada/i)
+    expect(screen.getByRole('option', { name: 'Eletrodomésticos' })).toBeInTheDocument()
+  })
+
+  it('exibe toast de erro se o POST de categoria falhar', async () => {
+    server.use(http.post('/api/admin/categories', () => HttpResponse.json({}, { status: 500 })))
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Teclado Mecânico')
+
+    await user.click(screen.getByRole('button', { name: /nova categoria/i }))
+    const dialog = screen.getByRole('dialog')
+    await user.type(within(dialog).getByRole('textbox'), 'Eletrodomésticos')
+    await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/erro ao criar/i)
   })
 })
 
