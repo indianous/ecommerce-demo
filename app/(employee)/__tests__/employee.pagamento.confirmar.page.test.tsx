@@ -114,6 +114,13 @@ describe('PaymentConfirmContent — formulário', () => {
     expect(screen.getByRole('button', { name: /confirmar pagamento/i })).toBeDisabled()
   })
 
+  it('aceita PDF no atributo accept do input de arquivo', async () => {
+    renderContent()
+    await screen.findByText('Ana Lima')
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    expect(fileInput.accept).toContain('application/pdf')
+  })
+
   it('botão "Cancelar" navega para backPath sem chamar nenhum endpoint', async () => {
     renderContent()
     await screen.findByText('Ana Lima')
@@ -144,6 +151,31 @@ describe('PaymentConfirmContent — confirmação com arquivo', () => {
 
     expect(await screen.findByRole('status')).toHaveTextContent(/confirmado/i)
     expect(pushMock).toHaveBeenCalledWith('/dashboard/payments')
+    expect(capturedBody).toMatchObject({
+      status: 'PAID',
+      receiptUrl: 'https://cdn.example.com/receipt.pdf',
+    })
+  })
+
+  it('confirma pagamento com comprovante em PDF: upload + PATCH + toast', async () => {
+    let capturedBody: unknown = null
+    server.use(
+      http.patch('/api/admin/orders/:id/payment-status', async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json({ ...mockOrder, paymentStatus: 'PAID' })
+      }),
+    )
+
+    renderContent()
+    await screen.findByText('Ana Lima')
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    const mockFile = new File(['%PDF-1.4'], 'comprovante.pdf', { type: 'application/pdf' })
+    await userEvent.upload(fileInput, mockFile)
+
+    await userEvent.click(screen.getByRole('button', { name: /confirmar pagamento/i }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent(/confirmado/i)
     expect(capturedBody).toMatchObject({
       status: 'PAID',
       receiptUrl: 'https://cdn.example.com/receipt.pdf',
