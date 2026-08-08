@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button, Heading, Skeleton, useToast } from 'base-ds'
+import { Button, Dialog, Heading, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { RejectPaymentForm } from '@/components/forms/RejectPaymentForm'
 import type { AdminOrderPage, AdminOrderResponse } from '@/types'
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
@@ -23,7 +24,9 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
 
   const [orders, setOrders] = useState<AdminOrderResponse[]>([])
   const [loading, setLoading] = useState(true)
-  const [rejectingId, setRejectingId] = useState<string | null>(null)
+  const [rejectTarget, setRejectTarget] = useState<AdminOrderResponse | null>(null)
+  const [rejectReason, setRejectReason] = useState('')
+  const [rejecting, setRejecting] = useState(false)
 
   const fetchOrders = useCallback(async () => {
     if (!accessToken) return
@@ -43,22 +46,28 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
 
   useEffect(() => { fetchOrders() }, [fetchOrders])
 
-  const handleReject = async (order: AdminOrderResponse) => {
-    if (!accessToken) return
-    setRejectingId(order.id)
+  const closeRejectDialog = () => {
+    setRejectTarget(null)
+    setRejectReason('')
+  }
+
+  const handleConfirmReject = async () => {
+    if (!accessToken || !rejectTarget) return
+    setRejecting(true)
     try {
-      const res = await fetch(`/api/admin/orders/${order.id}/payment-status`, {
+      const res = await fetch(`/api/admin/orders/${rejectTarget.id}/payment-status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ status: 'FAILED' }),
+        body: JSON.stringify({ status: 'FAILED', rejectionReason: rejectReason }),
       })
       if (!res.ok) throw new Error()
-      setOrders((prev) => prev.filter((o) => o.id !== order.id))
+      setOrders((prev) => prev.filter((o) => o.id !== rejectTarget.id))
       toast({ variant: 'success', description: 'Pagamento rejeitado.' })
+      closeRejectDialog()
     } catch {
       toast({ variant: 'destructive', description: 'Erro ao rejeitar pagamento.' })
     } finally {
-      setRejectingId(null)
+      setRejecting(false)
     }
   }
 
@@ -110,8 +119,7 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
                       <Button
                         size="sm"
                         variant="danger"
-                        disabled={rejectingId === order.id}
-                        onClick={() => handleReject(order)}
+                        onClick={() => setRejectTarget(order)}
                         aria-label={`Rejeitar pagamento do pedido ${order.orderNumber}`}
                       >
                         Rejeitar
@@ -124,6 +132,20 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
           </table>
         )}
       </main>
+
+      <Dialog
+        open={rejectTarget !== null}
+        onClose={closeRejectDialog}
+        title={rejectTarget ? `Rejeitar pagamento do pedido #${rejectTarget.orderNumber}` : ''}
+      >
+        <RejectPaymentForm
+          reason={rejectReason}
+          onReasonChange={setRejectReason}
+          onSubmit={handleConfirmReject}
+          onCancel={closeRejectDialog}
+          submitting={rejecting}
+        />
+      </Dialog>
     </PermissionGuard>
   )
 }

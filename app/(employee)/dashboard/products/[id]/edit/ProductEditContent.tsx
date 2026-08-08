@@ -73,6 +73,9 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
             ← Voltar
           </Link>
           <Heading as="h1" size="2xl">Editar Produto</Heading>
+          <Link href={`${backPath}/${id}/reviews`} className="text-sm underline">
+            Ver avaliações
+          </Link>
         </div>
         <ProductForm
           form={form}

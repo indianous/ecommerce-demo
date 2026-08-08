@@ -14,6 +14,27 @@ export type EmployeePermission =
 
 export interface SiteSettings {
   placeholderImageUrl: string | null
+  faviconUrl: string | null
+  logoUrl: string | null
+  siteTitle: string | null
+  defaultDescription: string | null
+  aboutUsContent: string | null
+  contactDescription: string | null
+  contactPhone: string | null
+  contactEmail: string | null
+  instagramUrl: string | null
+  tiktokUrl: string | null
+  facebookUrl: string | null
+  privacyPolicyContent: string | null
+  termsContent: string | null
+  refundPolicyContent: string | null
+}
+
+export interface Banner {
+  id: string
+  imageUrl: string
+  linkUrl: string | null
+  position: number
 }
 
 export interface User {
@@ -58,6 +79,8 @@ export interface Product {
   status: ProductStatus
   createdAt: string
   updatedAt: string
+  averageRating?: number
+  reviewCount?: number
 }
 
 export interface ProductPage {
@@ -121,6 +144,7 @@ export interface AdminOrderResponse {
   paymentStatus: PaymentStatus
   paymentId?: string
   receiptUrl?: string
+  paymentRejectionReason?: string
   createdAt: string
   itemCount: number
 }
@@ -269,4 +293,34 @@ export interface AuditLogPage {
   totalPages: number
   size: number
   number: number
+}
+
+export interface ProductReview {
+  id: string
+  productId: string
+  userId: string
+  userName: string
+  rating: number
+  comment?: string
+  imageUrls: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ProductReviewPage {
+  content: ProductReview[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  last: boolean
+  averageRating: number | null
+  totalReviews: number
+}
+
+export interface MyReviewableProduct {
+  productId: string
+  productName: string
+  productImageUrl?: string
+  review: ProductReview | null
 }

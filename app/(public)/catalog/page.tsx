@@ -1,4 +1,10 @@
+import type { Metadata } from 'next'
 import { ProductCard } from '@/components/product/ProductCard'
+
+export const metadata: Metadata = {
+  title: 'Catálogo',
+  description: 'Navegue por todos os nossos produtos.',
+}
 import { CatalogPagination } from '@/components/catalog/CatalogPagination'
 import type { ProductPage, Category } from '@/types'
 

@@ -22,8 +22,8 @@ employee/admin, junto da edição de produto.
   projeto: `<textarea>` nativo dentro de `FormField`
   (`components/forms/RejectPaymentForm.tsx:25-32`,
   `.../dashboard/orders/[id]/OrderDetailContent.tsx:227`). Vou seguir o mesmo
-  padrão para o campo de comentário da avaliação — sem abrir issue nova no
-  `base-ds`.
+  padrão para o campo de comentário da avaliação — issue aberta em
+  `indianous/base-ds#11` pedindo o componente.
 - `base-ds` já tem `Rating` (`molecules/Rating/Rating.tsx`, suporta
   `value`/`onChange`/`readOnly`/`size`) e `FileUpload` com `multiple`
   (`molecules/FileUpload/FileUpload.tsx:9,25`) — cobrem estrelas e upload de
@@ -171,3 +171,163 @@ estender)
   existente).
 - `.../dashboard/products/[id]/edit/ProductEditContent.tsx`: adiciona link
   "Ver avaliações" apontando para a nova rota de moderação.
+
+## Incremento — página "Minhas Avaliações" (nova página do cliente)
+
+Complementa `backend/plans/avaliacoes-produto.md#incremento`. Decisão
+confirmada com o usuário (retificada — editar continua permitido): o
+formulário de criar/editar avaliação sai da página pública do produto
+(`ProductReviewsSection.tsx`) e passa a viver numa nova página do cliente
+`app/(customer)/reviews/page.tsx` ("Minhas Avaliações"), acessível pelo
+dropdown do usuário logo abaixo de "Meus Pedidos". Essa página lista os
+produtos comprados (`DELIVERED`): os ainda não avaliados mostram botão
+"Avaliar" (abre o `ReviewForm` num `Dialog`, cria via `POST`); os já
+avaliados mostram a própria avaliação com botões "Editar" (reabre o mesmo
+`Dialog` pré-preenchido, salva via `PUT`) e "Excluir". As fotos continuam
+aparecendo na página pública do produto via `ProductReviewCard` — **isso já
+funciona hoje, nenhuma mudança necessária nesse ponto**.
+
+### 1. Problemas encontrados
+
+- `components/product/ProductReviewsSection.tsx:40,47-60` busca elegibilidade
+  por produto único (`GET /api/products/{id}/reviews/me`) e
+  `ProductReviewsSection.tsx:151-174` renderiza o `ReviewForm` inline com
+  lógica de criar/editar (`isEditing`, linha 78) — todo esse bloco (linhas
+  40-46, 47-60, 72-127, 135-175) deixa de fazer sentido: a página pública do
+  produto passa a ser só leitura (lista de `ProductReviewCard`).
+- `components/product/ProductReviewsSection.tsx:62-70` (`refreshReviews`)
+  chama `GET /api/products/{id}/reviews?page=...`, mas
+  `app/api/products/[id]/reviews/route.ts` só exporta `POST` (linhas 5-24) —
+  **bug pré-existente**: paginação client-side da lista de avaliações do
+  produto hoje responde 405. Precisa de `export async function GET` nessa
+  rota (proxy simples para `GET {API}/products/{id}/reviews?page=&size=`,
+  mesmo padrão do `POST` já existente) para a seção da página do produto
+  continuar paginando depois da simplificação.
+- `app/api/products/[id]/reviews/[reviewId]/route.ts:5-24` (`PUT`) e
+  linhas 26-43 (`DELETE`) não mudam — passam a ser chamados pela nova página
+  em vez de `ProductReviewsSection.tsx`.
+- `app/api/products/[id]/reviews/me/route.ts` (arquivo inteiro) fica sem uso
+  — substituído pelo novo `GET /api/reviews/me`.
+- `components/layout/UserMenu.tsx:41-47` não tem item para a nova página —
+  falta `{ label: 'Minhas Avaliações', href: '/reviews' }` logo após "Meus
+  Pedidos" (linha 44).
+- `types/index.ts:321-325` (`ReviewEligibility`) fica sem uso depois de
+  remover a eligibility por produto — substituído por um novo tipo em lote.
+- Não existe `app/(customer)/reviews/page.tsx` — convenção do grupo
+  `app/(customer)/` (`orders/page.tsx` é o modelo mais próximo: client
+  component, fetch com `accessToken`, loading state, paginação client-side
+  com `Pagination` do base-ds, `PAGE_SIZE`).
+
+### 2. Testes a incluir/alterar
+
+**`components/product/__tests__/ProductReviewsSection.test.tsx`** (existente
+— reescrever)
+- **Remover** os cenários de formulário/elegibilidade/editar/excluir (CTA
+  "Entrar para avaliar" pode continuar ou sair — decidir ao implementar; os
+  demais — inelegível, elegível com form, já avaliou com form preenchido,
+  editar, excluir — saem daqui, pois a seção deixa de ter form; editar e
+  excluir passam a ser cobertos em `reviews.page.test.tsx`).
+- **Manter/simplificar**: renderiza `reviewList` via `ProductReviewCard`,
+  mostra "Ainda não há avaliações..." quando vazio, pagina corretamente
+  (cobre a correção do bug de `GET` no BFF).
+
+**`app/api/products/[id]/__tests__/reviews.route.test.ts`** (novo, se o
+projeto testa BFF routes isoladamente — senão a cobertura fica só indireta
+via `ProductReviewsSection.test.tsx` com MSW)
+- `GET /api/products/{id}/reviews?page=1` faz proxy para
+  `GET {API}/products/{id}/reviews?page=1` e repassa o status/corpo.
+
+**`components/forms/__tests__/ReviewForm.test.tsx`** (existente)
+- Sem mudanças — o form já é puro e reaproveitável como está (confirmado:
+  não tem lógica própria de "editar", só recebe `rating`/`comment`/`images`
+  controlados e `onSubmit`); passa a ser renderizado de dentro de um
+  `Dialog` na nova página, mas isso não muda o teste do form isoladamente.
+
+**`app/(customer)/__tests__/reviews.page.test.tsx`** (novo, mesmo padrão de
+`orders.page.test.tsx` — MSW + Testing Library + `useAuthStore.setState`)
+- estado vazio: `GET /api/reviews/me` retorna `[]` → "Nenhum produto
+  disponível para avaliação." (ou texto equivalente).
+- produto sem avaliação (`review: null`) → mostra nome/imagem do produto e
+  botão "Avaliar"; clicar abre `Dialog` com `ReviewForm`.
+- preenche nota + comentário + fotos no `Dialog` e confirma → sobe imagens
+  via `POST /api/upload/image` (uma chamada por arquivo, mesma lógica hoje em
+  `ProductReviewsSection.tsx:16-31`, que migra para essa página), depois
+  `POST /api/products/{id}/reviews`; `Dialog` fecha, item passa a mostrar a
+  avaliação em vez do botão "Avaliar", toast de sucesso.
+- produto já avaliado (`review` preenchido) → mostra `ProductReviewCard` (ou
+  exibição equivalente) com a nota/comentário/fotos e botões "Editar" e
+  "Excluir avaliação".
+- clicar "Editar" → abre `Dialog` com `ReviewForm` pré-preenchido
+  (`rating`/`comment` da avaliação existente); confirma → `PUT
+  /api/products/{productId}/reviews/{reviewId}` (sem re-upload das fotos já
+  salvas — só reenvia `imageUrls` se o cliente trocar os arquivos no
+  `FileUpload`); `Dialog` fecha, item atualiza com a avaliação retornada,
+  toast de sucesso.
+- clicar "Excluir avaliação" → `Dialog`/confirmação → `DELETE
+  /api/products/{productId}/reviews/{reviewId}` → item volta a mostrar
+  "Avaliar", toast de sucesso.
+- erro do backend ao criar/editar (ex.: 409 "já avaliou" em corrida) → toast
+  de erro com a mensagem da API, `Dialog` permanece aberto.
+
+**`components/layout/__tests__/UserMenu.test.tsx`** (existente — estender)
+- novo teste análogo ao de "Meus Pedidos" (linha 73): dropdown mostra link
+  "Minhas Avaliações" apontando para `/reviews` quando autenticado.
+
+### 3. O que entra no projeto
+
+**Tipos** (`types/index.ts`):
+- Remove `ReviewEligibility` (linhas 321-325) — sem uso depois do
+  incremento.
+- Novo `MyReviewableProduct`: `{ productId: string, productName: string,
+  productImageUrl?: string, review: ProductReview | null }`.
+
+**BFF**:
+- `app/api/products/[id]/reviews/route.ts`: adiciona `export async function
+  GET` (proxy para `GET {API}/products/{id}/reviews?page=&size=`, repassando
+  query params — mesmo padrão do `POST` já existente no arquivo). Corrige o
+  bug de paginação encontrado no item 1.
+- `app/api/products/[id]/reviews/[reviewId]/route.ts`: sem mudanças — `PUT`
+  e `DELETE` continuam existindo, só passam a ser chamados a partir da nova
+  página.
+- `app/api/products/[id]/reviews/me/route.ts`: **remove o arquivo** (rota de
+  backend removida).
+- `app/api/reviews/me/route.ts` (novo): `GET`, proxy simples para `GET
+  {API}/reviews/me` repassando `Authorization` — mesmo padrão de
+  `app/api/orders/route.ts`.
+
+**Componentes**:
+- `components/product/ProductReviewsSection.tsx`: simplifica para
+  componente só-leitura — remove estado/lógica de `eligibility`, `rating`,
+  `comment`, `images`, `submitting`, `error`, `handleSubmit`, `handleDelete`,
+  o bloco `<ReviewForm .../>` e o botão "Excluir avaliação"; mantém
+  `reviewList`/paginação/`ProductReviewCard`. `uploadImages` (linhas 16-31)
+  migra para a nova página (deixa de existir aqui). Isso vale
+  independentemente de editar continuar permitido — o form (criar e editar)
+  sai da página do produto de qualquer forma.
+- `components/forms/ReviewForm.tsx`: nenhuma mudança de código — já é puro e
+  reaproveitável tanto para criar quanto para editar (o container decide
+  `POST` vs `PUT`); passa a ser usado dentro de um `Dialog` (`base-ds`) em
+  vez de inline na página do produto.
+
+**Páginas**:
+- `app/(customer)/reviews/page.tsx` (novo, client component, mesmo padrão de
+  `orders/page.tsx`): busca `GET /api/reviews/me` com `accessToken` no
+  mount; para cada item sem `review`, mostra card do produto (nome + imagem,
+  `Image` do base-ds) com botão "Avaliar" que abre `Dialog` contendo
+  `ReviewForm` vazio (estado de `rating`/`comment`/`images` mora na página,
+  mesmo padrão "pai detém estado" do `CLAUDE.md`); ao confirmar, sobe
+  imagens (função `uploadImages` migrada de `ProductReviewsSection.tsx`) e
+  faz `POST /api/products/{productId}/reviews`, fecha o `Dialog`, atualiza o
+  item localmente com a avaliação retornada. Para item com `review`
+  preenchido, mostra `ProductReviewCard` (ou markup equivalente) + botões
+  "Editar" (abre o mesmo `Dialog`/`ReviewForm`, agora pré-preenchido com
+  `rating`/`comment` da avaliação existente; confirma → `PUT
+  /api/products/{productId}/reviews/{reviewId}`) e "Excluir avaliação"
+  (`DELETE /api/products/{productId}/reviews/{reviewId}`, volta o item ao
+  estado "Avaliar").
+- `app/(customer)/__tests__/reviews.page.test.tsx` (novo — ver seção 2).
+
+**Navegação**:
+- `components/layout/UserMenu.tsx:44`: adiciona `{ label: 'Minhas
+  Avaliações', href: '/reviews' }` logo após `{ label: 'Meus Pedidos', href:
+  '/orders' }`.

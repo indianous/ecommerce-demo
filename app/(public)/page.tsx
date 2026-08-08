@@ -1,4 +1,10 @@
+import type { Metadata } from 'next'
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: 'Início',
+  description: 'Explore nosso catálogo e encontre os melhores produtos com entrega rápida.',
+}
 import { Heading, Text } from "base-ds";
 
 export default function Home() {
