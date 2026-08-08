@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ToastProvider, ToastViewport, useToast } from 'base-ds'
 import { AppShell } from '../AppShell'
+import { SiteSettingsContext } from '@/contexts/SiteSettingsContext'
 import { useAuthStore } from '@/stores/auth.store'
 
 const pushMock = vi.fn()
@@ -85,6 +86,59 @@ describe('AppShell', () => {
       </AppShell>,
     )
     expect(screen.getByText('conteúdo da página')).toBeInTheDocument()
+  })
+
+  it('não exibe links de redes sociais quando todos os URLs são null', () => {
+    render(
+      <AppShell>
+        <p>conteúdo</p>
+      </AppShell>,
+    )
+    expect(screen.queryByRole('link', { name: /instagram/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /tiktok/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /facebook/i })).not.toBeInTheDocument()
+  })
+
+  it('exibe links das redes sociais configuradas no contexto', () => {
+    render(
+      <SiteSettingsContext.Provider
+        value={{
+          placeholderImageUrl: null,
+          faviconUrl: null,
+          instagramUrl: 'https://instagram.com/loja',
+          tiktokUrl: 'https://tiktok.com/@loja',
+          facebookUrl: 'https://facebook.com/loja',
+        }}
+      >
+        <AppShell>
+          <p>conteúdo</p>
+        </AppShell>
+      </SiteSettingsContext.Provider>,
+    )
+    expect(screen.getByRole('link', { name: /instagram/i })).toHaveAttribute('href', 'https://instagram.com/loja')
+    expect(screen.getByRole('link', { name: /tiktok/i })).toHaveAttribute('href', 'https://tiktok.com/@loja')
+    expect(screen.getByRole('link', { name: /facebook/i })).toHaveAttribute('href', 'https://facebook.com/loja')
+  })
+
+  it('exibe apenas os links cujo URL está configurado', () => {
+    render(
+      <SiteSettingsContext.Provider
+        value={{
+          placeholderImageUrl: null,
+          faviconUrl: null,
+          instagramUrl: 'https://instagram.com/loja',
+          tiktokUrl: null,
+          facebookUrl: null,
+        }}
+      >
+        <AppShell>
+          <p>conteúdo</p>
+        </AppShell>
+      </SiteSettingsContext.Provider>,
+    )
+    expect(screen.getByRole('link', { name: /instagram/i })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /tiktok/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /facebook/i })).not.toBeInTheDocument()
   })
 
   it('lets descendants trigger toasts that render through the mounted ToastViewport', async () => {
