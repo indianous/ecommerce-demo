@@ -22,8 +22,8 @@ employee/admin, junto da edição de produto.
   projeto: `<textarea>` nativo dentro de `FormField`
   (`components/forms/RejectPaymentForm.tsx:25-32`,
   `.../dashboard/orders/[id]/OrderDetailContent.tsx:227`). Vou seguir o mesmo
-  padrão para o campo de comentário da avaliação — sem abrir issue nova no
-  `base-ds`.
+  padrão para o campo de comentário da avaliação — issue aberta em
+  `indianous/base-ds#11` pedindo o componente.
 - `base-ds` já tem `Rating` (`molecules/Rating/Rating.tsx`, suporta
   `value`/`onChange`/`readOnly`/`size`) e `FileUpload` com `multiple`
   (`molecules/FileUpload/FileUpload.tsx:9,25`) — cobrem estrelas e upload de

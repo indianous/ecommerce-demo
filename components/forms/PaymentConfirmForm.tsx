@@ -21,7 +21,7 @@ export function PaymentConfirmForm({ file, onFileChange, onConfirm, onCancel, co
     >
       <FormField label="Comprovante de pagamento" id="payment-receipt">
         <FileUpload
-          accept="image/jpeg,image/png,image/webp,image/gif"
+          accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
           onChange={([f]) => onFileChange(f ?? null)}
         />
       </FormField>

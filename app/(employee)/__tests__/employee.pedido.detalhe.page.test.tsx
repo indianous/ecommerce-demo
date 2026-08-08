@@ -103,6 +103,30 @@ describe('OrderDetailContent', () => {
     expect(screen.getAllByText(/pendente/i).length).toBeGreaterThan(0)
   })
 
+  it('exibe badge de status de pagamento', async () => {
+    renderDetail()
+    await screen.findByText('Ana Lima')
+    expect(screen.getByText('Pago')).toBeInTheDocument()
+  })
+
+  it('pagamento rejeitado exibe o motivo', async () => {
+    server.use(http.get('/api/admin/orders/:id', () => HttpResponse.json({
+      ...mockDetail,
+      paymentStatus: 'FAILED',
+      paymentRejectionReason: 'Comprovante ilegível',
+    })))
+    renderDetail()
+    await screen.findByText('Ana Lima')
+    expect(screen.getByText('Rejeitado')).toBeInTheDocument()
+    expect(screen.getByText(/comprovante ilegível/i)).toBeInTheDocument()
+  })
+
+  it('pagamento pago não exibe motivo de rejeição', async () => {
+    renderDetail()
+    await screen.findByText('Ana Lima')
+    expect(screen.queryByText(/motivo:/i)).not.toBeInTheDocument()
+  })
+
   it('exibe lista de itens com productName, quantity, unitPrice', async () => {
     renderDetail()
     expect(await screen.findByText('Teclado')).toBeInTheDocument()

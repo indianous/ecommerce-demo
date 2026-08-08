@@ -14,6 +14,27 @@ export type EmployeePermission =
 
 export interface SiteSettings {
   placeholderImageUrl: string | null
+  faviconUrl: string | null
+  logoUrl: string | null
+  siteTitle: string | null
+  defaultDescription: string | null
+  aboutUsContent: string | null
+  contactDescription: string | null
+  contactPhone: string | null
+  contactEmail: string | null
+  instagramUrl: string | null
+  tiktokUrl: string | null
+  facebookUrl: string | null
+  privacyPolicyContent: string | null
+  termsContent: string | null
+  refundPolicyContent: string | null
+}
+
+export interface Banner {
+  id: string
+  imageUrl: string
+  linkUrl: string | null
+  position: number
 }
 
 export interface User {
@@ -121,6 +142,7 @@ export interface AdminOrderResponse {
   paymentStatus: PaymentStatus
   paymentId?: string
   receiptUrl?: string
+  paymentRejectionReason?: string
   createdAt: string
   itemCount: number
 }

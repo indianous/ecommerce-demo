@@ -23,9 +23,8 @@ Sem upload pelo cliente, sem página nova — decisão confirmada com o usuário
   `node_modules/base-ds/dist/index.d.ts`). Precedente já aceito no projeto:
   `.../dashboard/orders/[id]/OrderDetailContent.tsx:227,271-273` usa
   `<textarea>` nativo para o campo "Justificativa" por falta de equivalente no
-  `base-ds`. Vou seguir o mesmo padrão para o motivo de rejeição — aviso
-  explícito aqui, sem abrir issue nova no `base-ds` porque o gap já está
-  documentado/aceito nesse precedente.
+  `base-ds`. Vou seguir o mesmo padrão para o motivo de rejeição — issue aberta
+  em `indianous/base-ds#11` pedindo o componente.
 - `frontend/app/(admin)/dashboard/admin/payments/page.tsx:4` renderiza
   `<PaymentsContent />` sem `basePath`, então o botão "Confirmar" navega o
   admin para `/dashboard/payments/{id}/confirm` (rota de employee) em vez de

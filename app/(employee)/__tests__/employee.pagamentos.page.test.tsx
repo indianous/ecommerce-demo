@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -131,7 +131,15 @@ describe('PagamentosPage — ações', () => {
     expect(pushMock).toHaveBeenCalledWith('/dashboard/payments/order-1/confirm')
   })
 
-  it('botão "Rejeitar" chama PATCH e remove pedido da lista', async () => {
+  it('botão "Rejeitar" abre Dialog pedindo motivo', async () => {
+    renderPage()
+    await screen.findByText('Ana Lima')
+    await userEvent.click(screen.getByRole('button', { name: /rejeitar pagamento do pedido 42/i }))
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByLabelText(/motivo da rejeição/i)).toBeInTheDocument()
+  })
+
+  it('confirmar rejeição com motivo: chama PATCH com rejectionReason e remove pedido da lista', async () => {
     let captured: unknown = null
     server.use(
       http.patch('/api/admin/orders/:id/payment-status', async ({ request }) => {
@@ -142,14 +150,21 @@ describe('PagamentosPage — ações', () => {
     renderPage()
     await screen.findByText('Ana Lima')
     await userEvent.click(screen.getByRole('button', { name: /rejeitar pagamento do pedido 42/i }))
+    const dialog = await screen.findByRole('dialog')
+    await userEvent.type(within(dialog).getByLabelText(/motivo da rejeição/i), 'Comprovante ilegível')
+    await userEvent.click(within(dialog).getByRole('button', { name: /confirmar rejeição/i }))
+
     expect(await screen.findByText(/nenhum pagamento pendente/i)).toBeInTheDocument()
-    expect(captured).toMatchObject({ status: 'FAILED' })
+    expect(captured).toMatchObject({ status: 'FAILED', rejectionReason: 'Comprovante ilegível' })
   })
 
   it('exibe toast de sucesso ao rejeitar', async () => {
     renderPage()
     await screen.findByText('Ana Lima')
     await userEvent.click(screen.getByRole('button', { name: /rejeitar pagamento do pedido 42/i }))
+    const dialog = await screen.findByRole('dialog')
+    await userEvent.type(within(dialog).getByLabelText(/motivo da rejeição/i), 'Comprovante ilegível')
+    await userEvent.click(within(dialog).getByRole('button', { name: /confirmar rejeição/i }))
     expect(await screen.findByRole('status')).toHaveTextContent(/rejeitado/i)
   })
 
@@ -162,6 +177,9 @@ describe('PagamentosPage — ações', () => {
     renderPage()
     await screen.findByText('Ana Lima')
     await userEvent.click(screen.getByRole('button', { name: /rejeitar pagamento do pedido 42/i }))
+    const dialog = await screen.findByRole('dialog')
+    await userEvent.type(within(dialog).getByLabelText(/motivo da rejeição/i), 'Comprovante ilegível')
+    await userEvent.click(within(dialog).getByRole('button', { name: /confirmar rejeição/i }))
     expect(await screen.findByRole('alert')).toHaveTextContent(/erro ao rejeitar/i)
   })
 })
