@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, Heading, Table, useToast, type TableColumn } from 'base-ds'
+import { Badge, Button, Dialog, Heading, Table, useToast, type TableColumn } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { CategoryForm } from '@/components/forms/CategoryForm'
 import type { AdminProductPage, Category, Product, ProductStatus } from '@/types'
 
 const formatBRL = (value: number) =>
@@ -25,6 +26,10 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(() => Boolean(accessToken))
+
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
+  const [categoryName, setCategoryName] = useState('')
+  const [categorySaving, setCategorySaving] = useState(false)
 
   const fetchProducts = useCallback(async () => {
     if (!accessToken) return
@@ -52,6 +57,32 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
   }, [accessToken])
 
   useEffect(() => { fetchProducts() }, [fetchProducts])
+
+  const handleCategorySave = async () => {
+    if (!categoryName.trim() || !accessToken) return
+    setCategorySaving(true)
+    try {
+      const res = await fetch('/api/admin/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({
+          name: categoryName,
+          slug: categoryName.toLowerCase().replace(/\s+/g, '-'),
+          description: '',
+        }),
+      })
+      if (!res.ok) throw new Error()
+      const newCategory: Category = await res.json()
+      setCategories((prev) => [...prev, newCategory])
+      setCategoryName('')
+      setCategoryDialogOpen(false)
+      toast({ variant: 'success', description: 'Categoria criada com sucesso.' })
+    } catch {
+      toast({ variant: 'destructive', description: 'Erro ao criar categoria.' })
+    } finally {
+      setCategorySaving(false)
+    }
+  }
 
   const handleDelete = async (product: Product) => {
     if (!accessToken) return
@@ -136,7 +167,10 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
         <div className="mb-6 flex items-center justify-between">
           <Heading as="h1" size="2xl">Gestão de Produtos</Heading>
           {canManageProducts && (
-            <Button onClick={() => router.push(`${basePath}/new`)}>Novo produto</Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setCategoryDialogOpen(true)}>Nova categoria</Button>
+              <Button onClick={() => router.push(`${basePath}/new`)}>Novo produto</Button>
+            </div>
           )}
         </div>
 
@@ -173,6 +207,10 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
         </div>
 
         <Table columns={columns} data={products} />
+
+        <Dialog open={categoryDialogOpen} onClose={() => setCategoryDialogOpen(false)} title="Nova categoria">
+          <CategoryForm name={categoryName} onChange={setCategoryName} onSave={handleCategorySave} saving={categorySaving} />
+        </Dialog>
       </main>
     </PermissionGuard>
   )
