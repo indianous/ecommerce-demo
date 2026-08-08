@@ -122,6 +122,32 @@ describe('OrdersPage', () => {
     expect(screen.getByText(/199,99/)).toBeInTheDocument()
   })
 
+  it('links each order item to its product page in the catalog', async () => {
+    const user = userEvent.setup()
+    server.use(
+      http.get('/api/orders', () =>
+        HttpResponse.json([
+          {
+            id: 'order-1',
+            orderNumber: 1,
+            status: 'PENDING',
+            totalAmount: 500,
+            paymentMethod: 'PIX',
+            paymentStatus: 'PENDING',
+            createdAt: '2026-06-29T00:00:00',
+            items: [{ productId: 'p1', productName: 'Notebook', quantity: 2, unitPrice: 199.99, subtotal: 399.98 }],
+          },
+        ]),
+      ),
+    )
+    render(<OrdersPage />)
+    await screen.findByText('#1')
+
+    await user.click(screen.getByRole('button', { name: /expandir #1/i }))
+
+    expect(screen.getByRole('link', { name: 'Notebook' })).toHaveAttribute('href', '/catalog/p1')
+  })
+
   it('collapses order items when the expand button is clicked again', async () => {
     const user = userEvent.setup()
     server.use(

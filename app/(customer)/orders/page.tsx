@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Badge, Heading, Icon, Pagination, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import type { OrderResponse, OrderStatus } from '@/types'
@@ -129,7 +130,14 @@ export default function OrdersPage() {
                         <tbody className="divide-y divide-border">
                           {order.items.map((item) => (
                             <tr key={item.productId}>
-                              <td className="py-1.5 text-foreground">{item.productName}</td>
+                              <td className="py-1.5 text-foreground">
+                                <Link
+                                  href={`/catalog/${item.productId}`}
+                                  className="hover:underline"
+                                >
+                                  {item.productName}
+                                </Link>
+                              </td>
                               <td className="py-1.5 text-foreground">{item.quantity}</td>
                               <td className="py-1.5 text-foreground">{formatBRL(item.unitPrice)}</td>
                               <td className="py-1.5 text-foreground">{formatBRL(item.subtotal)}</td>
