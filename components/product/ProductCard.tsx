@@ -1,5 +1,6 @@
 "use client";
-import { Badge, Button, Card, Heading, Image, Text } from "base-ds";
+import Link from "next/link";
+import { Badge, Button, Card, Heading, Image, Rating, Text } from "base-ds";
 import { useCartStore } from "@/stores/cart.store";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import type { Product } from "@/types";
@@ -44,30 +45,36 @@ export function ProductCard({ product }: Props) {
 
   return (
     <Card variant="outlined" className="flex flex-col gap-2">
-      {imageSrc ? (
-        <Image
-          src={imageSrc}
-          alt={product.name}
-          aspectRatio="portrait"
-          objectFit="contain"
-          className="rounded"
-        />
-      ) : (
-        <ImagePlaceholder name={product.name} />
-      )}
+      <Link href={`/catalog/${product.id}`} className="flex flex-col gap-2">
+        {imageSrc ? (
+          <Image
+            src={imageSrc}
+            alt={product.name}
+            aspectRatio="portrait"
+            objectFit="contain"
+            className="rounded"
+          />
+        ) : (
+          <ImagePlaceholder name={product.name} />
+        )}
 
-      <Badge variant="default" size="sm" className="w-fit">
-        {product.categoryName}
-      </Badge>
-      <Heading as="h3" size="xl">
-        {product.name}
-      </Heading>
+        <Badge variant="default" size="sm" className="w-fit">
+          {product.categoryName}
+        </Badge>
+        <Heading as="h3" size="xl">
+          {product.name}
+        </Heading>
 
-      {product.description && (
-        <Text size="sm" color="muted" className="line-clamp-2">
-          {product.description}
-        </Text>
-      )}
+        {Boolean(product.reviewCount) && (
+          <Rating value={Math.round(product.averageRating ?? 0)} readOnly size="sm" />
+        )}
+
+        {product.description && (
+          <Text size="sm" color="muted" className="line-clamp-2">
+            {product.description}
+          </Text>
+        )}
+      </Link>
 
       <div className="mt-auto flex items-center justify-between gap-2">
         <Text weight="bold" size="lg">

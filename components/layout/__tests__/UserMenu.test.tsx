@@ -87,6 +87,23 @@ describe('UserMenu', () => {
     expect(link).toHaveAttribute('href', '/orders')
   })
 
+  it('shows "Minhas Avaliações" link in the dropdown when authenticated', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState({
+      isAuthenticated: true,
+      accessToken: 'tok',
+      user: { id: '1', name: 'João Silva', email: 'joao@test.com', role: 'CUSTOMER' },
+      role: 'CUSTOMER',
+    })
+    renderUserMenu()
+
+    await user.click(screen.getByRole('button', { name: /menu do usuário/i }))
+
+    const link = screen.getByRole('menuitem', { name: /minhas avaliações/i })
+    expect(link).toBeInTheDocument()
+    expect(link).toHaveAttribute('href', '/reviews')
+  })
+
   it('exibe link "Dashboard" apontando para /dashboard/admin quando role=ADMIN', async () => {
     const user = userEvent.setup()
     useAuthStore.setState({

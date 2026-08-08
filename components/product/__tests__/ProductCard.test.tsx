@@ -82,6 +82,22 @@ describe('ProductCard', () => {
 
     expect(useCartStore.getState().items[0].quantity).toBe(2)
   })
+
+  it('renderiza o card como link para a página de detalhe do produto', () => {
+    render(<ProductCard product={mockProduct} />)
+    const link = screen.getByRole('link', { name: /mechanical keyboard/i })
+    expect(link).toHaveAttribute('href', '/catalog/prod-1')
+  })
+
+  it('mostra a nota média quando reviewCount > 0', () => {
+    render(<ProductCard product={{ ...mockProduct, averageRating: 4.5, reviewCount: 3 }} />)
+    expect(screen.getByRole('radiogroup', { name: /rating/i })).toBeInTheDocument()
+  })
+
+  it('não mostra nota quando reviewCount é 0', () => {
+    render(<ProductCard product={{ ...mockProduct, averageRating: undefined, reviewCount: 0 }} />)
+    expect(screen.queryByRole('radiogroup', { name: /rating/i })).not.toBeInTheDocument()
+  })
 })
 
 describe('ProductCard — imagem placeholder', () => {
@@ -95,7 +111,7 @@ describe('ProductCard — imagem placeholder', () => {
 
   it('renderiza placeholder do contexto quando imageUrl é nulo', () => {
     render(
-      <SiteSettingsContext.Provider value={{ placeholderImageUrl: 'https://cdn.example.com/ph.jpg' }}>
+      <SiteSettingsContext.Provider value={{ placeholderImageUrl: 'https://cdn.example.com/ph.jpg', faviconUrl: null, instagramUrl: null, tiktokUrl: null, facebookUrl: null }}>
         <ProductCard product={productSemImagem} />
       </SiteSettingsContext.Provider>,
     )

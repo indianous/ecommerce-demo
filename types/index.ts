@@ -79,6 +79,8 @@ export interface Product {
   status: ProductStatus
   createdAt: string
   updatedAt: string
+  averageRating?: number
+  reviewCount?: number
 }
 
 export interface ProductPage {
@@ -291,4 +293,34 @@ export interface AuditLogPage {
   totalPages: number
   size: number
   number: number
+}
+
+export interface ProductReview {
+  id: string
+  productId: string
+  userId: string
+  userName: string
+  rating: number
+  comment?: string
+  imageUrls: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ProductReviewPage {
+  content: ProductReview[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  last: boolean
+  averageRating: number | null
+  totalReviews: number
+}
+
+export interface MyReviewableProduct {
+  productId: string
+  productName: string
+  productImageUrl?: string
+  review: ProductReview | null
 }

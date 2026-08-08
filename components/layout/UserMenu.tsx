@@ -42,6 +42,7 @@ export function UserMenu() {
         ...(dashboardHref ? [{ label: 'Dashboard', href: dashboardHref }, { type: 'separator' as const }] : []),
         { label: 'Perfil', href: '/profile' },
         { label: 'Meus Pedidos', href: '/orders' },
+        { label: 'Minhas Avaliações', href: '/reviews' },
         { type: 'separator' },
         { label: 'Sair', onClick: handleLogout, danger: true },
       ]}
