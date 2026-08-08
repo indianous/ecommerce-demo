@@ -318,8 +318,9 @@ export interface ProductReviewPage {
   totalReviews: number
 }
 
-export interface ReviewEligibility {
-  eligible: boolean
-  alreadyReviewed: boolean
+export interface MyReviewableProduct {
+  productId: string
+  productName: string
+  productImageUrl?: string
   review: ProductReview | null
 }

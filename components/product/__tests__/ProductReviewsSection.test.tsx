@@ -1,11 +1,9 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { ToastProvider, ToastViewport } from 'base-ds'
 import { ProductReviewsSection } from '../ProductReviewsSection'
-import { useAuthStore } from '@/stores/auth.store'
 import type { ProductReview, ProductReviewPage } from '@/types'
 
 const productId = 'prod-1'
@@ -25,7 +23,7 @@ function makeReview(overrides: Partial<ProductReview> = {}): ProductReview {
   }
 }
 
-function emptyPage(): ProductReviewPage {
+function page(overrides: Partial<ProductReviewPage> = {}): ProductReviewPage {
   return {
     content: [],
     page: 0,
@@ -35,141 +33,78 @@ function emptyPage(): ProductReviewPage {
     last: true,
     averageRating: null,
     totalReviews: 0,
+    ...overrides,
   }
 }
 
-function renderSection(reviews: ProductReviewPage = emptyPage()) {
-  return render(
-    <ToastProvider>
-      <ProductReviewsSection productId={productId} reviews={reviews} />
-      <ToastViewport />
-    </ToastProvider>,
-  )
-}
-
 const server = setupServer(
-  http.get(`/api/products/${productId}/reviews`, () => HttpResponse.json(emptyPage())),
+  http.get(`/api/products/${productId}/reviews`, () => HttpResponse.json(page())),
 )
 
 beforeAll(() => server.listen())
-afterEach(async () => {
-  server.resetHandlers()
-  await act(async () => {
-    useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
-  })
-})
+afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
 
 describe('ProductReviewsSection', () => {
-  it('cliente não logado vê CTA "Entrar para avaliar" em vez do formulário', () => {
-    renderSection()
+  it('mostra "Ainda não há avaliações..." quando a lista está vazia', () => {
+    render(<ProductReviewsSection productId={productId} reviews={page()} />)
 
-    expect(screen.getByRole('link', { name: /entrar para avaliar/i })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /enviar avaliação/i })).not.toBeInTheDocument()
+    expect(screen.getByText(/ainda não há avaliações/i)).toBeInTheDocument()
   })
 
-  it('cliente logado inelegível vê mensagem explicando o motivo, sem formulário', async () => {
-    server.use(
-      http.get(`/api/products/${productId}/reviews/me`, () =>
-        HttpResponse.json({ eligible: false, alreadyReviewed: false, review: null }),
-      ),
+  it('renderiza as avaliações existentes via ProductReviewCard', () => {
+    const review = makeReview()
+    render(
+      <ProductReviewsSection
+        productId={productId}
+        reviews={page({ content: [review], totalElements: 1 })}
+      />,
     )
-    await act(async () => {
-      useAuthStore.setState({ accessToken: 'token', isAuthenticated: true })
-    })
-    renderSection()
 
-    expect(await screen.findByText(/você precisa ter recebido este produto/i)).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /enviar avaliação/i })).not.toBeInTheDocument()
+    expect(screen.getByText('Maria')).toBeInTheDocument()
+    expect(screen.getByText('Muito bom')).toBeInTheDocument()
   })
 
-  it('cliente elegível vê o formulário e consegue enviar uma avaliação com foto', async () => {
-    let uploadCalls = 0
-    let createBody: unknown = null
-
-    server.use(
-      http.get(`/api/products/${productId}/reviews/me`, () =>
-        HttpResponse.json({ eligible: true, alreadyReviewed: false, review: null }),
-      ),
-      http.post('/api/upload/image', () => {
-        uploadCalls += 1
-        return HttpResponse.json({ url: `https://cdn.example.com/${uploadCalls}.jpg` })
-      }),
-      http.post(`/api/products/${productId}/reviews`, async ({ request }) => {
-        createBody = await request.json()
-        return HttpResponse.json(makeReview({ rating: 5, comment: 'Ótimo!' }), { status: 201 })
-      }),
+  it('não renderiza formulário nem botões de avaliar/editar/excluir', () => {
+    const review = makeReview()
+    render(
+      <ProductReviewsSection
+        productId={productId}
+        reviews={page({ content: [review], totalElements: 1 })}
+      />,
     )
-    await act(async () => {
-      useAuthStore.setState({ accessToken: 'token', isAuthenticated: true })
-    })
-    const user = userEvent.setup()
-    renderSection()
 
-    await screen.findByRole('button', { name: /enviar avaliação/i })
-
-    await user.click(screen.getByRole('radio', { name: /5 star/i }))
-    await user.type(screen.getByLabelText(/comentário/i), 'Ótimo!')
-
-    const file = new File(['x'], 'foto.png', { type: 'image/png' })
-    await user.upload(screen.getByLabelText(/file upload/i), file)
-
-    await user.click(screen.getByRole('button', { name: /enviar avaliação/i }))
-
-    await waitFor(() => expect(uploadCalls).toBe(1))
-    expect(createBody).toMatchObject({
-      rating: 5,
-      comment: 'Ótimo!',
-      imageUrls: ['https://cdn.example.com/1.jpg'],
-    })
+    expect(screen.queryByRole('button', { name: /avaliar/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /editar/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /excluir/i })).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/sua nota/i)).not.toBeInTheDocument()
   })
 
-  it('cliente que já avaliou vê o formulário pré-preenchido e pode excluir a avaliação', async () => {
-    const existing = makeReview({ rating: 3, comment: 'Razoável' })
-    let deleteCalled = false
-
+  it('pagina corretamente ao trocar de página', async () => {
     server.use(
-      http.get(`/api/products/${productId}/reviews/me`, () =>
-        HttpResponse.json({ eligible: true, alreadyReviewed: true, review: existing }),
-      ),
-      http.delete(`/api/products/${productId}/reviews/${existing.id}`, () => {
-        deleteCalled = true
-        return new HttpResponse(null, { status: 204 })
+      http.get(`/api/products/${productId}/reviews`, ({ request }) => {
+        const url = new URL(request.url)
+        const requestedPage = url.searchParams.get('page')
+        if (requestedPage === '1') {
+          return HttpResponse.json(
+            page({ content: [makeReview({ id: 'review-2', userName: 'João' })], page: 1, totalElements: 2 }),
+          )
+        }
+        return HttpResponse.json(page({ content: [makeReview()], page: 0, totalElements: 2, totalPages: 2 }))
       }),
     )
-    await act(async () => {
-      useAuthStore.setState({ accessToken: 'token', isAuthenticated: true })
-    })
     const user = userEvent.setup()
-    renderSection()
-
-    const saveButton = await screen.findByRole('button', { name: /salvar/i })
-    expect(saveButton).toBeEnabled()
-    expect(screen.getByLabelText(/comentário/i)).toHaveValue('Razoável')
-
-    await user.click(screen.getByRole('button', { name: /excluir avaliação/i }))
-
-    await waitFor(() => expect(deleteCalled).toBe(true))
-  })
-
-  it('mostra toast de erro com a mensagem retornada pelo backend ao falhar', async () => {
-    server.use(
-      http.get(`/api/products/${productId}/reviews/me`, () =>
-        HttpResponse.json({ eligible: true, alreadyReviewed: false, review: null }),
-      ),
-      http.post(`/api/products/${productId}/reviews`, () =>
-        HttpResponse.json({ message: 'Você já avaliou este produto.' }, { status: 409 }),
-      ),
+    render(
+      <ProductReviewsSection
+        productId={productId}
+        reviews={page({ content: [makeReview()], totalElements: 2, totalPages: 2 })}
+      />,
     )
-    await act(async () => {
-      useAuthStore.setState({ accessToken: 'token', isAuthenticated: true })
-    })
-    const user = userEvent.setup()
-    renderSection()
 
-    await user.click(await screen.findByRole('radio', { name: /3 star/i }))
-    await user.click(screen.getByRole('button', { name: /enviar avaliação/i }))
+    expect(screen.getByText('Maria')).toBeInTheDocument()
 
-    expect((await screen.findAllByText(/você já avaliou este produto/i)).length).toBeGreaterThan(0)
+    await user.click(screen.getByRole('button', { name: /next page/i }))
+
+    expect(await screen.findByText('João')).toBeInTheDocument()
   })
 })
