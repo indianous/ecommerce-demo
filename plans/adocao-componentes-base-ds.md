@@ -201,15 +201,13 @@ ainda usam o elemento nativo.
   `app/(customer)/orders/page.tsx`, `components/ui/DuelingPicklist.tsx`,
   `components/admin/SidebarAvatar.tsx`.
 
-- **`Tabs` — gap novo, sem issue aberta ainda.** `components/forms/CheckoutAuth.tsx:47-74`
+- **`Tabs`** — `indianous/base-ds#13`. `components/forms/CheckoutAuth.tsx:47-74`
   implementa um tablist manual (`role="tablist"` + dois `<button role="tab"
   aria-selected>` nativos, estilo ativo/inativo replicado à mão) para alternar
   entre "Entrar" e "Criar Conta" no checkout — `base-ds` não exporta nenhum
   componente `Tabs`/`TabList`/`TabPanel` (`grep` em
-  `~/dev/node/base-ds/src/index.ts` não encontrou nada com "tab"). Antes de
-  tentar adotar, abrir issue no repositório `indianous/base-ds` descrevendo a
-  necessidade, conforme convenção do projeto — nenhum workaround deveria
-  substituir o atual sem o componente da lib.
+  `~/dev/node/base-ds/src/index.ts` não encontrou nada com "tab"). Workaround
+  permanece nativo até a lib entregar o componente.
 
 ## Achados adicionais (fora do escopo, não são gaps do `base-ds`)
 
