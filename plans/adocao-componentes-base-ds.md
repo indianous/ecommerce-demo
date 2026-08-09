@@ -1,5 +1,13 @@
 # Adoção de componentes `base-ds` — substituição de elementos nativos
 
+## Status
+
+**Implementado.** Todos os itens das seções 1–3 foram migrados e a suíte
+completa do frontend está verde (`npm test` no `frontend/`). Ver seção
+"Pendências que necessitam do `base-ds`" no final do documento para o que
+ainda depende da lib — inclui um gap novo (`Tabs`) encontrado depois da
+implementação, fora do levantamento original.
+
 ## Contexto
 
 Levantamento pontual (não motivado por bug) pedido para conferir se havia
@@ -174,10 +182,49 @@ a nenhuma página):
   `Input`; manter o `<textarea>` (linha 39) nativo — gap real, aguarda
   `indianous/base-ds#11`.
 
-**Fora de escopo** (gaps reais do `base-ds`, aguardando a lib):
-- Todos os usos de `<textarea>` nativo (`ContactForm.tsx`,
-  `MarkdownContentForm.tsx`, `SiteMetadataForm.tsx`, `ReviewForm.tsx`,
-  `RejectPaymentForm.tsx`, `OrderDetailContent.tsx`) — `indianous/base-ds#11`.
-- Todos os `<button>` icon-only nativos (`AdminShell.tsx`,
-  `EmployeeShell.tsx`, `CartCardItem.tsx`, `app/(customer)/orders/page.tsx`,
-  `DuelingPicklist.tsx`, `SidebarAvatar.tsx`) — `indianous/base-ds#12`.
+## Pendências que necessitam do `base-ds`
+
+Itens que **não podem ser migrados hoje** porque a lib não tem o componente
+ou a variante equivalente — bloqueados até `base-ds` entregar. Revisado após
+a implementação (2026-08-09); confirmado por `grep` que os arquivos abaixo
+ainda usam o elemento nativo.
+
+- **`Textarea`** — `indianous/base-ds#11`. Usos nativos remanescentes:
+  `components/forms/ContactForm.tsx`, `components/forms/MarkdownContentForm.tsx`,
+  `components/forms/SiteMetadataForm.tsx`, `components/forms/ReviewForm.tsx`,
+  `components/forms/RejectPaymentForm.tsx`,
+  `app/(employee)/dashboard/orders/[id]/OrderDetailContent.tsx`.
+
+- **Variante icon-only do `Button`** — `indianous/base-ds#12`. Usos nativos
+  remanescentes: `components/admin/AdminShell.tsx`,
+  `components/employee/EmployeeShell.tsx`, `components/cart/CartCardItem.tsx`,
+  `app/(customer)/orders/page.tsx`, `components/ui/DuelingPicklist.tsx`,
+  `components/admin/SidebarAvatar.tsx`.
+
+- **`Tabs` — gap novo, sem issue aberta ainda.** `components/forms/CheckoutAuth.tsx:47-74`
+  implementa um tablist manual (`role="tablist"` + dois `<button role="tab"
+  aria-selected>` nativos, estilo ativo/inativo replicado à mão) para alternar
+  entre "Entrar" e "Criar Conta" no checkout — `base-ds` não exporta nenhum
+  componente `Tabs`/`TabList`/`TabPanel` (`grep` em
+  `~/dev/node/base-ds/src/index.ts` não encontrou nada com "tab"). Antes de
+  tentar adotar, abrir issue no repositório `indianous/base-ds` descrevendo a
+  necessidade, conforme convenção do projeto — nenhum workaround deveria
+  substituir o atual sem o componente da lib.
+
+## Achados adicionais (fora do escopo, não são gaps do `base-ds`)
+
+Encontrados durante a revisão desta pendência, mas **não bloqueados pela
+lib** — `Button` já cobre os dois casos; ficam de fora deste plano por não
+fazerem parte do levantamento original, registrados aqui para não se perder:
+
+- `app/not-found.tsx:17-28` — mesmo workaround que existia em
+  `app/(public)/page.tsx` antes deste plano: comentário afirma que `Button`
+  "only renders a `<button>` (no `href`/asChild support)" e usa um `<Link>`
+  estilizado manualmente com os tokens do `Button`. O comentário chega a citar
+  `app/(public)/page.tsx` como origem do padrão — como esse arquivo já foi
+  corrigido, `not-found.tsx` ficou como o único lugar com o workaround
+  desatualizado. Fix é idêntico ao já aplicado: `<Button as="a"
+  href="/">Voltar para o início</Button>`.
+- `app/error.tsx:19` e `app/(employee)/error.tsx:19` — `<button
+  onClick={reset}>Tentar novamente</button>` nativo, sem justificativa;
+  `Button` do `base-ds` cobre o caso (botão de texto simples, sem link).
