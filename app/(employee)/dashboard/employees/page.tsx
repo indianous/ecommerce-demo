@@ -1,6 +1,6 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Dialog, Heading, useToast } from 'base-ds'
+import { Button, Checkbox, Dialog, Heading, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { EmployeeManagementTable } from '@/components/admin/EmployeeManagementTable'
@@ -115,15 +115,13 @@ export default function EmployeeFuncionariosPage() {
             {ALL_PERMISSIONS.map((perm) => {
               const id = `perm-dialog-${perm}`
               return (
-                <label key={perm} htmlFor={id} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    id={id}
-                    checked={editedPerms.includes(perm)}
-                    onChange={() => togglePerm(perm)}
-                  />
-                  {PERMISSION_LABELS[perm]}
-                </label>
+                <Checkbox
+                  key={perm}
+                  id={id}
+                  label={PERMISSION_LABELS[perm]}
+                  checked={editedPerms.includes(perm)}
+                  onChange={() => togglePerm(perm)}
+                />
               )
             })}
           </div>

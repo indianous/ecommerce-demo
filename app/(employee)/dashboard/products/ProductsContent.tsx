@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, Dialog, Heading, Table, useToast, type TableColumn } from 'base-ds'
+import { Badge, Button, Dialog, FormField, Heading, Input, Select, Table, useToast, type TableColumn } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CategoryForm } from '@/components/forms/CategoryForm'
@@ -33,7 +33,6 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
 
   const fetchProducts = useCallback(async () => {
     if (!accessToken) return
-    setLoading(true)
     try {
       const params = new URLSearchParams({ active: 'true' })
       if (search) params.set('search', search)
@@ -174,36 +173,39 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
           )}
         </div>
 
-        <div className="flex gap-4 mb-4 flex-wrap">
-          <input
-            type="search"
-            placeholder="Buscar por nome..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border border-border rounded px-3 py-2 text-sm flex-1 min-w-40"
-            aria-label="Buscar produtos"
-          />
-          <select
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className="border border-border rounded px-3 py-2 text-sm"
-            aria-label="Filtrar por categoria"
-          >
-            <option value="">Todas as categorias</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as ProductStatus | '')}
-            className="border border-border rounded px-3 py-2 text-sm"
-            aria-label="Filtrar por disponibilidade"
-          >
-            <option value="">Todos</option>
-            <option value="AVAILABLE">Disponível</option>
-            <option value="UNAVAILABLE">Indisponível</option>
-          </select>
+        <div className="flex gap-4 mb-4 flex-wrap items-start">
+          <FormField label="Buscar produtos" id="products-search" className="flex-1 min-w-40">
+            <Input
+              id="products-search"
+              type="search"
+              placeholder="Buscar por nome..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </FormField>
+          <FormField label="Filtrar por categoria" id="products-category-filter">
+            <Select
+              id="products-category-filter"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              options={[
+                { value: '', label: 'Todas as categorias' },
+                ...categories.map((c) => ({ value: c.id, label: c.name })),
+              ]}
+            />
+          </FormField>
+          <FormField label="Filtrar por disponibilidade" id="products-status-filter">
+            <Select
+              id="products-status-filter"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as ProductStatus | '')}
+              options={[
+                { value: '', label: 'Todos' },
+                { value: 'AVAILABLE', label: 'Disponível' },
+                { value: 'UNAVAILABLE', label: 'Indisponível' },
+              ]}
+            />
+          </FormField>
         </div>
 
         <Table columns={columns} data={products} />

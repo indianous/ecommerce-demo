@@ -1,4 +1,4 @@
-import { Button, FormField } from 'base-ds'
+import { Button, FormField, Input } from 'base-ds'
 
 interface Props {
   siteTitle: string
@@ -26,13 +26,7 @@ export function SiteMetadataForm({
       className="flex flex-col gap-4"
     >
       <FormField label="Nome da loja" id="site-title">
-        <input
-          id="site-title"
-          type="text"
-          value={siteTitle}
-          onChange={(e) => onSiteTitle(e.target.value)}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        />
+        <Input id="site-title" type="text" value={siteTitle} onChange={(e) => onSiteTitle(e.target.value)} />
       </FormField>
 
       <FormField label="Descrição padrão" id="default-description">

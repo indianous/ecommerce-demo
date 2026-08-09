@@ -15,6 +15,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import type { Category, Product } from '@/types'
 
 const mockCategory: Category = { id: 'cat-1', name: 'Eletrônicos', slug: 'eletronicos' }
+const mockCategory2: Category = { id: 'cat-2', name: 'Livros', slug: 'livros' }
 
 const mockProduct: Product = {
   id: 'prod-1',
@@ -36,6 +37,14 @@ const mockUnavailableProduct: Product = {
   status: 'UNAVAILABLE',
 }
 
+const mockBookProduct: Product = {
+  ...mockProduct,
+  id: 'prod-2',
+  categoryId: 'cat-2',
+  categoryName: 'Livros',
+  name: 'Livro de Receitas',
+}
+
 let products: Product[] = []
 
 let lastPatchStatusBody: Record<string, unknown> = {}
@@ -55,7 +64,17 @@ let categories: Category[] = []
 const server = setupServer(
   http.get('/api/categories', () => HttpResponse.json(categories)),
   http.post('/api/admin/categories', () => HttpResponse.json({ id: 'cat-2', name: 'Eletrodomésticos', slug: 'eletrodomesticos' }, { status: 201 })),
-  http.get('/api/admin/products', () => HttpResponse.json(makePage(products))),
+  http.get('/api/admin/products', ({ request }) => {
+    const url = new URL(request.url)
+    const categoryId = url.searchParams.get('categoryId')
+    const status = url.searchParams.get('status')
+    const search = url.searchParams.get('search')
+    let filtered = products
+    if (categoryId) filtered = filtered.filter((p) => p.categoryId === categoryId)
+    if (status) filtered = filtered.filter((p) => p.status === status)
+    if (search) filtered = filtered.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
+    return HttpResponse.json(makePage(filtered))
+  }),
   http.delete('/api/admin/products/:id', ({ params }) => {
     products = products.filter((p) => p.id !== params.id)
     return new HttpResponse(null, { status: 204 })
@@ -197,6 +216,85 @@ describe('ProductsManagementPage — ações', () => {
       expect(lastPatchStatusId).toBe('prod-unavail')
       expect(lastPatchStatusBody).toMatchObject({ status: 'AVAILABLE' })
     })
+  })
+})
+
+describe('ProductsManagementPage — filtros', () => {
+  it('filtro de categoria muda a lista exibida e chama a API com o categoryId esperado', async () => {
+    categories = [mockCategory, mockCategory2]
+    products = [mockProduct, mockBookProduct]
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Teclado Mecânico')
+    expect(screen.getByText('Livro de Receitas')).toBeInTheDocument()
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /filtrar por categoria/i }),
+      'cat-2',
+    )
+
+    await waitFor(() => {
+      expect(screen.queryByText('Teclado Mecânico')).not.toBeInTheDocument()
+    })
+    expect(screen.getByText('Livro de Receitas')).toBeInTheDocument()
+  })
+
+  it('filtro de disponibilidade muda a lista exibida e chama a API com o status esperado', async () => {
+    products = [mockProduct, mockUnavailableProduct]
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Teclado Mecânico')
+    expect(screen.getByText('Mouse Óptico')).toBeInTheDocument()
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /filtrar por disponibilidade/i }),
+      'UNAVAILABLE',
+    )
+
+    await waitFor(() => {
+      expect(screen.queryByText('Teclado Mecânico')).not.toBeInTheDocument()
+    })
+    expect(screen.getByText('Mouse Óptico')).toBeInTheDocument()
+  })
+
+  it('selecionar "Todas as categorias" depois de filtrar volta a listar tudo', async () => {
+    categories = [mockCategory, mockCategory2]
+    products = [mockProduct, mockBookProduct]
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Teclado Mecânico')
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /filtrar por categoria/i }),
+      'cat-2',
+    )
+    await waitFor(() => {
+      expect(screen.queryByText('Teclado Mecânico')).not.toBeInTheDocument()
+    })
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /filtrar por categoria/i }),
+      '',
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Teclado Mecânico')).toBeInTheDocument()
+    })
+    expect(screen.getByText('Livro de Receitas')).toBeInTheDocument()
+  })
+
+  it('mantém o foco no campo de busca ao digitar, sem recarregar a página a cada letra', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Teclado Mecânico')
+
+    const searchInput = screen.getByRole('searchbox', { name: /buscar produtos/i })
+    await user.click(searchInput)
+    await user.type(searchInput, 'tec')
+
+    expect(document.activeElement).toBe(searchInput)
+    expect(searchInput).toHaveValue('tec')
+    expect(screen.queryByText(/carregando produtos/i)).not.toBeInTheDocument()
   })
 })
 

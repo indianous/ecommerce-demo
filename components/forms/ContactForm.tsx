@@ -1,4 +1,4 @@
-import { Button, FormField } from 'base-ds'
+import { Button, FormField, Input } from 'base-ds'
 
 interface Props {
   description: string
@@ -40,23 +40,11 @@ export function ContactForm({
       </FormField>
 
       <FormField label="Telefone" id="contact-phone">
-        <input
-          id="contact-phone"
-          type="tel"
-          value={phone}
-          onChange={(e) => onPhone(e.target.value)}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        />
+        <Input id="contact-phone" type="tel" value={phone} onChange={(e) => onPhone(e.target.value)} />
       </FormField>
 
       <FormField label="E-mail de contato" id="contact-email">
-        <input
-          id="contact-email"
-          type="email"
-          value={email}
-          onChange={(e) => onEmail(e.target.value)}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        />
+        <Input id="contact-email" type="email" value={email} onChange={(e) => onEmail(e.target.value)} />
       </FormField>
 
       <div>

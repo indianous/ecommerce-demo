@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, Heading, Input, Skeleton, useToast } from 'base-ds'
+import { Badge, Button, FormField, Heading, Input, Select, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import type { AdminOrderResponse, AdminOrderPage, OrderStatus } from '@/types'
@@ -67,25 +67,26 @@ export function OrdersContent({ orderBasePath = '/dashboard/orders' }: { orderBa
           Gestão de Pedidos
         </Heading>
 
-        <div className="mb-4 flex flex-wrap gap-3">
-          <Input
-            aria-label="Buscar pedidos"
-            placeholder="Buscar..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-64"
-          />
-          <select
-            aria-label="Filtrar por status"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as OrderStatus | '')}
-            className="border rounded p-2 text-sm"
-          >
-            <option value="">Todos os status</option>
-            {ALL_STATUSES.map((s) => (
-              <option key={s} value={s}>{STATUS_LABELS[s]}</option>
-            ))}
-          </select>
+        <div className="mb-4 flex flex-wrap gap-3 items-start">
+          <FormField label="Buscar pedidos" id="orders-search" className="w-64">
+            <Input
+              id="orders-search"
+              placeholder="Buscar por nº do pedido, cliente ou e-mail..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </FormField>
+          <FormField label="Filtrar por status" id="orders-status-filter">
+            <Select
+              id="orders-status-filter"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as OrderStatus | '')}
+              options={[
+                { value: '', label: 'Todos os status' },
+                ...ALL_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] })),
+              ]}
+            />
+          </FormField>
         </div>
 
         {loading ? (

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Heading, useToast } from 'base-ds'
+import { Button, Heading, Input, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import type { AdminProductPage, Product } from '@/types'
@@ -79,13 +79,14 @@ export function StockContent() {
                 <td className="p-2">{p.name}</td>
                 <td className="p-2">{p.categoryName}</td>
                 <td className="p-2">
-                  <input
+                  <Input
+                    id={`stock-quantity-${p.id}`}
                     type="number"
                     aria-label={`Quantidade ${p.name}`}
                     value={stockMap[p.id] ?? p.stockQuantity}
                     min={0}
                     onChange={(e) => setStockMap((m) => ({ ...m, [p.id]: Number(e.target.value) }))}
-                    className="border border-border rounded px-2 py-1 w-24 text-sm"
+                    className="w-24"
                   />
                 </td>
                 <td className="p-2">

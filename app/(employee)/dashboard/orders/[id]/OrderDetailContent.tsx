@@ -1,7 +1,7 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Badge, Button, Heading, Skeleton, useToast } from 'base-ds'
+import { Badge, Button, Heading, Select, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import type { AdminOrderDetailResponse, OrderStatus, PaymentStatus } from '@/types'
@@ -278,18 +278,14 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
           >
             <p className="font-medium">Solicitar retrocesso de status</p>
             <label htmlFor="retro-status" className="text-sm font-medium">Estado destino</label>
-            <select
+            <Select
               id="retro-status"
               value={retroStatus}
               onChange={(e) => setRetroStatus(e.target.value as OrderStatus)}
               required
-              className="border rounded p-2 text-sm"
-            >
-              <option value="">Selecione...</option>
-              {retroStates.map((s) => (
-                <option key={s} value={s}>{STATUS_LABELS[s]}</option>
-              ))}
-            </select>
+              placeholder="Selecione..."
+              options={retroStates.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
+            />
             <label htmlFor="retro-justification" className="text-sm font-medium">Justificativa</label>
             <textarea
               id="retro-justification"
