@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -12,7 +12,7 @@ vi.mock('next/navigation', () => ({
 import { ToastProvider, ToastViewport } from 'base-ds'
 import { StockContent } from '../dashboard/stock/StockContent'
 import { useAuthStore } from '@/stores/auth.store'
-import type { Product } from '@/types'
+import type { Product, StockLot } from '@/types'
 
 const mockProduct: Product = {
   id: 'prod-1',
@@ -27,9 +27,13 @@ const mockProduct: Product = {
   updatedAt: '2024-01-01T00:00:00Z',
 }
 
+const mockLots: StockLot[] = [
+  { id: 'lot-1', productId: 'prod-1', productName: 'Teclado Mecânico', lotNumber: 'L1', quantity: 10, initialQuantity: 10, createdAt: '2024-01-01T00:00:00Z' },
+]
+
 let products: Product[] = []
-let lastStockPatchId = ''
-let lastStockPatchBody: Record<string, unknown> = {}
+let lastEntryBody: Record<string, unknown> = {}
+let lastExitBody: Record<string, unknown> = {}
 
 const makePage = (content: Product[]) => ({
   content,
@@ -42,10 +46,16 @@ const makePage = (content: Product[]) => ({
 
 const server = setupServer(
   http.get('/api/admin/products', () => HttpResponse.json(makePage(products))),
-  http.patch('/api/admin/products/:id/stock', async ({ request, params }) => {
-    lastStockPatchId = params.id as string
-    lastStockPatchBody = (await request.json()) as Record<string, unknown>
-    return HttpResponse.json({ ...products.find((p) => p.id === params.id)!, stockQuantity: (lastStockPatchBody as { quantity: number }).quantity })
+  http.get('/api/admin/products/:id/stock-lots', () =>
+    HttpResponse.json({ content: mockLots, page: 0, size: 20, totalElements: mockLots.length, totalPages: 1, last: true }),
+  ),
+  http.post('/api/admin/products/:id/stock-movements/entries', async ({ request }) => {
+    lastEntryBody = (await request.json()) as Record<string, unknown>
+    return HttpResponse.json({ id: 'mv-1' }, { status: 201 })
+  }),
+  http.post('/api/admin/products/:id/stock-movements/exits', async ({ request }) => {
+    lastExitBody = (await request.json()) as Record<string, unknown>
+    return HttpResponse.json({ id: 'mv-2' }, { status: 201 })
   }),
 )
 
@@ -53,8 +63,8 @@ beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
   replaceMock.mockClear()
-  lastStockPatchId = ''
-  lastStockPatchBody = {}
+  lastEntryBody = {}
+  lastExitBody = {}
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
   })
@@ -85,25 +95,60 @@ describe('StockContent', () => {
     expect(await screen.findByRole('heading', { name: /gestão de estoque/i })).toBeInTheDocument()
   })
 
-  it('lista produtos com input de quantidade', async () => {
+  it('lista produtos com estoque atual e link de histórico', async () => {
     renderStock()
     await screen.findByText('Teclado Mecânico')
-    expect(screen.getByRole('spinbutton', { name: /quantidade teclado mecânico/i })).toBeInTheDocument()
+    expect(screen.getByText('10')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /histórico/i })).toHaveAttribute('href', '/dashboard/stock/prod-1')
   })
 
-  it('salvar chama PATCH /api/admin/products/:id/stock com a quantidade correta', async () => {
+  it('botão Entrada abre o StockEntryForm e registra a movimentação', async () => {
     const user = userEvent.setup()
     renderStock()
     await screen.findByText('Teclado Mecânico')
 
-    const input = screen.getByRole('spinbutton', { name: /quantidade teclado mecânico/i })
-    fireEvent.change(input, { target: { value: '42' } })
-    await user.click(screen.getByRole('button', { name: /salvar estoque teclado mecânico/i }))
+    await user.click(screen.getByRole('button', { name: /^entrada$/i }))
+    const dialog = await screen.findByRole('dialog')
+    const quantityInput = within(dialog).getByLabelText(/quantidade/i)
+    await user.clear(quantityInput)
+    await user.type(quantityInput, '20')
+    await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
 
-    await waitFor(() => {
-      expect(lastStockPatchId).toBe('prod-1')
-      expect(lastStockPatchBody).toMatchObject({ quantity: 42 })
-    })
+    expect(await screen.findByText(/sucesso/i)).toBeInTheDocument()
+    expect(lastEntryBody).toMatchObject({ quantity: 20, reason: 'PURCHASE' })
+  })
+
+  it('botão Saída busca os lotes do produto e abre o StockExitForm', async () => {
+    const user = userEvent.setup()
+    renderStock()
+    await screen.findByText('Teclado Mecânico')
+
+    await user.click(screen.getByRole('button', { name: /^saída$/i }))
+    const dialog = await screen.findByRole('dialog')
+    expect(await within(dialog).findByText(/L1/)).toBeInTheDocument()
+  })
+
+  it('registrar saída maior que o estoque disponível mostra toast de erro', async () => {
+    server.use(
+      http.post('/api/admin/products/:id/stock-movements/exits', () =>
+        HttpResponse.json({ message: 'Estoque insuficiente' }, { status: 422 }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderStock()
+    await screen.findByText('Teclado Mecânico')
+
+    await user.click(screen.getByRole('button', { name: /^saída$/i }))
+    const dialog = await screen.findByRole('dialog')
+    await within(dialog).findByText(/L1/)
+
+    await user.selectOptions(within(dialog).getByLabelText(/lote/i), 'lot-1')
+    const quantityInput = within(dialog).getByLabelText(/quantidade/i)
+    await user.clear(quantityInput)
+    await user.type(quantityInput, '5')
+    await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
+
+    expect(await screen.findByText(/estoque insuficiente/i)).toBeInTheDocument()
   })
 
   it('redireciona para /dashboard quando usuário não tem MANAGE_STOCK', async () => {

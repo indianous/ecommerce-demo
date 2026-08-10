@@ -113,6 +113,55 @@ export interface AdminProductPage {
   last: boolean
 }
 
+export type StockMovementType = 'ENTRY' | 'EXIT'
+export type StockMovementReason = 'PURCHASE' | 'ADJUSTMENT' | 'LOSS_DAMAGE' | 'RETURN' | 'SALE' | 'OTHER'
+
+export interface StockLot {
+  id: string
+  productId: string
+  productName: string
+  lotNumber?: string
+  expiryDate?: string
+  quantity: number
+  initialQuantity: number
+  createdAt: string
+}
+
+export interface StockLotPage {
+  content: StockLot[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  last: boolean
+}
+
+export interface StockMovement {
+  id: string
+  productId: string
+  type: StockMovementType
+  reason: StockMovementReason
+  quantity: number
+  quantityBefore: number
+  quantityAfter: number
+  note?: string
+  lotId: string
+  lotNumber?: string
+  lotExpiryDate?: string
+  orderId?: string
+  actorEmail?: string
+  createdAt: string
+}
+
+export interface StockMovementPage {
+  content: StockMovement[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  last: boolean
+}
+
 export type PaymentMethod = 'PIX' | 'CREDIT_CARD' | 'BOLETO'
 export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'RETURNED' | 'DELIVERED' | 'CANCELLED'
 export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED'

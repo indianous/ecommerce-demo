@@ -101,4 +101,104 @@ tela de histórico)
   mesmo `PermissionGuard(['MANAGE_STOCK'])`.
 - Espelhar as duas mudanças acima em
   `app/(admin)/dashboard/admin/stock/` (mesmo padrão de espelhamento
-  employee → admin já usado no restante do dashboard).
+  employee → admin já usado no restante do dashboard) — na prática, ambas
+  as rotas já reaproveitam o mesmo `StockContent`/`StockMovementHistoryContent`
+  (`app/(admin)/dashboard/admin/stock/page.tsx` só reexporta o componente
+  de employee), então não há trabalho duplicado — só confirmar que o
+  espelhamento se mantém para a nova tela `[id]/page.tsx`.
+
+## Adendo: controle de lote e validade
+
+Complementa `backend/plans/03-gestao-estoque.md` (adendo). Entrada de
+estoque ganha número de lote e validade opcionais; saída manual exige
+escolher de qual lote sai; nova tela lista lotes vencendo/vencidos.
+
+### 1. Problemas encontrados (adendo)
+
+- `StockMovementForm` (desenhado antes deste adendo) não distinguia
+  entrada de saída o bastante para os dois fluxos: entrada precisa de
+  campos de lote/validade, saída precisa de um seletor de lote existente
+  — bastante diferente para não ser só "campos extras opcionais".
+
+### 2. Testes a incluir/alterar (adendo)
+
+**`components/forms/__tests__/StockEntryForm.test.tsx`** (novo)
+
+- campos "Número do lote" e "Validade" são opcionais — submit funciona sem
+  preenchê-los.
+- motivo limitado às opções de entrada (Compra, Devolução, Ajuste, Outro).
+
+**`components/forms/__tests__/StockExitForm.test.tsx`** (novo)
+
+- lista os lotes recebidos via prop `lots` (com saldo e validade) num
+  `Select`; sem lote selecionado, botão desabilitado.
+- quantidade maior que o saldo do lote selecionado mostra erro local antes
+  do submit (validação client-side, evitando um round-trip óbvio).
+- motivo limitado às opções de saída (Perda/Avaria, Ajuste, Outro).
+
+**`app/(employee)/dashboard/stock/__tests__/StockContent.test.tsx`**
+(ajustado)
+
+- botão "Registrar entrada" abre `StockEntryForm`; "Registrar saída" busca
+  `GET /api/admin/products/{id}/stock-lots` e abre `StockExitForm` com os
+  lotes retornados.
+
+**`app/(employee)/dashboard/stock/[id]/__tests__/page.test.tsx`** (ajustado)
+
+- cada linha do histórico mostra o lote (`lotNumber`/validade) da
+  movimentação, quando presente.
+
+**`app/(employee)/dashboard/stock/expiring/__tests__/page.test.tsx`** (novo)
+
+- lista lotes vencendo/vencidos, com filtro de "próximos N dias" (default
+  30), reconsultando o endpoint ao mudar o filtro.
+
+**`app/api/admin/products/[id]/stock-lots/__tests__/route.test.ts`** e
+**`app/api/admin/stock-lots/expiring/__tests__/route.test.ts`** (novos,
+padrão BFF)
+
+- repassam `Authorization`, query params e `status` do backend sem
+  alteração.
+
+### 3. O que entra no projeto (adendo)
+
+#### Tipos
+
+`types/index.ts`:
+
+- `export interface StockLot { id: string; productId: string; productName: string; lotNumber?: string; expiryDate?: string; quantity: number; initialQuantity: number; createdAt: string }`
+- `StockMovement` ganha `lotId?: string`, `lotNumber?: string`, `lotExpiryDate?: string`.
+
+#### BFF
+
+- `app/api/admin/products/[id]/stock-movements/entries/route.ts` (novo) —
+  `POST`.
+- `app/api/admin/products/[id]/stock-movements/exits/route.ts` (novo) —
+  `POST`.
+- `app/api/admin/products/[id]/stock-lots/route.ts` (novo) — `GET`.
+- `app/api/admin/stock-lots/expiring/route.ts` (novo) — `GET`, repassa
+  `?days=`.
+
+#### Componentes
+
+- `components/forms/StockEntryForm.tsx` (substitui a metade "entrada" do
+  `StockMovementForm` original) — motivo (Select, só opções de entrada),
+  quantidade, número do lote (opcional), validade (opcional, date input),
+  nota opcional.
+- `components/forms/StockExitForm.tsx` (substitui a metade "saída") —
+  motivo (Select, só opções de saída), `Select` de lote (`lots` via prop,
+  label com saldo e validade), quantidade, nota opcional; validação local
+  de quantidade ≤ saldo do lote escolhido.
+
+#### Páginas
+
+- `StockContent.tsx` — troca o botão único "Registrar movimentação" por
+  dois: "Entrada" (abre `StockEntryForm` direto) e "Saída" (busca os lotes
+  do produto antes de abrir `StockExitForm`).
+- `app/(employee)/dashboard/stock/[id]/StockMovementHistoryContent.tsx` —
+  coluna de lote (`lotNumber` + validade) na tabela de histórico.
+- `app/(employee)/dashboard/stock/expiring/page.tsx` +
+  `ExpiringLotsContent.tsx` (novos) — tabela de lotes vencendo/vencidos,
+  filtro de dias, link a partir de `StockContent` ("Lotes vencendo").
+  Espelhar em `app/(admin)/dashboard/admin/stock/expiring/page.tsx`
+  (reexport, mesmo padrão já usado nas outras rotas de stock).

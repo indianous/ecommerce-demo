@@ -1,19 +1,40 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Heading, Input, useToast } from 'base-ds'
+import Link from 'next/link'
+import { Button, Dialog, Heading, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
-import type { AdminProductPage, Product } from '@/types'
+import { StockEntryForm } from '@/components/forms/StockEntryForm'
+import { StockExitForm } from '@/components/forms/StockExitForm'
+import type { AdminProductPage, Product, StockLot, StockLotPage, StockMovementReason } from '@/types'
 
-export function StockContent() {
+interface Props {
+  stockBasePath?: string
+}
+
+export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
 
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(() => Boolean(accessToken))
-  const [stockMap, setStockMap] = useState<Record<string, number>>({})
-  const [savingStockIds, setSavingStockIds] = useState<Set<string>>(new Set())
+
+  const [entryProductId, setEntryProductId] = useState<string | null>(null)
+  const [entryReason, setEntryReason] = useState<StockMovementReason>('PURCHASE')
+  const [entryQuantity, setEntryQuantity] = useState(1)
+  const [entryNote, setEntryNote] = useState('')
+  const [entryLotNumber, setEntryLotNumber] = useState('')
+  const [entryExpiryDate, setEntryExpiryDate] = useState('')
+  const [entrySaving, setEntrySaving] = useState(false)
+
+  const [exitProductId, setExitProductId] = useState<string | null>(null)
+  const [exitLots, setExitLots] = useState<StockLot[]>([])
+  const [exitReason, setExitReason] = useState<StockMovementReason>('LOSS_DAMAGE')
+  const [exitLotId, setExitLotId] = useState('')
+  const [exitQuantity, setExitQuantity] = useState(1)
+  const [exitNote, setExitNote] = useState('')
+  const [exitSaving, setExitSaving] = useState(false)
 
   const fetchProducts = useCallback(async () => {
     if (!accessToken) return
@@ -33,27 +54,94 @@ export function StockContent() {
 
   useEffect(() => { fetchProducts() }, [fetchProducts])
 
-  useEffect(() => {
-    const map: Record<string, number> = {}
-    for (const p of products) map[p.id] = p.stockQuantity
-    setStockMap(map)
-  }, [products])
+  const authHeader = () => ({ Authorization: `Bearer ${accessToken}` })
 
-  const handleSaveStock = async (productId: string) => {
-    if (!accessToken) return
-    setSavingStockIds((s) => new Set([...s, productId]))
+  const openEntryDialog = (productId: string) => {
+    setEntryReason('PURCHASE')
+    setEntryQuantity(1)
+    setEntryNote('')
+    setEntryLotNumber('')
+    setEntryExpiryDate('')
+    setEntryProductId(productId)
+  }
+
+  const closeEntryDialog = () => setEntryProductId(null)
+
+  const handleEntrySave = async () => {
+    if (!accessToken || !entryProductId) return
+    setEntrySaving(true)
     try {
-      const res = await fetch(`/api/admin/products/${productId}/stock`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ quantity: stockMap[productId] }),
+      const res = await fetch(`/api/admin/products/${entryProductId}/stock-movements/entries`, {
+        method: 'POST',
+        headers: { ...authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reason: entryReason,
+          quantity: entryQuantity,
+          note: entryNote || undefined,
+          lotNumber: entryLotNumber || undefined,
+          expiryDate: entryExpiryDate || undefined,
+        }),
       })
-      if (!res.ok) throw new Error()
-      toast({ variant: 'success', description: 'Estoque atualizado.' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        toast({ variant: 'destructive', description: data?.message ?? 'Erro ao registrar entrada.' })
+        return
+      }
+      closeEntryDialog()
+      toast({ variant: 'success', description: 'Entrada registrada com sucesso.' })
+      fetchProducts()
     } catch {
-      toast({ variant: 'destructive', description: 'Erro ao atualizar estoque.' })
+      toast({ variant: 'destructive', description: 'Erro ao registrar entrada.' })
     } finally {
-      setSavingStockIds((s) => { const n = new Set(s); n.delete(productId); return n })
+      setEntrySaving(false)
+    }
+  }
+
+  const openExitDialog = async (productId: string) => {
+    if (!accessToken) return
+    setExitReason('LOSS_DAMAGE')
+    setExitLotId('')
+    setExitQuantity(1)
+    setExitNote('')
+    setExitLots([])
+    setExitProductId(productId)
+    const res = await fetch(`/api/admin/products/${productId}/stock-lots`, {
+      headers: authHeader(),
+    })
+    if (res.ok) {
+      const data: StockLotPage = await res.json()
+      setExitLots((data.content ?? []).filter((lot) => lot.quantity > 0))
+    }
+  }
+
+  const closeExitDialog = () => setExitProductId(null)
+
+  const handleExitSave = async () => {
+    if (!accessToken || !exitProductId) return
+    setExitSaving(true)
+    try {
+      const res = await fetch(`/api/admin/products/${exitProductId}/stock-movements/exits`, {
+        method: 'POST',
+        headers: { ...authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reason: exitReason,
+          lotId: exitLotId,
+          quantity: exitQuantity,
+          note: exitNote || undefined,
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        toast({ variant: 'destructive', description: data?.message ?? 'Erro ao registrar saída.' })
+        return
+      }
+      closeExitDialog()
+      toast({ variant: 'success', description: 'Saída registrada com sucesso.' })
+      fetchProducts()
+    } catch {
+      toast({ variant: 'destructive', description: 'Erro ao registrar saída.' })
+    } finally {
+      setExitSaving(false)
     }
   }
 
@@ -61,8 +149,13 @@ export function StockContent() {
 
   return (
     <PermissionGuard permissions={['MANAGE_STOCK']}>
-      <main className="mx-auto max-w-3xl px-4 py-8">
-        <Heading as="h1" size="2xl" className="mb-6">Gestão de Estoque</Heading>
+      <main className="mx-auto max-w-4xl px-4 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <Heading as="h1" size="2xl">Gestão de Estoque</Heading>
+          <Link href={`${stockBasePath}/expiring`} className="text-sm underline">
+            Lotes vencendo
+          </Link>
+        </div>
 
         <table className="w-full text-sm border-collapse">
           <thead>
@@ -78,32 +171,52 @@ export function StockContent() {
               <tr key={p.id} className="border-b">
                 <td className="p-2">{p.name}</td>
                 <td className="p-2">{p.categoryName}</td>
+                <td className="p-2">{p.stockQuantity}</td>
                 <td className="p-2">
-                  <Input
-                    id={`stock-quantity-${p.id}`}
-                    type="number"
-                    aria-label={`Quantidade ${p.name}`}
-                    value={stockMap[p.id] ?? p.stockQuantity}
-                    min={0}
-                    onChange={(e) => setStockMap((m) => ({ ...m, [p.id]: Number(e.target.value) }))}
-                    className="w-24"
-                  />
-                </td>
-                <td className="p-2">
-                  <Button
-                    size="sm"
-                    aria-label={`Salvar estoque ${p.name}`}
-                    disabled={savingStockIds.has(p.id)}
-                    onClick={() => handleSaveStock(p.id)}
-                  >
-                    Salvar
-                  </Button>
+                  <div className="flex items-center gap-3">
+                    <Button size="sm" onClick={() => openEntryDialog(p.id)}>Entrada</Button>
+                    <Button size="sm" variant="outline" onClick={() => openExitDialog(p.id)}>Saída</Button>
+                    <Link href={`${stockBasePath}/${p.id}`} className="text-sm underline">Histórico</Link>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </main>
+
+      <Dialog open={entryProductId !== null} onClose={closeEntryDialog} title="Registrar entrada">
+        <StockEntryForm
+          reason={entryReason}
+          quantity={entryQuantity}
+          note={entryNote}
+          lotNumber={entryLotNumber}
+          expiryDate={entryExpiryDate}
+          onReason={setEntryReason}
+          onQuantity={setEntryQuantity}
+          onNote={setEntryNote}
+          onLotNumber={setEntryLotNumber}
+          onExpiryDate={setEntryExpiryDate}
+          onSave={handleEntrySave}
+          saving={entrySaving}
+        />
+      </Dialog>
+
+      <Dialog open={exitProductId !== null} onClose={closeExitDialog} title="Registrar saída">
+        <StockExitForm
+          lots={exitLots}
+          reason={exitReason}
+          lotId={exitLotId}
+          quantity={exitQuantity}
+          note={exitNote}
+          onReason={setExitReason}
+          onLotId={setExitLotId}
+          onQuantity={setExitQuantity}
+          onNote={setExitNote}
+          onSave={handleExitSave}
+          saving={exitSaving}
+        />
+      </Dialog>
     </PermissionGuard>
   )
 }
