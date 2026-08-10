@@ -76,8 +76,12 @@ export function CheckoutForm({ addresses }: Props) {
             Código de pagamento: <strong>{order.paymentId}</strong>
           </p>
         )}
-        {order.paymentMethod === 'PIX' && order.paymentId && (
-          <QrCode value={order.paymentId} />
+        {order.checkoutUrl ? (
+          <Button as="a" href={order.checkoutUrl}>
+            Continuar para pagamento
+          </Button>
+        ) : (
+          order.paymentMethod === 'PIX' && order.paymentId && <QrCode value={order.paymentId} />
         )}
       </div>
     )

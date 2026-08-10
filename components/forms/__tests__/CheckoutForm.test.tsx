@@ -101,6 +101,32 @@ describe('CheckoutForm', () => {
     expect(alert).toHaveTextContent('Estoque insuficiente')
   })
 
+  it('mostra link "Continuar para pagamento" quando a resposta traz checkoutUrl', async () => {
+    server.use(
+      http.post('/api/orders', () =>
+        HttpResponse.json({ ...mockOrder, checkoutUrl: 'https://checkout.stripe.com/cs_test_123' }, { status: 201 }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderCheckoutForm({ addresses: [mockAddress] })
+
+    await user.click(screen.getByRole('button', { name: /finalizar/i }))
+
+    expect(await screen.findByTestId('order-success')).toBeInTheDocument()
+    const link = screen.getByRole('link', { name: /continuar para pagamento/i })
+    expect(link).toHaveAttribute('href', 'https://checkout.stripe.com/cs_test_123')
+  })
+
+  it('não mostra link de pagamento quando checkoutUrl está ausente (Mock)', async () => {
+    const user = userEvent.setup()
+    renderCheckoutForm({ addresses: [mockAddress] })
+
+    await user.click(screen.getByRole('button', { name: /finalizar/i }))
+
+    expect(await screen.findByTestId('order-success')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /continuar para pagamento/i })).not.toBeInTheDocument()
+  })
+
   it('disables submit button while request is in flight', async () => {
     let resolveResponse!: () => void
     server.use(

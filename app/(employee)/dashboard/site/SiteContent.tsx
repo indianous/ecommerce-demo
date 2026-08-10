@@ -12,12 +12,13 @@ import { BannerForm } from "@/components/forms/BannerForm";
 import { MarkdownContentForm } from "@/components/forms/MarkdownContentForm";
 import { ContactForm } from "@/components/forms/ContactForm";
 import { SocialLinksForm } from "@/components/forms/SocialLinksForm";
-import type { Banner } from "@/types";
+import { PaymentGatewayForm } from "@/components/forms/PaymentGatewayForm";
+import type { Banner, PaymentGatewayConfig, PaymentGatewayProvider } from "@/types";
 
 type DialogId =
   | "logo" | "placeholder" | "favicon" | "metadata"
   | "banners" | "about" | "contact"
-  | "social" | "privacy" | "terms" | "refund";
+  | "social" | "privacy" | "terms" | "refund" | "payment-gateway";
 
 export function SiteContent() {
   const { accessToken } = useAuthStore();
@@ -69,6 +70,11 @@ export function SiteContent() {
   const [refundContent, setRefundContent] = useState("");
   const [refundSaving, setRefundSaving] = useState(false);
 
+  const [paymentGatewayConfig, setPaymentGatewayConfig] = useState<PaymentGatewayConfig | null>(null);
+  const [paymentGatewaySelected, setPaymentGatewaySelected] = useState<PaymentGatewayProvider>("MOCK");
+  const [paymentGatewaySaving, setPaymentGatewaySaving] = useState(false);
+  const [paymentGatewayError, setPaymentGatewayError] = useState<string | null>(null);
+
   useEffect(() => {
     Promise.all([
       fetch("/api/site/settings").then((r) => (r.ok ? r.json() : null)),
@@ -97,6 +103,19 @@ export function SiteContent() {
       })
       .catch(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!accessToken) return;
+    fetch("/api/site/payment-gateway", { headers: { Authorization: `Bearer ${accessToken}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: PaymentGatewayConfig | null) => {
+        if (data) {
+          setPaymentGatewayConfig(data);
+          setPaymentGatewaySelected(data.active);
+        }
+      })
+      .catch(() => {});
+  }, [accessToken]);
 
   const authHeader = () => ({ Authorization: `Bearer ${accessToken}` });
   const close = () => setOpenDialog(null);
@@ -299,6 +318,37 @@ export function SiteContent() {
     } finally { setRefundSaving(false); }
   };
 
+  const handlePaymentGatewaySave = async () => {
+    if (!accessToken) return;
+    setPaymentGatewaySaving(true);
+    setPaymentGatewayError(null);
+    try {
+      const res = await fetch("/api/site/payment-gateway", {
+        method: "PUT",
+        headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: paymentGatewaySelected }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const message = data?.message ?? "Erro ao trocar gateway de pagamento.";
+        setPaymentGatewayError(message);
+        setPaymentGatewaySelected(paymentGatewayConfig?.active ?? "MOCK");
+        toast({ variant: "destructive", description: message });
+        return;
+      }
+      setPaymentGatewayConfig(data);
+      setPaymentGatewaySelected(data.active);
+      close();
+      toast({ variant: "success", description: "Gateway de pagamento atualizado com sucesso." });
+    } catch {
+      setPaymentGatewayError("Erro ao trocar gateway de pagamento.");
+      setPaymentGatewaySelected(paymentGatewayConfig?.active ?? "MOCK");
+      toast({ variant: "destructive", description: "Erro ao trocar gateway de pagamento." });
+    } finally {
+      setPaymentGatewaySaving(false);
+    }
+  };
+
   const configured = (v: string | null | undefined) =>
     v ? "Configurado" : "Não configurado";
 
@@ -458,6 +508,21 @@ export function SiteContent() {
               </Card>
             </section>
 
+            <section aria-labelledby="payment-gateway-heading">
+              <Card variant="outlined" className="h-full">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <Heading as="h2" id="payment-gateway-heading" size="base">Gateway de pagamento</Heading>
+                    <Button type="button" size="sm" onClick={() => setOpenDialog("payment-gateway")}>Editar</Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Gateway usado para processar pagamentos no checkout.</p>
+                  <span className="text-xs text-muted-foreground">
+                    {paymentGatewayConfig ? paymentGatewayConfig.active : "Carregando..."}
+                  </span>
+                </div>
+              </Card>
+            </section>
+
             <section aria-labelledby="refund-heading">
               <Card variant="outlined" className="h-full">
                 <div className="flex flex-col gap-3">
@@ -547,6 +612,19 @@ export function SiteContent() {
 
         <Dialog open={openDialog === "refund"} onClose={close} title="Política de reembolso" className="max-w-2xl">
           <MarkdownContentForm label="Conteúdo" value={refundContent} onChange={setRefundContent} onSave={handleRefundSave} saving={refundSaving} />
+        </Dialog>
+
+        <Dialog open={openDialog === "payment-gateway"} onClose={close} title="Gateway de pagamento">
+          {paymentGatewayConfig && (
+            <PaymentGatewayForm
+              config={paymentGatewayConfig}
+              value={paymentGatewaySelected}
+              onChange={setPaymentGatewaySelected}
+              onSave={handlePaymentGatewaySave}
+              saving={paymentGatewaySaving}
+              error={paymentGatewayError}
+            />
+          )}
         </Dialog>
 
       </main>

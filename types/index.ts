@@ -30,6 +30,18 @@ export interface SiteSettings {
   refundPolicyContent: string | null
 }
 
+export type PaymentGatewayProvider = 'MOCK' | 'STRIPE' | 'PAGSEGURO'
+
+export interface PaymentGatewayOption {
+  provider: PaymentGatewayProvider
+  configured: boolean
+}
+
+export interface PaymentGatewayConfig {
+  active: PaymentGatewayProvider
+  available: PaymentGatewayOption[]
+}
+
 export interface Banner {
   id: string
   imageUrl: string
@@ -123,6 +135,7 @@ export interface OrderResponse {
   paymentId?: string
   createdAt: string
   items: OrderItemResponse[]
+  checkoutUrl?: string
 }
 
 export interface CartItem {

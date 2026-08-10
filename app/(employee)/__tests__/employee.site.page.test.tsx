@@ -33,6 +33,16 @@ const fullSettings = {
 const server = setupServer(
   http.get('/api/site/settings', () => HttpResponse.json(fullSettings)),
   http.get('/api/site/banners', () => HttpResponse.json([])),
+  http.get('/api/site/payment-gateway', () =>
+    HttpResponse.json({
+      active: 'MOCK',
+      available: [
+        { provider: 'MOCK', configured: true },
+        { provider: 'STRIPE', configured: false },
+        { provider: 'PAGSEGURO', configured: false },
+      ],
+    }),
+  ),
   http.put('/api/site/settings/logo', () => HttpResponse.json({ ...fullSettings, logoUrl: 'https://cdn.example.com/new-logo.svg' })),
   http.put('/api/site/settings/placeholder-image', () =>
     HttpResponse.json({ ...fullSettings, placeholderImageUrl: 'https://cdn.example.com/new.jpg' }),
