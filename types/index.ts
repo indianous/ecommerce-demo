@@ -83,6 +83,9 @@ export interface Product {
   categoryId: string
   categoryName: string
   name: string
+  slug: string
+  metaTitle?: string
+  metaDescription?: string
   description?: string
   price: number
   stockQuantity: number

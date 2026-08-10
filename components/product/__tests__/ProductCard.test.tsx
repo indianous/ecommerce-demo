@@ -17,6 +17,7 @@ const mockProduct: Product = {
   categoryId: 'cat-1',
   categoryName: 'Electronics',
   name: 'Mechanical Keyboard',
+  slug: 'mechanical-keyboard',
   description: 'An awesome mechanical keyboard',
   price: 499.9,
   stockQuantity: 10,
@@ -83,10 +84,10 @@ describe('ProductCard', () => {
     expect(useCartStore.getState().items[0].quantity).toBe(2)
   })
 
-  it('renderiza o card como link para a página de detalhe do produto', () => {
+  it('renderiza o card como link para a página de detalhe do produto, usando o slug', () => {
     render(<ProductCard product={mockProduct} />)
     const link = screen.getByRole('link', { name: /mechanical keyboard/i })
-    expect(link).toHaveAttribute('href', '/catalog/prod-1')
+    expect(link).toHaveAttribute('href', '/catalog/mechanical-keyboard')
   })
 
   it('mostra a nota média quando reviewCount > 0', () => {

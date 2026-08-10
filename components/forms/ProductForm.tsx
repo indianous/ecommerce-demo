@@ -9,6 +9,9 @@ export type ProductFormState = {
   price: number
   categoryId: string
   imageUrl: string
+  slug: string
+  metaTitle: string
+  metaDescription: string
 }
 
 export const EMPTY_PRODUCT_FORM: ProductFormState = {
@@ -17,6 +20,9 @@ export const EMPTY_PRODUCT_FORM: ProductFormState = {
   price: 0,
   categoryId: '',
   imageUrl: '',
+  slug: '',
+  metaTitle: '',
+  metaDescription: '',
 }
 
 type ProductFormProps = {
@@ -100,6 +106,30 @@ export function ProductForm({
       {form.imageUrl && (
         <img src={form.imageUrl} alt="Preview" className="w-16 h-16 object-cover rounded-md" />
       )}
+
+      <FormField label="Slug" id="product-slug" hint="Gerado automaticamente a partir do nome se deixado em branco">
+        <Input
+          id="product-slug"
+          value={form.slug}
+          onChange={(e) => onFormChange({ slug: e.target.value })}
+        />
+      </FormField>
+
+      <FormField label="Meta título" id="product-meta-title">
+        <Input
+          id="product-meta-title"
+          value={form.metaTitle}
+          onChange={(e) => onFormChange({ metaTitle: e.target.value })}
+        />
+      </FormField>
+
+      <FormField label="Meta descrição" id="product-meta-description">
+        <Input
+          id="product-meta-description"
+          value={form.metaDescription}
+          onChange={(e) => onFormChange({ metaDescription: e.target.value })}
+        />
+      </FormField>
 
       <Button type="submit" isLoading={saving} className="self-start">
         Salvar

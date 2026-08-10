@@ -19,6 +19,7 @@ const mockProduct: Product = {
   categoryId: 'cat-1',
   categoryName: 'Eletrônicos',
   name: 'Teclado Mecânico',
+  slug: 'teclado-mecanico',
   price: 499.9,
   stockQuantity: 10,
   active: true,

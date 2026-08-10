@@ -19,6 +19,7 @@ const mockDeletedProduct: Product = {
   categoryId: 'cat-1',
   categoryName: 'Eletrônicos',
   name: 'Headset Antigo',
+  slug: 'headset-antigo',
   price: 299.9,
   stockQuantity: 0,
   active: false,

@@ -16,6 +16,7 @@ const mockProduct: Product = {
   categoryId: 'cat-1',
   categoryName: 'Electronics',
   name: 'Mechanical Keyboard',
+  slug: 'mechanical-keyboard',
   price: 499.9,
   stockQuantity: 10,
   imageUrl: 'https://example.com/keyboard.jpg',

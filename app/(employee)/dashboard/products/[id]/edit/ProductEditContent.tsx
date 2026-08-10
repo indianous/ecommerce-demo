@@ -34,6 +34,9 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
           price: product.price,
           categoryId: product.categoryId,
           imageUrl: product.imageUrl ?? '',
+          slug: product.slug ?? '',
+          metaTitle: product.metaTitle ?? '',
+          metaDescription: product.metaDescription ?? '',
         })
       }
       setLoading(false)

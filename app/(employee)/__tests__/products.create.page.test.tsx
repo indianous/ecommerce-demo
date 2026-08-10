@@ -116,6 +116,46 @@ describe('ProductCreateContent', () => {
     expect(preview).toHaveAttribute('src', '/uploads/uuid-test.jpg')
   })
 
+  it('exibe campos Slug, Meta título e Meta descrição, todos opcionais', async () => {
+    renderCreate()
+    expect(await screen.findByLabelText(/^slug/i)).toHaveValue('')
+    expect(screen.getByLabelText(/meta título/i)).toHaveValue('')
+    expect(screen.getByLabelText(/meta descrição/i)).toHaveValue('')
+  })
+
+  it('slug vazio não bloqueia o submit — backend gera automaticamente', async () => {
+    const user = userEvent.setup()
+    renderCreate()
+
+    await user.type(await screen.findByLabelText(/^nome/i), 'Produto Sem Slug')
+    await user.selectOptions(screen.getByLabelText(/^categoria/i), 'cat-1')
+    await user.click(screen.getByRole('button', { name: /salvar/i }))
+
+    await waitFor(() => {
+      expect(lastSavedBody.name).toBe('Produto Sem Slug')
+      expect(lastSavedBody.slug).toBe('')
+      expect(pushMock).toHaveBeenCalledWith('/dashboard/products')
+    })
+  })
+
+  it('preenche slug/meta título/meta descrição e propaga no payload', async () => {
+    const user = userEvent.setup()
+    renderCreate()
+
+    await user.type(await screen.findByLabelText(/^nome/i), 'Produto Com SEO')
+    await user.selectOptions(screen.getByLabelText(/^categoria/i), 'cat-1')
+    await user.type(screen.getByLabelText(/^slug/i), 'produto-com-seo')
+    await user.type(screen.getByLabelText(/meta título/i), 'Produto Com SEO — Loja')
+    await user.type(screen.getByLabelText(/meta descrição/i), 'Descrição para buscadores')
+    await user.click(screen.getByRole('button', { name: /salvar/i }))
+
+    await waitFor(() => {
+      expect(lastSavedBody.slug).toBe('produto-com-seo')
+      expect(lastSavedBody.metaTitle).toBe('Produto Com SEO — Loja')
+      expect(lastSavedBody.metaDescription).toBe('Descrição para buscadores')
+    })
+  })
+
   it('inclui imageUrl no payload ao salvar', async () => {
     const user = userEvent.setup()
     renderCreate()

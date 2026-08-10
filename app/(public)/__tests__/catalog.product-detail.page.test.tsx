@@ -4,7 +4,8 @@ import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { ToastProvider, ToastViewport } from 'base-ds'
 import type { ReactElement } from 'react'
-import ProductDetailPage from '../catalog/[id]/page'
+import ProductDetailPage from '../catalog/[slug]/page'
+import { redirect } from 'next/navigation'
 import type { Product, ProductReview, ProductReviewPage } from '@/types'
 
 function renderWithToast(jsx: ReactElement) {
@@ -18,6 +19,12 @@ function renderWithToast(jsx: ReactElement) {
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
+  redirect: vi.fn((url: string) => {
+    throw new Error(`NEXT_REDIRECT:${url}`)
+  }),
+  notFound: vi.fn(() => {
+    throw new Error('NEXT_NOT_FOUND')
+  }),
 }))
 
 const mockProduct: Product = {
@@ -25,6 +32,7 @@ const mockProduct: Product = {
   categoryId: 'cat-1',
   categoryName: 'Electronics',
   name: 'Mechanical Keyboard',
+  slug: 'mechanical-keyboard',
   description: 'Um teclado mecânico excelente',
   price: 499.9,
   stockQuantity: 10,
@@ -66,22 +74,35 @@ function makeReviewPage(reviews: ProductReview[], overrides: Partial<ProductRevi
 }
 
 const server = setupServer(
-  http.get('http://localhost:8080/api/v1/catalog/products/prod-1', () => HttpResponse.json(mockProduct)),
+  http.get('http://localhost:8080/api/v1/catalog/products/slug/mechanical-keyboard', () =>
+    HttpResponse.json(mockProduct),
+  ),
   http.get('http://localhost:8080/api/v1/products/prod-1/reviews', () =>
     HttpResponse.json(makeReviewPage([makeReview()])),
+  ),
+  http.get('http://localhost:8080/api/v1/catalog/products/slug/missing', () =>
+    HttpResponse.json({ status: 404, message: 'Product not found' }, { status: 404 }),
   ),
   http.get('http://localhost:8080/api/v1/catalog/products/missing', () =>
     HttpResponse.json({ status: 404, message: 'Product not found' }, { status: 404 }),
   ),
+  // fallback por UUID: rota antiga /catalog/prod-1 continua resolvendo o mesmo produto
+  http.get('http://localhost:8080/api/v1/catalog/products/slug/prod-1', () =>
+    HttpResponse.json({ status: 404, message: 'Product not found' }, { status: 404 }),
+  ),
+  http.get('http://localhost:8080/api/v1/catalog/products/prod-1', () => HttpResponse.json(mockProduct)),
 )
 
 beforeAll(() => server.listen())
-afterEach(() => server.resetHandlers())
+afterEach(() => {
+  server.resetHandlers()
+  vi.mocked(redirect).mockClear()
+})
 afterAll(() => server.close())
 
 describe('ProductDetailPage', () => {
   it('renderiza nome, descrição, preço, categoria e nota média do produto', async () => {
-    const jsx = await ProductDetailPage({ params: Promise.resolve({ id: 'prod-1' }) })
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
     renderWithToast(jsx)
 
     expect(screen.getByRole('heading', { name: 'Mechanical Keyboard' })).toBeInTheDocument()
@@ -92,7 +113,7 @@ describe('ProductDetailPage', () => {
   })
 
   it('renderiza breadcrumb Catálogo > Categoria > Nome do produto', async () => {
-    const jsx = await ProductDetailPage({ params: Promise.resolve({ id: 'prod-1' }) })
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
     renderWithToast(jsx)
 
     const breadcrumb = screen.getByRole('navigation', { name: /breadcrumb/i })
@@ -106,19 +127,19 @@ describe('ProductDetailPage', () => {
 
   it('mostra "Seja o primeiro a avaliar" quando o produto não tem avaliações', async () => {
     server.use(
-      http.get('http://localhost:8080/api/v1/catalog/products/prod-1', () =>
+      http.get('http://localhost:8080/api/v1/catalog/products/slug/mechanical-keyboard', () =>
         HttpResponse.json({ ...mockProduct, averageRating: null, reviewCount: 0 }),
       ),
       http.get('http://localhost:8080/api/v1/products/prod-1/reviews', () => HttpResponse.json(makeReviewPage([]))),
     )
-    const jsx = await ProductDetailPage({ params: Promise.resolve({ id: 'prod-1' }) })
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
     renderWithToast(jsx)
 
     expect(screen.getByText(/seja o primeiro a avaliar/i)).toBeInTheDocument()
   })
 
   it('lista os comentários e fotos das avaliações existentes', async () => {
-    const jsx = await ProductDetailPage({ params: Promise.resolve({ id: 'prod-1' }) })
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
     renderWithToast(jsx)
 
     expect(await screen.findByText('Excelente produto!')).toBeInTheDocument()
@@ -128,20 +149,29 @@ describe('ProductDetailPage', () => {
     )
   })
 
-  it('produto inexistente (404 do backend) aciona notFound()', async () => {
-    await expect(ProductDetailPage({ params: Promise.resolve({ id: 'missing' }) })).rejects.toThrow()
+  it('slug inexistente e UUID inexistente aciona notFound()', async () => {
+    await expect(ProductDetailPage({ params: Promise.resolve({ slug: 'missing' }) })).rejects.toThrow(
+      'NEXT_NOT_FOUND',
+    )
   })
 
   it('produto inativo renderiza normalmente, sem botão de compra', async () => {
     server.use(
-      http.get('http://localhost:8080/api/v1/catalog/products/prod-1', () =>
+      http.get('http://localhost:8080/api/v1/catalog/products/slug/mechanical-keyboard', () =>
         HttpResponse.json({ ...mockProduct, active: false, status: 'UNAVAILABLE' }),
       ),
     )
-    const jsx = await ProductDetailPage({ params: Promise.resolve({ id: 'prod-1' }) })
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
     renderWithToast(jsx)
 
     expect(screen.getByRole('heading', { name: 'Mechanical Keyboard' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /adicionar ao carrinho/i })).not.toBeInTheDocument()
+  })
+
+  it('acessar a rota com um UUID válido redireciona para /catalog/{slug} do mesmo produto', async () => {
+    await expect(ProductDetailPage({ params: Promise.resolve({ slug: 'prod-1' }) })).rejects.toThrow(
+      'NEXT_REDIRECT:/catalog/mechanical-keyboard',
+    )
+    expect(redirect).toHaveBeenCalledWith('/catalog/mechanical-keyboard')
   })
 })

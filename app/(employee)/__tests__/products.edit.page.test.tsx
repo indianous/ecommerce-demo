@@ -22,6 +22,7 @@ const mockProduct: Product = {
   categoryId: 'cat-1',
   categoryName: 'Eletrônicos',
   name: 'Teclado Mecânico',
+  slug: 'teclado-mecanico',
   price: 499.9,
   stockQuantity: 10,
   active: true,
@@ -101,6 +102,27 @@ describe('ProductEditContent', () => {
     await waitFor(() => {
       expect(lastPutBody.name).toBe('Teclado Atualizado')
       expect(pushMock).toHaveBeenCalledWith('/dashboard/products')
+    })
+  })
+
+  it('pré-preenche o campo Slug com o slug atual do produto', async () => {
+    renderEdit()
+    await screen.findByDisplayValue('Teclado Mecânico')
+    expect(screen.getByLabelText(/^slug/i)).toHaveValue('teclado-mecanico')
+  })
+
+  it('editar o slug propaga no payload do PUT', async () => {
+    const user = userEvent.setup()
+    renderEdit()
+
+    await screen.findByDisplayValue('Teclado Mecânico')
+    const slugInput = screen.getByLabelText(/^slug/i)
+    await user.clear(slugInput)
+    await user.type(slugInput, 'novo-slug')
+    await user.click(screen.getByRole('button', { name: /salvar/i }))
+
+    await waitFor(() => {
+      expect(lastPutBody.slug).toBe('novo-slug')
     })
   })
 

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { Badge, Breadcrumb, Heading, Image, Text } from 'base-ds'
 import { AddToCartButton } from '@/components/product/AddToCartButton'
 import { ProductRatingSummary } from '@/components/product/ProductRatingSummary'
@@ -19,7 +19,17 @@ const EMPTY_REVIEWS: ProductReviewPage = {
   totalReviews: 0,
 }
 
-async function fetchProduct(id: string): Promise<Product | null> {
+async function fetchProductBySlug(slug: string): Promise<Product | null> {
+  try {
+    const res = await fetch(`${API}/catalog/products/slug/${slug}`, { next: { revalidate: 60 } })
+    if (!res.ok) return null
+    return res.json()
+  } catch {
+    return null
+  }
+}
+
+async function fetchProductByUuid(id: string): Promise<Product | null> {
   try {
     const res = await fetch(`${API}/catalog/products/${id}`, { next: { revalidate: 60 } })
     if (!res.ok) return null
@@ -40,22 +50,27 @@ async function fetchReviews(id: string): Promise<ProductReviewPage> {
 }
 
 interface Props {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params
-  const product = await fetchProduct(id)
+  const { slug } = await params
+  const product = (await fetchProductBySlug(slug)) ?? (await fetchProductByUuid(slug))
   if (!product) return { title: 'Produto não encontrado' }
-  return { title: product.name, description: product.description }
+  return {
+    title: product.metaTitle ?? product.name,
+    description: product.metaDescription ?? product.description,
+  }
 }
 
 export default async function ProductDetailPage({ params }: Props) {
-  const { id } = await params
-  const product = await fetchProduct(id)
+  const { slug } = await params
+  const bySlug = await fetchProductBySlug(slug)
+  const product = bySlug ?? (await fetchProductByUuid(slug))
   if (!product) notFound()
+  if (!bySlug) redirect(`/catalog/${product.slug}`)
 
-  const reviews = await fetchReviews(id)
+  const reviews = await fetchReviews(product.id)
 
   const formattedPrice = new Intl.NumberFormat('pt-BR', {
     style: 'currency',

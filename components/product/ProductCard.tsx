@@ -45,7 +45,7 @@ export function ProductCard({ product }: Props) {
 
   return (
     <Card variant="outlined" className="flex flex-col gap-2">
-      <Link href={`/catalog/${product.id}`} className="flex flex-col gap-2">
+      <Link href={`/catalog/${product.slug}`} className="flex flex-col gap-2">
         {imageSrc ? (
           <Image
             src={imageSrc}
