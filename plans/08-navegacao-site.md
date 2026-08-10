@@ -2,7 +2,7 @@
 
 ## Contexto
 
-Complementa `backend/plans/navegacao-site.md`. `base-ds` já suporta os dois
+Complementa `backend/plans/08-navegacao-site.md`. `base-ds` já suporta os dois
 formatos pedidos nativamente: `Navbar` aceita `items: NavItem[]` (link
 solto ou dropdown), `Footer` aceita `columns: FooterColumn[]` (título +
 links) — só falta alimentar essas props com dado real, hoje nenhuma das

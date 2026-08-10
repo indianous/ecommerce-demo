@@ -2,7 +2,7 @@
 
 ## Contexto
 
-Complementa `backend/plans/gestao-estoque.md`. `PATCH
+Complementa `backend/plans/03-gestao-estoque.md`. `PATCH
 /{id}/stock` (valor absoluto, sem motivo) deixa de existir; a UI de estoque
 passa a registrar **movimentações** (entrada/saída, com motivo) e mostrar o
 **histórico** de cada produto.

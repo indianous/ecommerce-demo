@@ -2,7 +2,7 @@
 
 ## Contexto
 
-Complementa `backend/plans/nota-fiscal-produtos.md`. Duas telas mudam:
+Complementa `backend/plans/05-nota-fiscal-produtos.md`. Duas telas mudam:
 formulário de produto (novos campos fiscais) e detalhe do pedido (botão
 "Emitir NF-e" + status/link do DANFE); mais uma seção nova em Gestão do
 Site para os dados fiscais da empresa emissora.

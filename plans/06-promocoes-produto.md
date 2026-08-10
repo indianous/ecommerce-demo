@@ -2,7 +2,7 @@
 
 ## Contexto
 
-Complementa `backend/plans/promocoes-produto.md`. `ProductResponse` passa a
+Complementa `backend/plans/06-promocoes-produto.md`. `ProductResponse` passa a
 trazer `effectivePrice`/`onPromotion` já calculados — o frontend só exibe,
 não recalcula datas.
 

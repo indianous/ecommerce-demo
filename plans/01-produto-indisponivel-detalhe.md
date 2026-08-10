@@ -4,7 +4,7 @@ Contexto: o link "ver produto" adicionado ao histórico de pedidos do cliente
 (`app/(customer)/orders/page.tsx`) aponta para `/catalog/{productId}`. Quando o
 produto foi desativado depois da compra, o cliente recebe um 404 genérico em vez
 de ver que o produto foi descontinuado. Depende da mudança de backend em
-`backend/plans/produto-indisponivel-detalhe.md` (que passa a retornar 200 com
+`backend/plans/01-produto-indisponivel-detalhe.md` (que passa a retornar 200 com
 `active: false` em vez de 404 para produto inativo).
 
 ## 1. Problemas encontrados

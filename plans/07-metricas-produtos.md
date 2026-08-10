@@ -2,7 +2,7 @@
 
 ## Contexto
 
-Complementa `backend/plans/metricas-produtos.md`. Três pontos de UI novos:
+Complementa `backend/plans/07-metricas-produtos.md`. Três pontos de UI novos:
 seções de destaque na home (populares/mais vendidos), seção "Produtos
 relacionados" na página de detalhe, e duas colunas novas na tabela de
 produtos do admin. Mais o disparo (client-side) de registro de

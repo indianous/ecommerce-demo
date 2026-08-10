@@ -2,7 +2,7 @@
 
 ## Contexto
 
-Complementa `backend/plans/produto-seo.md`. A URL pública do produto muda
+Complementa `backend/plans/04-produto-seo.md`. A URL pública do produto muda
 de `/catalog/{uuid}` para `/catalog/{slug}`; links antigos por UUID
 recebem redirecionamento permanente para não perder indexação/tráfego já
 existente.

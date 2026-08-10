@@ -2,7 +2,7 @@
 
 ## Contexto
 
-Complementa `backend/plans/gateways-pagamento.md`. O backend passa a ter 3
+Complementa `backend/plans/02-gateways-pagamento.md`. O backend passa a ter 3
 implementações de `PaymentGateway` (Mock, Stripe, PagSeguro), uma ativa por
 vez, escolhida pelo admin/gestor do site via novo endpoint
 `GET/PUT /api/v1/site/payment-gateway` (protegido `MANAGE_SITE`).
