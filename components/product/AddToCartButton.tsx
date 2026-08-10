@@ -10,7 +10,16 @@ interface Props {
 
 export function AddToCartButton({ product }: Props) {
   const addItem = useCartStore((s) => s.addItem)
+  const unavailable = !product.active || product.status === 'UNAVAILABLE'
   const inStock = product.stockQuantity > 0
+
+  if (unavailable) {
+    return (
+      <Badge variant="danger" size="sm">
+        Produto indisponível
+      </Badge>
+    )
+  }
 
   if (!inStock) {
     return (

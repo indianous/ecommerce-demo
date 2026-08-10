@@ -131,4 +131,17 @@ describe('ProductDetailPage', () => {
   it('produto inexistente (404 do backend) aciona notFound()', async () => {
     await expect(ProductDetailPage({ params: Promise.resolve({ id: 'missing' }) })).rejects.toThrow()
   })
+
+  it('produto inativo renderiza normalmente, sem botão de compra', async () => {
+    server.use(
+      http.get('http://localhost:8080/api/v1/catalog/products/prod-1', () =>
+        HttpResponse.json({ ...mockProduct, active: false, status: 'UNAVAILABLE' }),
+      ),
+    )
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ id: 'prod-1' }) })
+    renderWithToast(jsx)
+
+    expect(screen.getByRole('heading', { name: 'Mechanical Keyboard' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /adicionar ao carrinho/i })).not.toBeInTheDocument()
+  })
 })

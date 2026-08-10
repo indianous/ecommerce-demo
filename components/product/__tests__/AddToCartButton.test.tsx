@@ -64,4 +64,16 @@ describe('AddToCartButton', () => {
     expect(screen.getByText(/sem estoque/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /adicionar ao carrinho/i })).not.toBeInTheDocument()
   })
+
+  it('mostra "Produto indisponível" e não renderiza o botão quando active é false', () => {
+    render(<AddToCartButton product={{ ...mockProduct, active: false, status: 'UNAVAILABLE' }} />)
+    expect(screen.getByText(/produto indisponível/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /adicionar ao carrinho/i })).not.toBeInTheDocument()
+  })
+
+  it('mostra "Produto indisponível" quando status é UNAVAILABLE mesmo com active true', () => {
+    render(<AddToCartButton product={{ ...mockProduct, status: 'UNAVAILABLE' }} />)
+    expect(screen.getByText(/produto indisponível/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /adicionar ao carrinho/i })).not.toBeInTheDocument()
+  })
 })
