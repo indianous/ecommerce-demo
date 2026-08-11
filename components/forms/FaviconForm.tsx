@@ -20,7 +20,7 @@ export function FaviconForm({ file, onFileChange, onSave, saving }: Props) {
     >
       <FormField label="Novo favicon" id="favicon-upload">
         <FileUpload
-          accept="image/x-icon,image/png,image/svg+xml"
+          accept=".ico,image/x-icon,image/vnd.microsoft.icon,.png,image/png,.svg,image/svg+xml"
           onChange={([f]) => onFileChange(f ?? null)}
         />
       </FormField>

@@ -180,8 +180,11 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
       const fd = new FormData();
       fd.append("file", faviconFile);
       const res = await fetch("/api/site/settings/favicon", { method: "PUT", headers: authHeader(), body: fd });
-      if (!res.ok) throw new Error();
       const data = await res.json();
+      if (!res.ok) {
+        toast({ variant: "destructive", description: data?.message ?? "Erro ao salvar favicon." });
+        return;
+      }
       setFaviconUrl(data.faviconUrl);
       setFaviconFile(null);
       close();

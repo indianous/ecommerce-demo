@@ -43,6 +43,9 @@ const server = setupServer(
     const body = (await request.json()) as Record<string, unknown>
     return HttpResponse.json({ ...emptySettings, ...body })
   }),
+  http.put('/api/site/settings/favicon', async () =>
+    HttpResponse.json({ ...emptySettings, faviconUrl: 'https://cdn.test/favicon.ico' }),
+  ),
 )
 
 beforeAll(() => server.listen())
@@ -196,5 +199,50 @@ describe('SiteContent — Navegação do site', () => {
     renderContent()
 
     expect(screen.queryByRole('heading', { name: /navegação do site/i })).not.toBeInTheDocument()
+  })
+})
+
+describe('SiteContent — Favicon', () => {
+  it('com MANAGE_SITE: seleciona um arquivo .ico e salva com sucesso', async () => {
+    const user = userEvent.setup()
+    await act(async () => {
+      useAuthStore.setState(authenticatedWithSite)
+    })
+    renderContent()
+
+    const heading = await screen.findByRole('heading', { name: /favicon do site/i })
+    const card = heading.closest('section') as HTMLElement
+    await user.click(within(card).getByRole('button', { name: /editar/i }))
+
+    const dialog = await screen.findByRole('dialog', { name: /favicon do site/i })
+    const file = new File(['icon'], 'favicon.ico', { type: 'image/vnd.microsoft.icon' })
+    await user.upload(screen.getByLabelText(/file upload/i), file)
+    await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
+
+    expect(await screen.findByText(/atualizado com sucesso/i)).toBeInTheDocument()
+  })
+
+  it('erro do backend (400, tipo inválido) mostra a mensagem real vinda do backend', async () => {
+    server.use(
+      http.put('/api/site/settings/favicon', () =>
+        HttpResponse.json({ message: 'Tipo inválido. Envie ico, png ou svg.' }, { status: 400 }),
+      ),
+    )
+    const user = userEvent.setup()
+    await act(async () => {
+      useAuthStore.setState(authenticatedWithSite)
+    })
+    renderContent()
+
+    const heading = await screen.findByRole('heading', { name: /favicon do site/i })
+    const card = heading.closest('section') as HTMLElement
+    await user.click(within(card).getByRole('button', { name: /editar/i }))
+
+    const dialog = await screen.findByRole('dialog', { name: /favicon do site/i })
+    const file = new File(['icon'], 'favicon.ico', { type: 'image/vnd.microsoft.icon' })
+    await user.upload(screen.getByLabelText(/file upload/i), file)
+    await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
+
+    expect(await screen.findByText(/tipo inválido/i)).toBeInTheDocument()
   })
 })
