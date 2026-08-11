@@ -166,6 +166,15 @@ describe('EmployeeShell — Sidebar (desktop)', () => {
     renderEmployeeShell()
     expect(screen.getByText('conteúdo da página')).toBeInTheDocument()
   })
+
+  it('item "Ver site" aparece mesmo sem nenhuma permissão, aponta para "/" e abre em nova aba', () => {
+    useAuthStore.setState(makeEmployee([]))
+    renderEmployeeShell()
+    const link = screen.getByRole('link', { name: /ver site/i })
+    expect(link).toHaveAttribute('href', '/')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link.getAttribute('rel')).toContain('noopener')
+  })
 })
 
 describe('EmployeeShell — Hamburger e Drawer (mobile)', () => {

@@ -61,6 +61,16 @@ describe('AdminShell — Sidebar (desktop)', () => {
     expect(screen.getByRole('link', { name: /funcionários/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /pagamentos/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /auditoria/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /ver site/i })).toBeInTheDocument()
+  })
+
+  it('item "Ver site" aponta para "/" e abre em nova aba', () => {
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell()
+    const link = screen.getByRole('link', { name: /ver site/i })
+    expect(link).toHaveAttribute('href', '/')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link.getAttribute('rel')).toContain('noopener')
   })
 
   it('item correspondente ao pathname atual recebe aria-current="page"', () => {

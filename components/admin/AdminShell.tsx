@@ -16,6 +16,7 @@ const navItems = [
   { label: 'Pagamentos', href: '/dashboard/admin/payments' },
   { label: 'Auditoria', href: '/dashboard/admin/audit-logs' },
   { label: 'Site', href: '/dashboard/admin/site' },
+  { label: 'Ver site', href: '/', external: true },
 ]
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -50,6 +51,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 href={item.href}
                 aria-current={pathname === item.href ? 'page' : undefined}
                 className="block px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors aria-[current=page]:bg-primary aria-[current=page]:text-primary-foreground"
+                {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
               >
                 {item.label}
               </Link>
@@ -97,6 +99,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                         aria-current={pathname === item.href ? 'page' : undefined}
                         className="block px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors aria-[current=page]:bg-primary aria-[current=page]:text-primary-foreground"
                         onClick={closeDrawer}
+                        {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                       >
                         {item.label}
                       </Link>

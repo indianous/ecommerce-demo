@@ -17,6 +17,7 @@ const ALL_NAV_ITEMS = [
   { label: 'Pagamentos', href: '/dashboard/payments', perms: ['MANAGE_PAYMENTS'] as EmployeePermission[] },
   { label: 'Funcionários', href: '/dashboard/employees', perms: ['MANAGE_EMPLOYEES'] as EmployeePermission[] },
   { label: 'Site', href: '/dashboard/site', perms: ['MANAGE_SITE'] as EmployeePermission[] },
+  { label: 'Ver site', href: '/', perms: [] as EmployeePermission[], external: true },
 ]
 
 export function EmployeeShell({ children }: { children: React.ReactNode }) {
@@ -27,7 +28,7 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
   const navItems = useMemo(() => {
     const permissions = user?.permissions ?? []
     return ALL_NAV_ITEMS.filter((item) =>
-      item.perms.some((p) => permissions.includes(p))
+      item.perms.length === 0 || item.perms.some((p) => permissions.includes(p))
     )
   }, [user?.permissions])
 
@@ -59,6 +60,7 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
                 href={item.href}
                 aria-current={pathname === item.href ? 'page' : undefined}
                 className="block px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors aria-[current=page]:bg-primary aria-[current=page]:text-primary-foreground"
+                {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
               >
                 {item.label}
               </Link>
@@ -106,6 +108,7 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
                         aria-current={pathname === item.href ? 'page' : undefined}
                         className="block px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors aria-[current=page]:bg-primary aria-[current=page]:text-primary-foreground"
                         onClick={closeDrawer}
+                        {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                       >
                         {item.label}
                       </Link>
