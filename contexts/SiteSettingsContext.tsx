@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
+import type { FooterColumn, NavItem as NavbarNavItem } from 'base-ds'
+import type { SiteNavItem } from '@/types'
 
 interface SiteSettingsContextValue {
   placeholderImageUrl: string | null
@@ -9,6 +11,8 @@ interface SiteSettingsContextValue {
   instagramUrl: string | null
   tiktokUrl: string | null
   facebookUrl: string | null
+  navbarItems: NavbarNavItem[]
+  footerColumns: FooterColumn[]
 }
 
 export const SiteSettingsContext = createContext<SiteSettingsContextValue>({
@@ -17,7 +21,36 @@ export const SiteSettingsContext = createContext<SiteSettingsContextValue>({
   instagramUrl: null,
   tiktokUrl: null,
   facebookUrl: null,
+  navbarItems: [],
+  footerColumns: [],
 })
+
+function buildNavbarItems(tree: SiteNavItem[]): NavbarNavItem[] {
+  return tree
+    .filter((item) => item.placement === 'NAVBAR' || item.placement === 'BOTH')
+    .map((item): NavbarNavItem =>
+      item.type === 'COLLECTION'
+        ? {
+            type: 'dropdown',
+            label: item.label,
+            items: (item.children ?? []).map((child) => ({ label: child.label, href: child.url })),
+          }
+        : { type: 'link', label: item.label, href: item.url },
+    )
+}
+
+function buildFooterColumns(tree: SiteNavItem[]): FooterColumn[] {
+  return tree
+    .filter((item) => item.placement === 'FOOTER' || item.placement === 'BOTH')
+    .map((item): FooterColumn =>
+      item.type === 'COLLECTION'
+        ? {
+            title: item.label,
+            links: (item.children ?? []).map((child) => ({ label: child.label, href: child.url ?? '' })),
+          }
+        : { title: item.label, links: [{ label: item.label, href: item.url ?? '' }] },
+    )
+}
 
 export function SiteSettingsProvider({ children }: { children: ReactNode }) {
   const [placeholderImageUrl, setPlaceholderImageUrl] = useState<string | null>(null)
@@ -25,22 +58,40 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
   const [instagramUrl, setInstagramUrl] = useState<string | null>(null)
   const [tiktokUrl, setTiktokUrl] = useState<string | null>(null)
   const [facebookUrl, setFacebookUrl] = useState<string | null>(null)
+  const [navbarItems, setNavbarItems] = useState<NavbarNavItem[]>([])
+  const [footerColumns, setFooterColumns] = useState<FooterColumn[]>([])
 
   useEffect(() => {
-    fetch('/api/site/settings')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.placeholderImageUrl) setPlaceholderImageUrl(data.placeholderImageUrl)
-        if (data?.faviconUrl) setFaviconUrl(data.faviconUrl)
-        if (data?.instagramUrl) setInstagramUrl(data.instagramUrl)
-        if (data?.tiktokUrl) setTiktokUrl(data.tiktokUrl)
-        if (data?.facebookUrl) setFacebookUrl(data.facebookUrl)
+    Promise.all([
+      fetch('/api/site/settings').then((r) => (r.ok ? r.json() : null)),
+      fetch('/api/site/nav-items').then((r) => (r.ok ? r.json() : [])),
+    ])
+      .then(([settings, navItems]: [Record<string, string> | null, SiteNavItem[]]) => {
+        if (settings?.placeholderImageUrl) setPlaceholderImageUrl(settings.placeholderImageUrl)
+        if (settings?.faviconUrl) setFaviconUrl(settings.faviconUrl)
+        if (settings?.instagramUrl) setInstagramUrl(settings.instagramUrl)
+        if (settings?.tiktokUrl) setTiktokUrl(settings.tiktokUrl)
+        if (settings?.facebookUrl) setFacebookUrl(settings.facebookUrl)
+
+        const tree = Array.isArray(navItems) ? navItems : []
+        setNavbarItems(buildNavbarItems(tree))
+        setFooterColumns(buildFooterColumns(tree))
       })
       .catch(() => {})
   }, [])
 
   return (
-    <SiteSettingsContext.Provider value={{ placeholderImageUrl, faviconUrl, instagramUrl, tiktokUrl, facebookUrl }}>
+    <SiteSettingsContext.Provider
+      value={{
+        placeholderImageUrl,
+        faviconUrl,
+        instagramUrl,
+        tiktokUrl,
+        facebookUrl,
+        navbarItems,
+        footerColumns,
+      }}
+    >
       {children}
     </SiteSettingsContext.Provider>
   )

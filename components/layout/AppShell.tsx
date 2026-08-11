@@ -34,7 +34,7 @@ interface AppShellProps {
 }
 
 export function AppShell({ children }: AppShellProps) {
-  const { instagramUrl, tiktokUrl, facebookUrl } = useSiteSettings()
+  const { instagramUrl, tiktokUrl, facebookUrl, navbarItems, footerColumns } = useSiteSettings()
 
   const socialLinks: FooterSocialLink[] = [
     instagramUrl && { icon: <InstagramIcon />, href: instagramUrl, label: 'Instagram' },
@@ -50,12 +50,14 @@ export function AppShell({ children }: AppShellProps) {
             Loja
           </Link>
         }
+        items={navbarItems.length > 0 ? navbarItems : undefined}
         search={<NavbarSearch />}
         actions={[<CartDrawer key="cart" />, <UserMenu key="user" />]}
         sticky
       />
       <main className="flex-1">{children}</main>
       <Footer
+        columns={footerColumns.length > 0 ? footerColumns : undefined}
         copyright={`© ${new Date().getFullYear()} Loja`}
         socialLinks={socialLinks.length > 0 ? socialLinks : undefined}
       />

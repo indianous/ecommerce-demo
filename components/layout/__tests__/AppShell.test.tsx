@@ -108,6 +108,8 @@ describe('AppShell', () => {
           instagramUrl: 'https://instagram.com/loja',
           tiktokUrl: 'https://tiktok.com/@loja',
           facebookUrl: 'https://facebook.com/loja',
+          navbarItems: [],
+          footerColumns: [],
         }}
       >
         <AppShell>
@@ -129,6 +131,8 @@ describe('AppShell', () => {
           instagramUrl: 'https://instagram.com/loja',
           tiktokUrl: null,
           facebookUrl: null,
+          navbarItems: [],
+          footerColumns: [],
         }}
       >
         <AppShell>
@@ -139,6 +143,30 @@ describe('AppShell', () => {
     expect(screen.getByRole('link', { name: /instagram/i })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /tiktok/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /facebook/i })).not.toBeInTheDocument()
+  })
+
+  it('com navbarItems/footerColumns do contexto preenchidos, Navbar recebe items e Footer recebe columns', () => {
+    render(
+      <SiteSettingsContext.Provider
+        value={{
+          placeholderImageUrl: null,
+          faviconUrl: null,
+          instagramUrl: null,
+          tiktokUrl: null,
+          facebookUrl: null,
+          navbarItems: [{ type: 'link', label: 'Catálogo', href: '/catalog' }],
+          footerColumns: [{ title: 'Institucional', links: [{ label: 'Sobre nós', href: '/about-us' }] }],
+        }}
+      >
+        <AppShell>
+          <p>conteúdo</p>
+        </AppShell>
+      </SiteSettingsContext.Provider>,
+    )
+
+    expect(screen.getAllByRole('link', { name: 'Catálogo' }).length).toBeGreaterThan(0)
+    expect(screen.getByRole('navigation', { name: 'Institucional' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Sobre nós' })).toHaveAttribute('href', '/about-us')
   })
 
   it('lets descendants trigger toasts that render through the mounted ToastViewport', async () => {
