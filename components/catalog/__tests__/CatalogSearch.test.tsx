@@ -29,4 +29,14 @@ describe('CatalogSearch', () => {
 
     expect(pushMock).toHaveBeenCalledWith('/catalog?category=eletronicos&search=mouse')
   })
+
+  it('preserves the current sort when searching', async () => {
+    const user = userEvent.setup()
+    render(<CatalogSearch defaultValue="" category={undefined} sort="PRICE_ASC" />)
+
+    await user.type(screen.getByRole('textbox', { name: /search input/i }), 'mouse')
+    await user.click(screen.getByRole('button', { name: /search/i }))
+
+    expect(pushMock).toHaveBeenCalledWith('/catalog?search=mouse&sort=PRICE_ASC')
+  })
 })

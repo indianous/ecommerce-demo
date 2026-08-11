@@ -89,4 +89,57 @@ describe('CatalogPage', () => {
       '/catalog?category=electronics',
     )
   })
+
+  it('renderiza o campo de busca (CatalogSearch)', async () => {
+    const jsx = await CatalogPage({ searchParams: Promise.resolve({}) })
+    render(jsx)
+
+    expect(screen.getByRole('textbox', { name: /search input/i })).toBeInTheDocument()
+  })
+
+  it('renderiza o seletor de ordenação (CatalogSort) com "Nome (A-Z)" selecionado por padrão', async () => {
+    const jsx = await CatalogPage({ searchParams: Promise.resolve({}) })
+    render(jsx)
+
+    expect(screen.getByRole('combobox', { name: /ordenar por/i })).toHaveValue('NAME_ASC')
+  })
+
+  it('CatalogSort reflete o sort vindo de searchParams', async () => {
+    const jsx = await CatalogPage({ searchParams: Promise.resolve({ sort: 'PRICE_DESC' }) })
+    render(jsx)
+
+    expect(screen.getByRole('combobox', { name: /ordenar por/i })).toHaveValue('PRICE_DESC')
+  })
+
+  it('envia sort na querystring pro backend quando presente em searchParams', async () => {
+    let requestedSort: string | null = null
+    server.use(
+      http.get('http://localhost:8080/api/v1/catalog/products', ({ request }) => {
+        requestedSort = new URL(request.url).searchParams.get('sort')
+        return HttpResponse.json(mockPage)
+      }),
+    )
+
+    await CatalogPage({ searchParams: Promise.resolve({ sort: 'PRICE_ASC' }) })
+
+    expect(requestedSort).toBe('PRICE_ASC')
+  })
+
+  it('links de categoria preservam search e sort atuais', async () => {
+    server.use(
+      http.get('http://localhost:8080/api/v1/catalog/categories', () =>
+        HttpResponse.json([{ id: 'cat-1', name: 'Electronics', slug: 'electronics' }]),
+      ),
+    )
+
+    const jsx = await CatalogPage({
+      searchParams: Promise.resolve({ search: 'teclado', sort: 'NEWEST' }),
+    })
+    render(jsx)
+
+    expect(screen.getByRole('link', { name: 'Electronics' })).toHaveAttribute(
+      'href',
+      '/catalog?category=electronics&search=teclado&sort=NEWEST',
+    )
+  })
 })

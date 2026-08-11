@@ -23,4 +23,21 @@ describe('CatalogPagination', () => {
 
     expect(pushMock).toHaveBeenCalledWith('/catalog?category=eletronicos&search=teclado&page=2')
   })
+
+  it('preserves the current sort when paginating', async () => {
+    const user = userEvent.setup()
+    render(
+      <CatalogPagination
+        currentPage={1}
+        totalPages={3}
+        category={undefined}
+        search={undefined}
+        sort="PRICE_DESC"
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /next page/i }))
+
+    expect(pushMock).toHaveBeenCalledWith('/catalog?sort=PRICE_DESC&page=2')
+  })
 })

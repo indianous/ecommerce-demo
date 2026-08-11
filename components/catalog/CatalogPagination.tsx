@@ -2,25 +2,24 @@
 
 import { useRouter } from 'next/navigation'
 import { Pagination } from 'base-ds'
+import { buildCatalogUrl } from './catalogUrl'
+import type { ProductSort } from '@/types'
 
 interface Props {
   currentPage: number
   totalPages: number
   category: string | undefined
   search: string | undefined
+  sort?: ProductSort
 }
 
-export function CatalogPagination({ currentPage, totalPages, category, search }: Props) {
+export function CatalogPagination({ currentPage, totalPages, category, search, sort }: Props) {
   const router = useRouter()
 
   if (totalPages <= 1) return null
 
   const handlePageChange = (page: number) => {
-    const params = new URLSearchParams()
-    if (category) params.set('category', category)
-    if (search) params.set('search', search)
-    if (page > 1) params.set('page', String(page))
-    router.push(`/catalog?${params.toString()}`)
+    router.push(buildCatalogUrl({ category, search, sort, page }))
   }
 
   return <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />

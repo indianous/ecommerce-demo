@@ -118,6 +118,8 @@ export interface Category {
 
 export type ProductStatus = 'AVAILABLE' | 'UNAVAILABLE'
 
+export type ProductSort = 'NAME_ASC' | 'PRICE_ASC' | 'PRICE_DESC' | 'NEWEST'
+
 export type MerchandiseOrigin =
   | 'NACIONAL'
   | 'ESTRANGEIRA_IMPORTACAO_DIRETA'

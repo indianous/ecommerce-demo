@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { ProductCard } from '@/components/product/ProductCard'
 
 export const metadata: Metadata = {
@@ -6,14 +7,23 @@ export const metadata: Metadata = {
   description: 'Navegue por todos os nossos produtos.',
 }
 import { CatalogPagination } from '@/components/catalog/CatalogPagination'
-import type { ProductPage, Category } from '@/types'
+import { CatalogSearch } from '@/components/catalog/CatalogSearch'
+import { CatalogSort } from '@/components/catalog/CatalogSort'
+import { buildCatalogUrl } from '@/components/catalog/catalogUrl'
+import type { ProductPage, Category, ProductSort } from '@/types'
 
 const API = process.env.API_INTERNAL_URL ?? 'http://localhost:8080/api/v1'
 
-async function fetchProducts(category?: string, search?: string, page = 1): Promise<ProductPage> {
+async function fetchProducts(
+  category?: string,
+  search?: string,
+  sort?: ProductSort,
+  page = 1,
+): Promise<ProductPage> {
   const params = new URLSearchParams()
   if (category) params.set('category', category)
   if (search) params.set('search', search)
+  if (sort) params.set('sort', sort)
   params.set('page', String(page - 1))
 
   try {
@@ -36,14 +46,14 @@ async function fetchCategories(): Promise<Category[]> {
 }
 
 interface Props {
-  searchParams: Promise<{ category?: string; search?: string; page?: string }>
+  searchParams: Promise<{ category?: string; search?: string; sort?: ProductSort; page?: string }>
 }
 
 export default async function CatalogPage({ searchParams }: Props) {
-  const { category, search, page: pageParam } = await searchParams
+  const { category, search, sort, page: pageParam } = await searchParams
   const page = Math.max(1, Number(pageParam) || 1)
   const [data, categories] = await Promise.all([
-    fetchProducts(category, search, page),
+    fetchProducts(category, search, sort, page),
     fetchCategories(),
   ])
 
@@ -51,19 +61,24 @@ export default async function CatalogPage({ searchParams }: Props) {
     <main className="mx-auto max-w-7xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold">Catálogo</h1>
 
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <CatalogSearch defaultValue={search ?? ''} category={category} sort={sort} />
+        <CatalogSort value={sort ?? 'NAME_ASC'} category={category} search={search} />
+      </div>
+
       {categories.length > 0 && (
         <nav className="mb-6 flex flex-wrap gap-2">
-          <a href="/catalog" className="rounded-full border px-4 py-1 text-sm hover:bg-gray-100">
+          <Link href="/catalog" className="rounded-full border px-4 py-1 text-sm hover:bg-gray-100">
             Todos
-          </a>
+          </Link>
           {categories.map((cat) => (
-            <a
+            <Link
               key={cat.id}
-              href={`/catalog?category=${cat.slug}`}
+              href={buildCatalogUrl({ category: cat.slug, search, sort })}
               className="rounded-full border px-4 py-1 text-sm hover:bg-gray-100"
             >
               {cat.name}
-            </a>
+            </Link>
           ))}
         </nav>
       )}
@@ -84,6 +99,7 @@ export default async function CatalogPage({ searchParams }: Props) {
           totalPages={data.totalPages}
           category={category}
           search={search}
+          sort={sort}
         />
       </div>
     </main>
