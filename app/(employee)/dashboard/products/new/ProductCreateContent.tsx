@@ -28,7 +28,19 @@ export function ProductCreateContent({ backPath = '/dashboard/products' }: { bac
     setSaving(true)
     try {
       const category = categories.find((c) => c.id === form.categoryId)
-      const body = { ...form, categoryName: category?.name ?? '', active: true }
+      const body = {
+        ...form,
+        categoryName: category?.name ?? '',
+        active: true,
+        ncm: form.ncm || null,
+        cfop: form.cfop || null,
+        commercialUnit: form.commercialUnit || null,
+        gtinEan: form.gtinEan || null,
+        origin: form.origin || null,
+        promotionalPrice: form.promotionalPrice || null,
+        promotionStartDate: form.promotionStartDate || null,
+        promotionEndDate: form.promotionEndDate || null,
+      }
       const res = await fetch('/api/admin/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },

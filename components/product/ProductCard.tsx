@@ -38,10 +38,10 @@ export function ProductCard({ product }: Props) {
   const { placeholderImageUrl } = useSiteSettings();
   const inStock = product.stockQuantity > 0;
   const imageSrc = product.imageUrl ?? placeholderImageUrl ?? null;
-  const formattedPrice = new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(product.price);
+  const onPromotion = product.onPromotion ?? false;
+  const effectivePrice = product.effectivePrice ?? product.price;
+  const formatBRL = (value: number) =>
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
   return (
     <Card variant="outlined" className="flex flex-col gap-2">
@@ -58,9 +58,16 @@ export function ProductCard({ product }: Props) {
           <ImagePlaceholder name={product.name} />
         )}
 
-        <Badge variant="default" size="sm" className="w-fit">
-          {product.categoryName}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="default" size="sm" className="w-fit">
+            {product.categoryName}
+          </Badge>
+          {onPromotion && (
+            <Badge variant="danger" size="sm" className="w-fit">
+              Promoção
+            </Badge>
+          )}
+        </div>
         <Heading as="h3" size="xl">
           {product.name}
         </Heading>
@@ -77,9 +84,16 @@ export function ProductCard({ product }: Props) {
       </Link>
 
       <div className="mt-auto flex items-center justify-between gap-2">
-        <Text weight="bold" size="lg">
-          {formattedPrice}
-        </Text>
+        <div className="flex flex-col">
+          {onPromotion && (
+            <Text size="sm" color="muted" className="line-through">
+              {formatBRL(product.price)}
+            </Text>
+          )}
+          <Text weight="bold" size="lg">
+            {formatBRL(effectivePrice)}
+          </Text>
+        </div>
 
         {inStock ? (
           <Button
@@ -89,7 +103,7 @@ export function ProductCard({ product }: Props) {
               addItem({
                 productId: product.id,
                 name: product.name,
-                price: product.price,
+                price: effectivePrice,
                 imageUrl: product.imageUrl,
               })
             }

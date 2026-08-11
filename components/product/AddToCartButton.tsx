@@ -36,7 +36,7 @@ export function AddToCartButton({ product }: Props) {
         addItem({
           productId: product.id,
           name: product.name,
-          price: product.price,
+          price: product.effectivePrice ?? product.price,
           imageUrl: product.imageUrl,
         })
       }

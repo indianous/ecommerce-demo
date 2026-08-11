@@ -77,4 +77,13 @@ describe('AddToCartButton', () => {
     expect(screen.getByText(/produto indisponível/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /adicionar ao carrinho/i })).not.toBeInTheDocument()
   })
+
+  it('produto em promoção: adiciona ao carrinho usando o effectivePrice, não o price', async () => {
+    const user = userEvent.setup()
+    render(<AddToCartButton product={{ ...mockProduct, price: 499.9, effectivePrice: 399.9, onPromotion: true }} />)
+
+    await user.click(screen.getByRole('button', { name: /adicionar ao carrinho/i }))
+
+    expect(useCartStore.getState().items[0]).toMatchObject({ price: 399.9 })
+  })
 })

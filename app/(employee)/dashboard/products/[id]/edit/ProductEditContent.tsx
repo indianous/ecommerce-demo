@@ -37,6 +37,14 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
           slug: product.slug ?? '',
           metaTitle: product.metaTitle ?? '',
           metaDescription: product.metaDescription ?? '',
+          ncm: product.ncm ?? '',
+          cfop: product.cfop ?? '',
+          commercialUnit: product.commercialUnit ?? '',
+          gtinEan: product.gtinEan ?? '',
+          origin: product.origin ?? '',
+          promotionalPrice: product.promotionalPrice ?? 0,
+          promotionStartDate: product.promotionStartDate ?? '',
+          promotionEndDate: product.promotionEndDate ?? '',
         })
       }
       setLoading(false)
@@ -49,7 +57,19 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
     setSaving(true)
     try {
       const category = categories.find((c) => c.id === form.categoryId)
-      const body = { ...form, categoryName: category?.name ?? '', active: true }
+      const body = {
+        ...form,
+        categoryName: category?.name ?? '',
+        active: true,
+        ncm: form.ncm || null,
+        cfop: form.cfop || null,
+        commercialUnit: form.commercialUnit || null,
+        gtinEan: form.gtinEan || null,
+        origin: form.origin || null,
+        promotionalPrice: form.promotionalPrice || null,
+        promotionStartDate: form.promotionStartDate || null,
+        promotionEndDate: form.promotionEndDate || null,
+      }
       const res = await fetch(`/api/admin/products/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },

@@ -91,6 +91,8 @@ const server = setupServer(
     HttpResponse.json({ status: 404, message: 'Product not found' }, { status: 404 }),
   ),
   http.get('http://localhost:8080/api/v1/catalog/products/prod-1', () => HttpResponse.json(mockProduct)),
+  http.get('http://localhost:8080/api/v1/catalog/products/prod-1/related', () => HttpResponse.json([])),
+  http.post('/api/products/prod-1/views', () => new HttpResponse(null, { status: 204 })),
 )
 
 beforeAll(() => server.listen())
@@ -173,5 +175,38 @@ describe('ProductDetailPage', () => {
       'NEXT_REDIRECT:/catalog/mechanical-keyboard',
     )
     expect(redirect).toHaveBeenCalledWith('/catalog/mechanical-keyboard')
+  })
+
+  it('produto em promoção mostra preço "de/por" e badge "Promoção"', async () => {
+    server.use(
+      http.get('http://localhost:8080/api/v1/catalog/products/slug/mechanical-keyboard', () =>
+        HttpResponse.json({ ...mockProduct, effectivePrice: 399.9, onPromotion: true }),
+      ),
+    )
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    renderWithToast(jsx)
+
+    expect(screen.getByText(/promoção/i)).toBeInTheDocument()
+    expect(screen.getByText(/499,90/)).toBeInTheDocument()
+    expect(screen.getByText(/399,90/)).toBeInTheDocument()
+  })
+
+  it('renderiza "Produtos relacionados" com os itens retornados pelo backend', async () => {
+    const related: Product = { ...mockProduct, id: 'prod-2', name: 'Mouse Sem Fio', slug: 'mouse-sem-fio' }
+    server.use(
+      http.get('http://localhost:8080/api/v1/catalog/products/prod-1/related', () => HttpResponse.json([related])),
+    )
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    renderWithToast(jsx)
+
+    expect(screen.getByRole('heading', { name: /produtos relacionados/i })).toBeInTheDocument()
+    expect(screen.getByText('Mouse Sem Fio')).toBeInTheDocument()
+  })
+
+  it('lista vazia de relacionados: a seção não aparece', async () => {
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    renderWithToast(jsx)
+
+    expect(screen.queryByRole('heading', { name: /produtos relacionados/i })).not.toBeInTheDocument()
   })
 })

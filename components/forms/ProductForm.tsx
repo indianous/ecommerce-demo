@@ -1,7 +1,7 @@
 'use client'
 
-import { Button, FileUpload, FormField, Input, NumberInput, Select } from 'base-ds'
-import type { Category } from '@/types'
+import { Button, Card, FileUpload, FormField, Input, NumberInput, Select } from 'base-ds'
+import type { Category, MerchandiseOrigin } from '@/types'
 
 export type ProductFormState = {
   name: string
@@ -12,6 +12,14 @@ export type ProductFormState = {
   slug: string
   metaTitle: string
   metaDescription: string
+  ncm: string
+  cfop: string
+  commercialUnit: string
+  gtinEan: string
+  origin: MerchandiseOrigin | ''
+  promotionalPrice: number
+  promotionStartDate: string
+  promotionEndDate: string
 }
 
 export const EMPTY_PRODUCT_FORM: ProductFormState = {
@@ -23,7 +31,27 @@ export const EMPTY_PRODUCT_FORM: ProductFormState = {
   slug: '',
   metaTitle: '',
   metaDescription: '',
+  ncm: '',
+  cfop: '',
+  commercialUnit: '',
+  gtinEan: '',
+  origin: '',
+  promotionalPrice: 0,
+  promotionStartDate: '',
+  promotionEndDate: '',
 }
+
+const MERCHANDISE_ORIGIN_OPTIONS: { value: MerchandiseOrigin; label: string }[] = [
+  { value: 'NACIONAL', label: 'Nacional' },
+  { value: 'ESTRANGEIRA_IMPORTACAO_DIRETA', label: 'Estrangeira — importação direta' },
+  { value: 'ESTRANGEIRA_ADQUIRIDA_MERCADO_INTERNO', label: 'Estrangeira — adquirida no mercado interno' },
+  { value: 'NACIONAL_CONTEUDO_IMPORTACAO_SUPERIOR_40', label: 'Nacional — conteúdo de importação > 40%' },
+  { value: 'NACIONAL_PROCESSO_PRODUTIVO_BASICO', label: 'Nacional — processo produtivo básico' },
+  { value: 'NACIONAL_CONTEUDO_IMPORTACAO_INFERIOR_IGUAL_40', label: 'Nacional — conteúdo de importação ≤ 40%' },
+  { value: 'ESTRANGEIRA_IMPORTACAO_DIRETA_SEM_SIMILAR', label: 'Estrangeira — importação direta, sem similar nacional' },
+  { value: 'ESTRANGEIRA_ADQUIRIDA_MERCADO_INTERNO_SEM_SIMILAR', label: 'Estrangeira — adquirida no mercado interno, sem similar nacional' },
+  { value: 'NACIONAL_CONTEUDO_IMPORTACAO_SUPERIOR_70', label: 'Nacional — conteúdo de importação > 70%' },
+]
 
 type ProductFormProps = {
   form: ProductFormState
@@ -43,6 +71,20 @@ export function ProductForm({
   onSubmit,
   accessToken,
 }: ProductFormProps) {
+  const ncmError =
+    form.ncm && !/^\d{8}$/.test(form.ncm) ? 'NCM deve ter 8 dígitos numéricos' : undefined
+
+  const promotionDatesError =
+    (form.promotionStartDate || form.promotionEndDate) &&
+    (!form.promotionStartDate || !form.promotionEndDate)
+      ? 'Início e fim da promoção são obrigatórios juntos'
+      : undefined
+
+  const promotionPriceError =
+    form.promotionalPrice > 0 && form.promotionalPrice >= form.price
+      ? 'Preço promocional precisa ser menor que o preço normal'
+      : undefined
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <FormField label="Nome" id="product-name">
@@ -130,6 +172,99 @@ export function ProductForm({
           onChange={(e) => onFormChange({ metaDescription: e.target.value })}
         />
       </FormField>
+
+      <Card variant="outlined" header="Dados fiscais">
+        <div className="flex flex-col gap-4">
+          <FormField
+            label="NCM"
+            id="product-ncm"
+            hint="8 dígitos — obrigatório para emitir nota fiscal"
+            error={ncmError}
+          >
+            <Input
+              id="product-ncm"
+              value={form.ncm}
+              maxLength={8}
+              onChange={(e) => onFormChange({ ncm: e.target.value })}
+            />
+          </FormField>
+
+          <FormField label="CFOP" id="product-cfop">
+            <Input
+              id="product-cfop"
+              value={form.cfop}
+              maxLength={4}
+              onChange={(e) => onFormChange({ cfop: e.target.value })}
+            />
+          </FormField>
+
+          <FormField label="Unidade comercial" id="product-commercial-unit" hint='Ex.: "UN", "CX", "KG"'>
+            <Input
+              id="product-commercial-unit"
+              value={form.commercialUnit}
+              maxLength={6}
+              onChange={(e) => onFormChange({ commercialUnit: e.target.value })}
+            />
+          </FormField>
+
+          <FormField label="GTIN/EAN" id="product-gtin-ean" hint='Deixe "SEM GTIN" se o produto não tiver código de barras'>
+            <Input
+              id="product-gtin-ean"
+              value={form.gtinEan}
+              maxLength={14}
+              onChange={(e) => onFormChange({ gtinEan: e.target.value })}
+            />
+          </FormField>
+
+          <FormField label="Origem da mercadoria" id="product-origin">
+            <Select
+              id="product-origin"
+              value={form.origin}
+              onChange={(e) => onFormChange({ origin: e.target.value as MerchandiseOrigin })}
+              placeholder="Selecione a origem"
+              options={MERCHANDISE_ORIGIN_OPTIONS}
+            />
+          </FormField>
+        </div>
+      </Card>
+
+      <Card variant="outlined" header="Promoção">
+        <div className="flex flex-col gap-4">
+          <FormField
+            label="Preço promocional"
+            id="product-promotional-price"
+            error={promotionPriceError}
+          >
+            <NumberInput
+              id="product-promotional-price"
+              value={form.promotionalPrice}
+              min={0}
+              step={0.01}
+              onChange={(value) => onFormChange({ promotionalPrice: value })}
+            />
+          </FormField>
+
+          <FormField label="Início da promoção" id="product-promotion-start" error={promotionDatesError}>
+            <input
+              id="product-promotion-start"
+              type="datetime-local"
+              value={form.promotionStartDate}
+              onChange={(e) => onFormChange({ promotionStartDate: e.target.value })}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </FormField>
+
+          <FormField label="Fim da promoção" id="product-promotion-end">
+            <input
+              id="product-promotion-end"
+              type="datetime-local"
+              value={form.promotionEndDate}
+              onChange={(e) => onFormChange({ promotionEndDate: e.target.value })}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </FormField>
+        </div>
+      </Card>
 
       <Button type="submit" isLoading={saving} className="self-start">
         Salvar

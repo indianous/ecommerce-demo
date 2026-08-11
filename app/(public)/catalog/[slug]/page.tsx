@@ -2,8 +2,10 @@ import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import { Badge, Breadcrumb, Heading, Image, Text } from 'base-ds'
 import { AddToCartButton } from '@/components/product/AddToCartButton'
+import { ProductCarousel } from '@/components/product/ProductCarousel'
 import { ProductRatingSummary } from '@/components/product/ProductRatingSummary'
 import { ProductReviewsSection } from '@/components/product/ProductReviewsSection'
+import { ProductViewTracker } from '@/components/product/ProductViewTracker'
 import type { Product, ProductReviewPage } from '@/types'
 
 const API = process.env.API_INTERNAL_URL ?? 'http://localhost:8080/api/v1'
@@ -49,6 +51,16 @@ async function fetchReviews(id: string): Promise<ProductReviewPage> {
   }
 }
 
+async function fetchRelatedProducts(id: string): Promise<Product[]> {
+  try {
+    const res = await fetch(`${API}/catalog/products/${id}/related?limit=6`, { next: { revalidate: 60 } })
+    if (!res.ok) return []
+    return res.json()
+  } catch {
+    return []
+  }
+}
+
 interface Props {
   params: Promise<{ slug: string }>
 }
@@ -71,11 +83,12 @@ export default async function ProductDetailPage({ params }: Props) {
   if (!bySlug) redirect(`/catalog/${product.slug}`)
 
   const reviews = await fetchReviews(product.id)
+  const relatedProducts = await fetchRelatedProducts(product.id)
 
-  const formattedPrice = new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(product.price)
+  const onPromotion = product.onPromotion ?? false
+  const effectivePrice = product.effectivePrice ?? product.price
+  const formatBRL = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 flex flex-col gap-10">
@@ -106,9 +119,16 @@ export default async function ProductDetailPage({ params }: Props) {
         )}
 
         <div className="flex flex-col gap-4">
-          <Badge variant="default" size="sm" className="w-fit">
-            {product.categoryName}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="default" size="sm" className="w-fit">
+              {product.categoryName}
+            </Badge>
+            {onPromotion && (
+              <Badge variant="danger" size="sm" className="w-fit">
+                Promoção
+              </Badge>
+            )}
+          </div>
           <Heading as="h1" size="2xl">
             {product.name}
           </Heading>
@@ -121,15 +141,26 @@ export default async function ProductDetailPage({ params }: Props) {
           {product.description && <Text>{product.description}</Text>}
 
           <div className="flex items-center gap-4">
-            <Text weight="bold" size="lg">
-              {formattedPrice}
-            </Text>
+            <div className="flex flex-col">
+              {onPromotion && (
+                <Text size="sm" color="muted" className="line-through">
+                  {formatBRL(product.price)}
+                </Text>
+              )}
+              <Text weight="bold" size="lg">
+                {formatBRL(effectivePrice)}
+              </Text>
+            </div>
             <AddToCartButton product={product} />
           </div>
         </div>
       </div>
 
       <ProductReviewsSection productId={product.id} reviews={reviews} />
+
+      <ProductCarousel title="Produtos relacionados" products={relatedProducts} />
+
+      <ProductViewTracker productId={product.id} />
     </main>
   )
 }

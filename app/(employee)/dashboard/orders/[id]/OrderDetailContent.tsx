@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Badge, Button, Heading, Select, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
-import type { AdminOrderDetailResponse, OrderStatus, PaymentStatus } from '@/types'
+import type { AdminOrderDetailResponse, Invoice, InvoiceStatus, OrderStatus, PaymentStatus } from '@/types'
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   PENDING: 'Pendente',
@@ -47,6 +47,20 @@ const PAYMENT_STATUS_BADGE_VARIANT: Record<PaymentStatus, 'default' | 'success' 
   REFUNDED: 'secondary',
 }
 
+const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
+  PROCESSING: 'Processando',
+  ISSUED: 'Emitida',
+  ERROR: 'Erro',
+  CANCELLED: 'Cancelada',
+}
+
+const INVOICE_STATUS_BADGE_VARIANT: Record<InvoiceStatus, 'default' | 'success' | 'warning' | 'danger'> = {
+  PROCESSING: 'warning',
+  ISSUED: 'success',
+  ERROR: 'danger',
+  CANCELLED: 'default',
+}
+
 const NEXT_STATES: Record<OrderStatus, OrderStatus[]> = {
   PENDING: ['CONFIRMED', 'CANCELLED'],
   CONFIRMED: ['SHIPPED', 'CANCELLED'],
@@ -66,7 +80,7 @@ const formatDate = (iso: string) =>
   new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(iso))
 
 export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id: string; backPath?: string }) {
-  const { accessToken } = useAuthStore()
+  const { accessToken, user } = useAuthStore()
   const { toast } = useToast()
   const [order, setOrder] = useState<AdminOrderDetailResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -76,6 +90,9 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
   const [retroStatus, setRetroStatus] = useState<OrderStatus | ''>('')
   const [retroJustification, setRetroJustification] = useState('')
   const [saving, setSaving] = useState(false)
+  const [issuingInvoice, setIssuingInvoice] = useState(false)
+
+  const canManageInvoice = user?.role === 'ADMIN' || !!user?.permissions?.includes('MANAGE_PAYMENTS')
 
   const fetchOrder = useCallback(async () => {
     if (!accessToken) return
@@ -135,6 +152,28 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
       toast({ variant: 'destructive', description: 'Erro ao enviar solicitação.' })
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleIssueInvoice = async () => {
+    if (!accessToken) return
+    setIssuingInvoice(true)
+    try {
+      const res = await fetch(`/api/admin/orders/${id}/invoice`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast({ variant: 'destructive', description: data.message ?? 'Erro ao emitir a nota fiscal.' })
+        return
+      }
+      setOrder((o) => (o ? { ...o, invoice: data as Invoice } : o))
+      toast({ variant: 'success', description: 'Nota fiscal emitida com sucesso.' })
+    } catch {
+      toast({ variant: 'destructive', description: 'Erro ao emitir a nota fiscal.' })
+    } finally {
+      setIssuingInvoice(false)
     }
   }
 
@@ -225,6 +264,74 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
             ))}
           </ul>
         </div>
+
+        {canManageInvoice && (
+          <div className="mb-6">
+            <h2 className="text-sm font-semibold mb-2">Nota fiscal</h2>
+            {!order.invoice && (
+              <div className="flex flex-col gap-2">
+                <Button
+                  size="sm"
+                  disabled={order.paymentStatus !== 'PAID'}
+                  isLoading={issuingInvoice}
+                  onClick={handleIssueInvoice}
+                >
+                  Emitir NF-e
+                </Button>
+                {order.paymentStatus !== 'PAID' && (
+                  <p className="text-sm text-muted-foreground">
+                    A nota fiscal só pode ser emitida após o pagamento ser aprovado.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {order.invoice && (
+              <div className="flex flex-col gap-2">
+                <Badge variant={INVOICE_STATUS_BADGE_VARIANT[order.invoice.status]}>
+                  {INVOICE_STATUS_LABELS[order.invoice.status]}
+                </Badge>
+
+                {order.invoice.status === 'ISSUED' && order.invoice.danfeUrl && (
+                  <>
+                    <Button
+                      as="a"
+                      href={order.invoice.danfeUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      size="sm"
+                      variant="outline"
+                    >
+                      Ver nota
+                    </Button>
+                    {order.invoice.accessKey && (
+                      <p className="text-sm text-muted-foreground">
+                        Chave de acesso: {order.invoice.accessKey}
+                      </p>
+                    )}
+                  </>
+                )}
+
+                {order.invoice.status === 'PROCESSING' && (
+                  <Button size="sm" variant="outline" onClick={fetchOrder}>
+                    Atualizar status
+                  </Button>
+                )}
+
+                {order.invoice.status === 'ERROR' && (
+                  <>
+                    {order.invoice.errorMessage && (
+                      <p className="text-sm text-muted-foreground">{order.invoice.errorMessage}</p>
+                    )}
+                    <Button size="sm" isLoading={issuingInvoice} onClick={handleIssueInvoice}>
+                      Tentar novamente
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {nextStates.length > 0 && !transitionTarget && !showRetroForm && (
           <div className="mb-4 flex flex-wrap gap-2">

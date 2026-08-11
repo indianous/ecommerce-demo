@@ -13,14 +13,15 @@ import { MarkdownContentForm } from "@/components/forms/MarkdownContentForm";
 import { ContactForm } from "@/components/forms/ContactForm";
 import { SocialLinksForm } from "@/components/forms/SocialLinksForm";
 import { PaymentGatewayForm } from "@/components/forms/PaymentGatewayForm";
-import type { Banner, PaymentGatewayConfig, PaymentGatewayProvider } from "@/types";
+import { FiscalCompanyDataForm, EMPTY_FISCAL_COMPANY_DATA } from "@/components/forms/FiscalCompanyDataForm";
+import type { Banner, FiscalCompanyData, PaymentGatewayConfig, PaymentGatewayProvider } from "@/types";
 
 type DialogId =
   | "logo" | "placeholder" | "favicon" | "metadata"
   | "banners" | "about" | "contact"
-  | "social" | "privacy" | "terms" | "refund" | "payment-gateway";
+  | "social" | "privacy" | "terms" | "refund" | "payment-gateway" | "fiscal-company-data";
 
-export function SiteContent() {
+export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: string } = {}) {
   const { accessToken } = useAuthStore();
   const { toast } = useToast();
 
@@ -75,6 +76,9 @@ export function SiteContent() {
   const [paymentGatewaySaving, setPaymentGatewaySaving] = useState(false);
   const [paymentGatewayError, setPaymentGatewayError] = useState<string | null>(null);
 
+  const [fiscalCompanyData, setFiscalCompanyData] = useState<FiscalCompanyData>(EMPTY_FISCAL_COMPANY_DATA);
+  const [fiscalCompanyDataSaving, setFiscalCompanyDataSaving] = useState(false);
+
   useEffect(() => {
     Promise.all([
       fetch("/api/site/settings").then((r) => (r.ok ? r.json() : null)),
@@ -97,6 +101,19 @@ export function SiteContent() {
           setPrivacyContent(settings.privacyPolicyContent ?? "");
           setTermsContent(settings.termsContent ?? "");
           setRefundContent(settings.refundPolicyContent ?? "");
+          setFiscalCompanyData({
+            cnpj: settings.fiscalCompanyCnpj ?? "",
+            legalName: settings.fiscalCompanyLegalName ?? "",
+            tradeName: settings.fiscalCompanyTradeName ?? "",
+            stateRegistration: settings.fiscalCompanyStateRegistration ?? "",
+            taxRegime: settings.fiscalCompanyTaxRegime ?? "SIMPLES_NACIONAL",
+            street: settings.fiscalCompanyStreet ?? "",
+            number: settings.fiscalCompanyNumber ?? "",
+            neighborhood: settings.fiscalCompanyNeighborhood ?? "",
+            city: settings.fiscalCompanyCity ?? "",
+            state: settings.fiscalCompanyState ?? "",
+            zipCode: settings.fiscalCompanyZipCode ?? "",
+          });
         }
         if (Array.isArray(bannersData)) setBanners(bannersData);
         setLoading(false);
@@ -349,6 +366,23 @@ export function SiteContent() {
     }
   };
 
+  const handleFiscalCompanyDataSave = async () => {
+    if (!accessToken) return;
+    setFiscalCompanyDataSaving(true);
+    try {
+      const res = await fetch("/api/site/settings/fiscal-company-data", {
+        method: "PUT",
+        headers: { ...authHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify(fiscalCompanyData),
+      });
+      if (!res.ok) throw new Error();
+      close();
+      toast({ variant: "success", description: "Dados fiscais da empresa atualizados com sucesso." });
+    } catch {
+      toast({ variant: "destructive", description: "Erro ao salvar dados fiscais da empresa." });
+    } finally { setFiscalCompanyDataSaving(false); }
+  };
+
   const configured = (v: string | null | undefined) =>
     v ? "Configurado" : "Não configurado";
 
@@ -536,6 +570,31 @@ export function SiteContent() {
               </Card>
             </section>
 
+            <section aria-labelledby="fiscal-company-data-heading">
+              <Card variant="outlined" className="h-full">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <Heading as="h2" id="fiscal-company-data-heading" size="base">Dados fiscais da empresa</Heading>
+                    <Button type="button" size="sm" onClick={() => setOpenDialog("fiscal-company-data")}>Editar</Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">CNPJ, razão social, IE, regime tributário e endereço fiscal usados na emissão de NF-e.</p>
+                  <span className="text-xs text-muted-foreground">{configured(fiscalCompanyData.cnpj)}</span>
+                </div>
+              </Card>
+            </section>
+
+            <section aria-labelledby="navigation-heading">
+              <Card variant="outlined" className="h-full">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <Heading as="h2" id="navigation-heading" size="base">Navegação do site</Heading>
+                    <Button as="a" href={`${basePath}/navigation`} size="sm">Gerenciar navegação</Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Links e coleções exibidos na navbar e no footer do site.</p>
+                </div>
+              </Card>
+            </section>
+
           </div>
         )}
 
@@ -625,6 +684,15 @@ export function SiteContent() {
               error={paymentGatewayError}
             />
           )}
+        </Dialog>
+
+        <Dialog open={openDialog === "fiscal-company-data"} onClose={close} title="Dados fiscais da empresa" className="max-w-2xl">
+          <FiscalCompanyDataForm
+            data={fiscalCompanyData}
+            onChange={(patch) => setFiscalCompanyData((d) => ({ ...d, ...patch }))}
+            onSave={handleFiscalCompanyDataSave}
+            saving={fiscalCompanyDataSaving}
+          />
         </Dialog>
 
       </main>

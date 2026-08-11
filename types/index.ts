@@ -12,6 +12,8 @@ export type EmployeePermission =
   | 'MANAGE_ORDER_STATUS_REQUESTS'
   | 'MANAGE_SITE'
 
+export type TaxRegime = 'SIMPLES_NACIONAL' | 'LUCRO_PRESUMIDO' | 'LUCRO_REAL'
+
 export interface SiteSettings {
   placeholderImageUrl: string | null
   faviconUrl: string | null
@@ -28,6 +30,31 @@ export interface SiteSettings {
   privacyPolicyContent: string | null
   termsContent: string | null
   refundPolicyContent: string | null
+  fiscalCompanyCnpj: string | null
+  fiscalCompanyLegalName: string | null
+  fiscalCompanyTradeName: string | null
+  fiscalCompanyStateRegistration: string | null
+  fiscalCompanyTaxRegime: TaxRegime | null
+  fiscalCompanyStreet: string | null
+  fiscalCompanyNumber: string | null
+  fiscalCompanyNeighborhood: string | null
+  fiscalCompanyCity: string | null
+  fiscalCompanyState: string | null
+  fiscalCompanyZipCode: string | null
+}
+
+export interface FiscalCompanyData {
+  cnpj: string
+  legalName: string
+  tradeName?: string
+  stateRegistration?: string
+  taxRegime: TaxRegime
+  street: string
+  number: string
+  neighborhood: string
+  city: string
+  state: string
+  zipCode: string
 }
 
 export type PaymentGatewayProvider = 'MOCK' | 'STRIPE' | 'PAGSEGURO'
@@ -47,6 +74,19 @@ export interface Banner {
   imageUrl: string
   linkUrl: string | null
   position: number
+}
+
+export type SiteNavItemType = 'LINK' | 'COLLECTION'
+export type NavPlacement = 'NAVBAR' | 'FOOTER' | 'BOTH'
+
+export interface SiteNavItem {
+  id: string
+  type: SiteNavItemType
+  label: string
+  url?: string
+  placement: NavPlacement | null
+  position: number
+  children?: SiteNavItem[]
 }
 
 export interface User {
@@ -78,6 +118,17 @@ export interface Category {
 
 export type ProductStatus = 'AVAILABLE' | 'UNAVAILABLE'
 
+export type MerchandiseOrigin =
+  | 'NACIONAL'
+  | 'ESTRANGEIRA_IMPORTACAO_DIRETA'
+  | 'ESTRANGEIRA_ADQUIRIDA_MERCADO_INTERNO'
+  | 'NACIONAL_CONTEUDO_IMPORTACAO_SUPERIOR_40'
+  | 'NACIONAL_PROCESSO_PRODUTIVO_BASICO'
+  | 'NACIONAL_CONTEUDO_IMPORTACAO_INFERIOR_IGUAL_40'
+  | 'ESTRANGEIRA_IMPORTACAO_DIRETA_SEM_SIMILAR'
+  | 'ESTRANGEIRA_ADQUIRIDA_MERCADO_INTERNO_SEM_SIMILAR'
+  | 'NACIONAL_CONTEUDO_IMPORTACAO_SUPERIOR_70'
+
 export interface Product {
   id: string
   categoryId: string
@@ -90,6 +141,18 @@ export interface Product {
   price: number
   stockQuantity: number
   imageUrl?: string
+  ncm?: string
+  cfop?: string
+  commercialUnit?: string
+  gtinEan?: string
+  origin?: MerchandiseOrigin
+  promotionalPrice?: number
+  promotionStartDate?: string
+  promotionEndDate?: string
+  effectivePrice?: number
+  onPromotion?: boolean
+  viewCount?: number
+  soldQuantityLast30Days?: number
   active: boolean
   status: ProductStatus
   createdAt: string
@@ -233,10 +296,23 @@ export interface OrderStatusHistoryResponse {
   createdAt: string
 }
 
+export type InvoiceStatus = 'PROCESSING' | 'ISSUED' | 'ERROR' | 'CANCELLED'
+
+export interface Invoice {
+  id: string
+  orderId: string
+  status: InvoiceStatus
+  accessKey?: string
+  danfeUrl?: string
+  errorMessage?: string
+  issuedAt?: string
+}
+
 export interface AdminOrderDetailResponse extends AdminOrderResponse {
   items: OrderItemResponse[]
   address: Address
   statusHistory: OrderStatusHistoryResponse[]
+  invoice?: Invoice
 }
 
 export type OrderChangeRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED'

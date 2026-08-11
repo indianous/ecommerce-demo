@@ -151,6 +151,17 @@ describe('ProductsManagementPage — listagem', () => {
     expect(screen.queryByRole('button', { name: /^estoque$/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^excluídos$/i })).not.toBeInTheDocument()
   })
+
+  it('exibe as colunas "Visualizações" e "Vendidos (30d)" com os valores de cada produto', async () => {
+    products = [{ ...mockProduct, viewCount: 42, soldQuantityLast30Days: 7 }]
+    renderPage()
+    await screen.findByText('Teclado Mecânico')
+
+    expect(screen.getByRole('columnheader', { name: /visualizações/i })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: /vendidos \(30d\)/i })).toBeInTheDocument()
+    expect(screen.getByText('42')).toBeInTheDocument()
+    expect(screen.getByText('7')).toBeInTheDocument()
+  })
 })
 
 describe('ProductsManagementPage — navegação', () => {

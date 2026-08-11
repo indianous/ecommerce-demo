@@ -121,6 +121,8 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
     { key: 'categoryName', header: 'Categoria', render: (p) => p.categoryName },
     { key: 'price', header: 'Preço', render: (p) => formatBRL(p.price) },
     { key: 'stockQuantity', header: 'Estoque', render: (p) => p.stockQuantity },
+    { key: 'viewCount', header: 'Visualizações', render: (p) => p.viewCount ?? 0 },
+    { key: 'soldQuantityLast30Days', header: 'Vendidos (30d)', render: (p) => p.soldQuantityLast30Days ?? 0 },
     {
       key: 'status',
       header: 'Disponibilidade',

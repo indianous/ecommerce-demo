@@ -101,6 +101,39 @@ describe('ProductCard', () => {
   })
 })
 
+describe('ProductCard — promoção', () => {
+  const promoProduct: Product = {
+    ...mockProduct,
+    price: 499.9,
+    effectivePrice: 399.9,
+    onPromotion: true,
+  }
+
+  it('produto em promoção mostra preço original riscado, preço promocional em destaque e badge "Promoção"', () => {
+    render(<ProductCard product={promoProduct} />)
+
+    expect(screen.getByText(/promoção/i)).toBeInTheDocument()
+    expect(screen.getByText(/499,90/)).toBeInTheDocument()
+    expect(screen.getByText(/399,90/)).toBeInTheDocument()
+  })
+
+  it('produto sem promoção mostra só o preço normal, sem badge', () => {
+    render(<ProductCard product={mockProduct} />)
+
+    expect(screen.queryByText(/promoção/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/499,90/)).toBeInTheDocument()
+  })
+
+  it('adicionar ao carrinho um produto em promoção usa o effectivePrice', async () => {
+    const user = userEvent.setup()
+    render(<ProductCard product={promoProduct} />)
+
+    await user.click(screen.getByRole('button', { name: /adicionar ao carrinho/i }))
+
+    expect(useCartStore.getState().items[0]).toMatchObject({ price: 399.9 })
+  })
+})
+
 describe('ProductCard — imagem placeholder', () => {
   const productSemImagem: Product = { ...mockProduct, imageUrl: undefined }
 
@@ -112,7 +145,7 @@ describe('ProductCard — imagem placeholder', () => {
 
   it('renderiza placeholder do contexto quando imageUrl é nulo', () => {
     render(
-      <SiteSettingsContext.Provider value={{ placeholderImageUrl: 'https://cdn.example.com/ph.jpg', faviconUrl: null, instagramUrl: null, tiktokUrl: null, facebookUrl: null }}>
+      <SiteSettingsContext.Provider value={{ placeholderImageUrl: 'https://cdn.example.com/ph.jpg', faviconUrl: null, instagramUrl: null, tiktokUrl: null, facebookUrl: null, navbarItems: [], footerColumns: [] }}>
         <ProductCard product={productSemImagem} />
       </SiteSettingsContext.Provider>,
     )
