@@ -72,7 +72,7 @@ export function DeletedProductsContent() {
               {products.map((p) => (
                 <tr key={p.id} className="border-b">
                   <td className="p-2">{p.name}</td>
-                  <td className="p-2">{p.categoryName}</td>
+                  <td className="p-2">{p.categories[0]?.name}</td>
                   <td className="p-2">{formatDate(p.updatedAt)}</td>
                   <td className="p-2">
                     <Button

@@ -16,8 +16,7 @@ import type { Product, StockLot } from '@/types'
 
 const mockProduct: Product = {
   id: 'prod-1',
-  categoryId: 'cat-1',
-  categoryName: 'Eletrônicos',
+  categories: [{ id: 'cat-1', name: 'Eletrônicos', slug: 'eletronicos' }],
   name: 'Teclado Mecânico',
   slug: 'teclado-mecanico',
   price: 499.9,

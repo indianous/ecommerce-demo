@@ -32,7 +32,7 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
           name: product.name,
           description: product.description ?? '',
           price: product.price,
-          categoryId: product.categoryId,
+          categoryIds: product.categories.map((c) => c.id),
           imageUrl: product.imageUrl ?? '',
           slug: product.slug ?? '',
           metaTitle: product.metaTitle ?? '',
@@ -56,10 +56,8 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
     if (!accessToken || !form) return
     setSaving(true)
     try {
-      const category = categories.find((c) => c.id === form.categoryId)
       const body = {
         ...form,
-        categoryName: category?.name ?? '',
         active: true,
         ncm: form.ncm || null,
         cfop: form.cfop || null,

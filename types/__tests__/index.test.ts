@@ -1,4 +1,6 @@
-import type { User, Product, CartItem } from '../index'
+import type { User, Product, CartItem, Category } from '../index'
+
+const category: Category = { id: 'cat-1', name: 'Electronics', slug: 'electronics' }
 
 describe('Domain types', () => {
   it('User type has correct shape', () => {
@@ -14,8 +16,7 @@ describe('Domain types', () => {
   it('Product type has correct shape', () => {
     const product: Product = {
       id: '1',
-      categoryId: 'cat-1',
-      categoryName: 'Electronics',
+      categories: [category],
       name: 'Mechanical Keyboard',
       slug: 'mechanical-keyboard',
       price: 499.90,
@@ -29,8 +30,7 @@ describe('Domain types', () => {
   it('CartItem links product and quantity', () => {
     const product: Product = {
       id: '1',
-      categoryId: 'cat-2',
-      categoryName: 'Electronics',
+      categories: [category],
       name: 'Wireless Mouse',
       slug: 'wireless-mouse',
       price: 199,

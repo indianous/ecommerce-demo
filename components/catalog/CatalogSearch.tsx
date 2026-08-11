@@ -5,15 +5,15 @@ import { SearchField } from 'base-ds'
 
 interface Props {
   defaultValue: string
-  categoryId: string | undefined
+  category: string | undefined
 }
 
-export function CatalogSearch({ defaultValue, categoryId }: Props) {
+export function CatalogSearch({ defaultValue, category }: Props) {
   const router = useRouter()
 
   const handleSearch = (value: string) => {
     const params = new URLSearchParams()
-    if (categoryId) params.set('categoryId', categoryId)
+    if (category) params.set('category', category)
     if (value) params.set('search', value)
     const query = params.toString()
     router.push(`/catalog${query ? `?${query}` : ''}`)

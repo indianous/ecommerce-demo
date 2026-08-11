@@ -5,6 +5,10 @@ import { ProductForm, EMPTY_PRODUCT_FORM, type ProductFormState } from '../Produ
 import type { Category } from '@/types'
 
 const categories: Category[] = [{ id: 'cat-1', name: 'Eletrônicos', slug: 'eletronicos' }]
+const twoCategories: Category[] = [
+  { id: 'cat-1', name: 'Eletrônicos', slug: 'eletronicos' },
+  { id: 'cat-2', name: 'Casa', slug: 'casa' },
+]
 
 function renderForm(overrides: Partial<React.ComponentProps<typeof ProductForm>> = {}) {
   const props: React.ComponentProps<typeof ProductForm> = {
@@ -19,6 +23,88 @@ function renderForm(overrides: Partial<React.ComponentProps<typeof ProductForm>>
   }
   return { ...render(<ProductForm {...props} />), props }
 }
+
+describe('ProductForm — categorias', () => {
+  it('renderiza um checkbox por categoria disponível', () => {
+    renderForm({ categories: twoCategories })
+
+    expect(screen.getByRole('checkbox', { name: 'Eletrônicos' })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Casa' })).toBeInTheDocument()
+  })
+
+  it('marcar uma categoria reflete em categoryIds via onFormChange', async () => {
+    const onFormChange = vi.fn()
+    const user = userEvent.setup()
+    renderForm({ categories: twoCategories, onFormChange })
+
+    await user.click(screen.getByRole('checkbox', { name: 'Eletrônicos' }))
+
+    expect(onFormChange).toHaveBeenCalledWith({ categoryIds: ['cat-1'] })
+  })
+
+  it('marcar uma segunda categoria adiciona à lista existente', async () => {
+    const onFormChange = vi.fn()
+    const user = userEvent.setup()
+    const form: ProductFormState = { ...EMPTY_PRODUCT_FORM, categoryIds: ['cat-1'] }
+    renderForm({ categories: twoCategories, onFormChange, form })
+
+    await user.click(screen.getByRole('checkbox', { name: 'Casa' }))
+
+    expect(onFormChange).toHaveBeenCalledWith({ categoryIds: ['cat-1', 'cat-2'] })
+  })
+
+  it('desmarcar uma categoria remove ela de categoryIds', async () => {
+    const onFormChange = vi.fn()
+    const user = userEvent.setup()
+    const form: ProductFormState = { ...EMPTY_PRODUCT_FORM, categoryIds: ['cat-1', 'cat-2'] }
+    renderForm({ categories: twoCategories, onFormChange, form })
+
+    await user.click(screen.getByRole('checkbox', { name: 'Eletrônicos' }))
+
+    expect(onFormChange).toHaveBeenCalledWith({ categoryIds: ['cat-2'] })
+  })
+
+  it('com 2+ categorias marcadas, mostra select de categoria principal com as marcadas como opções', () => {
+    const form: ProductFormState = { ...EMPTY_PRODUCT_FORM, categoryIds: ['cat-1', 'cat-2'] }
+    renderForm({ categories: twoCategories, form })
+
+    const select = screen.getByLabelText(/categoria principal/i)
+    expect(select).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Eletrônicos' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Casa' })).toBeInTheDocument()
+  })
+
+  it('escolher a categoria principal reordena categoryIds', async () => {
+    const onFormChange = vi.fn()
+    const user = userEvent.setup()
+    const form: ProductFormState = { ...EMPTY_PRODUCT_FORM, categoryIds: ['cat-1', 'cat-2'] }
+    renderForm({ categories: twoCategories, onFormChange, form })
+
+    await user.selectOptions(screen.getByLabelText(/categoria principal/i), 'cat-2')
+
+    expect(onFormChange).toHaveBeenCalledWith({ categoryIds: ['cat-2', 'cat-1'] })
+  })
+
+  it('com 1 categoria marcada, não mostra select de categoria principal', () => {
+    const form: ProductFormState = { ...EMPTY_PRODUCT_FORM, categoryIds: ['cat-1'] }
+    renderForm({ categories: twoCategories, form })
+
+    expect(screen.queryByLabelText(/categoria principal/i)).not.toBeInTheDocument()
+  })
+
+  it('sem nenhuma categoria marcada, botão Salvar fica desabilitado', () => {
+    renderForm({ categories: twoCategories })
+
+    expect(screen.getByRole('button', { name: /salvar/i })).toBeDisabled()
+  })
+
+  it('com ao menos uma categoria marcada, botão Salvar fica habilitado', () => {
+    const form: ProductFormState = { ...EMPTY_PRODUCT_FORM, categoryIds: ['cat-1'] }
+    renderForm({ categories: twoCategories, form })
+
+    expect(screen.getByRole('button', { name: /salvar/i })).not.toBeDisabled()
+  })
+})
 
 describe('ProductForm — dados fiscais', () => {
   it('renderiza os campos fiscais: NCM, CFOP, unidade comercial, GTIN/EAN e origem', () => {

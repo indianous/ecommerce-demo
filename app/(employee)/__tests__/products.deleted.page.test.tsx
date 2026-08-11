@@ -16,8 +16,7 @@ import type { Product } from '@/types'
 
 const mockDeletedProduct: Product = {
   id: 'prod-deleted',
-  categoryId: 'cat-1',
-  categoryName: 'Eletrônicos',
+  categories: [{ id: 'cat-1', name: 'Eletrônicos', slug: 'eletronicos' }],
   name: 'Headset Antigo',
   slug: 'headset-antigo',
   price: 299.9,

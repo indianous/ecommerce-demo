@@ -19,8 +19,7 @@ const mockCategory2: Category = { id: 'cat-2', name: 'Livros', slug: 'livros' }
 
 const mockProduct: Product = {
   id: 'prod-1',
-  categoryId: 'cat-1',
-  categoryName: 'Eletrônicos',
+  categories: [mockCategory],
   name: 'Teclado Mecânico',
   slug: 'teclado-mecanico',
   price: 499.9,
@@ -41,8 +40,7 @@ const mockUnavailableProduct: Product = {
 const mockBookProduct: Product = {
   ...mockProduct,
   id: 'prod-2',
-  categoryId: 'cat-2',
-  categoryName: 'Livros',
+  categories: [mockCategory2],
   name: 'Livro de Receitas',
 }
 
@@ -71,7 +69,7 @@ const server = setupServer(
     const status = url.searchParams.get('status')
     const search = url.searchParams.get('search')
     let filtered = products
-    if (categoryId) filtered = filtered.filter((p) => p.categoryId === categoryId)
+    if (categoryId) filtered = filtered.filter((p) => p.categories.some((c) => c.id === categoryId))
     if (status) filtered = filtered.filter((p) => p.status === status)
     if (search) filtered = filtered.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
     return HttpResponse.json(makePage(filtered))
@@ -150,6 +148,14 @@ describe('ProductsManagementPage — listagem', () => {
     await screen.findByText('Teclado Mecânico')
     expect(screen.queryByRole('button', { name: /^estoque$/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^excluídos$/i })).not.toBeInTheDocument()
+  })
+
+  it('coluna "Categoria" mostra a categoria principal (primeira da lista) do produto', async () => {
+    products = [{ ...mockProduct, categories: [mockCategory2, mockCategory] }]
+    renderPage()
+    await screen.findByText('Teclado Mecânico')
+
+    expect(screen.getByText('Livros')).toBeInTheDocument()
   })
 
   it('exibe as colunas "Visualizações" e "Vendidos (30d)" com os valores de cada produto', async () => {

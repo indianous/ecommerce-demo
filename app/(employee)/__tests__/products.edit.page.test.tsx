@@ -19,8 +19,7 @@ const mockCategory: Category = { id: 'cat-1', name: 'Eletrônicos', slug: 'eletr
 
 const mockProduct: Product = {
   id: 'prod-1',
-  categoryId: 'cat-1',
-  categoryName: 'Eletrônicos',
+  categories: [mockCategory],
   name: 'Teclado Mecânico',
   slug: 'teclado-mecanico',
   price: 499.9,

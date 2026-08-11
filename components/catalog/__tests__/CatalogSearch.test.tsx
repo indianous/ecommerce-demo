@@ -12,7 +12,7 @@ vi.mock('next/navigation', () => ({
 describe('CatalogSearch', () => {
   it('navigates with the search term, resetting the page', async () => {
     const user = userEvent.setup()
-    render(<CatalogSearch defaultValue="" categoryId={undefined} />)
+    render(<CatalogSearch defaultValue="" category={undefined} />)
 
     await user.type(screen.getByRole('textbox', { name: /search input/i }), 'teclado')
     await user.click(screen.getByRole('button', { name: /search/i }))
@@ -22,11 +22,11 @@ describe('CatalogSearch', () => {
 
   it('preserves the current category filter when searching', async () => {
     const user = userEvent.setup()
-    render(<CatalogSearch defaultValue="" categoryId="cat-1" />)
+    render(<CatalogSearch defaultValue="" category="eletronicos" />)
 
     await user.type(screen.getByRole('textbox', { name: /search input/i }), 'mouse')
     await user.click(screen.getByRole('button', { name: /search/i }))
 
-    expect(pushMock).toHaveBeenCalledWith('/catalog?categoryId=cat-1&search=mouse')
+    expect(pushMock).toHaveBeenCalledWith('/catalog?category=eletronicos&search=mouse')
   })
 })

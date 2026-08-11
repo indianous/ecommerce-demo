@@ -8,8 +8,7 @@ import type { Product } from '@/types'
 function makeProduct(overrides: Partial<Product> = {}): Product {
   return {
     id: 'prod-1',
-    categoryId: 'cat-1',
-    categoryName: 'Electronics',
+    categories: [{ id: 'cat-1', name: 'Electronics', slug: 'electronics' }],
     name: 'Teclado Mecânico',
     slug: 'teclado-mecanico',
     price: 199.9,

@@ -10,9 +10,9 @@ import type { ProductPage, Category } from '@/types'
 
 const API = process.env.API_INTERNAL_URL ?? 'http://localhost:8080/api/v1'
 
-async function fetchProducts(categoryId?: string, search?: string, page = 1): Promise<ProductPage> {
+async function fetchProducts(category?: string, search?: string, page = 1): Promise<ProductPage> {
   const params = new URLSearchParams()
-  if (categoryId) params.set('categoryId', categoryId)
+  if (category) params.set('category', category)
   if (search) params.set('search', search)
   params.set('page', String(page - 1))
 
@@ -36,14 +36,14 @@ async function fetchCategories(): Promise<Category[]> {
 }
 
 interface Props {
-  searchParams: Promise<{ categoryId?: string; search?: string; page?: string }>
+  searchParams: Promise<{ category?: string; search?: string; page?: string }>
 }
 
 export default async function CatalogPage({ searchParams }: Props) {
-  const { categoryId, search, page: pageParam } = await searchParams
+  const { category, search, page: pageParam } = await searchParams
   const page = Math.max(1, Number(pageParam) || 1)
   const [data, categories] = await Promise.all([
-    fetchProducts(categoryId, search, page),
+    fetchProducts(category, search, page),
     fetchCategories(),
   ])
 
@@ -59,7 +59,7 @@ export default async function CatalogPage({ searchParams }: Props) {
           {categories.map((cat) => (
             <a
               key={cat.id}
-              href={`/catalog?categoryId=${cat.id}`}
+              href={`/catalog?category=${cat.slug}`}
               className="rounded-full border px-4 py-1 text-sm hover:bg-gray-100"
             >
               {cat.name}
@@ -82,7 +82,7 @@ export default async function CatalogPage({ searchParams }: Props) {
         <CatalogPagination
           currentPage={page}
           totalPages={data.totalPages}
-          categoryId={categoryId}
+          category={category}
           search={search}
         />
       </div>

@@ -13,8 +13,7 @@ afterEach(async () => {
 
 const mockProduct: Product = {
   id: 'prod-1',
-  categoryId: 'cat-1',
-  categoryName: 'Electronics',
+  categories: [{ id: 'cat-1', name: 'Electronics', slug: 'electronics' }],
   name: 'Mechanical Keyboard',
   slug: 'mechanical-keyboard',
   price: 499.9,

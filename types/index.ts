@@ -131,8 +131,7 @@ export type MerchandiseOrigin =
 
 export interface Product {
   id: string
-  categoryId: string
-  categoryName: string
+  categories: Category[]
   name: string
   slug: string
   metaTitle?: string

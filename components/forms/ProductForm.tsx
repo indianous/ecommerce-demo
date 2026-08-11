@@ -1,13 +1,13 @@
 'use client'
 
-import { Button, Card, FileUpload, FormField, Input, NumberInput, Select } from 'base-ds'
+import { Button, Card, Checkbox, FileUpload, FormField, Input, NumberInput, Select } from 'base-ds'
 import type { Category, MerchandiseOrigin } from '@/types'
 
 export type ProductFormState = {
   name: string
   description: string
   price: number
-  categoryId: string
+  categoryIds: string[]
   imageUrl: string
   slug: string
   metaTitle: string
@@ -26,7 +26,7 @@ export const EMPTY_PRODUCT_FORM: ProductFormState = {
   name: '',
   description: '',
   price: 0,
-  categoryId: '',
+  categoryIds: [],
   imageUrl: '',
   slug: '',
   metaTitle: '',
@@ -71,6 +71,17 @@ export function ProductForm({
   onSubmit,
   accessToken,
 }: ProductFormProps) {
+  const toggleCategory = (id: string) => {
+    const next = form.categoryIds.includes(id)
+      ? form.categoryIds.filter((c) => c !== id)
+      : [...form.categoryIds, id]
+    onFormChange({ categoryIds: next })
+  }
+
+  const setPrimaryCategory = (id: string) => {
+    onFormChange({ categoryIds: [id, ...form.categoryIds.filter((c) => c !== id)] })
+  }
+
   const ncmError =
     form.ncm && !/^\d{8}$/.test(form.ncm) ? 'NCM deve ter 8 dígitos numéricos' : undefined
 
@@ -104,16 +115,33 @@ export function ProductForm({
         />
       </FormField>
 
-      <FormField label="Categoria" id="product-category">
-        <Select
-          id="product-category"
-          value={form.categoryId}
-          onChange={(e) => onFormChange({ categoryId: e.target.value })}
-          placeholder="Selecione uma categoria"
-          options={categories.map((c) => ({ value: c.id, label: c.name }))}
-          required
-        />
+      <FormField label="Categorias" id="product-categories">
+        <div className="flex flex-col gap-2">
+          {categories.map((c) => (
+            <Checkbox
+              key={c.id}
+              id={`product-category-${c.id}`}
+              label={c.name}
+              checked={form.categoryIds.includes(c.id)}
+              onChange={() => toggleCategory(c.id)}
+            />
+          ))}
+        </div>
       </FormField>
+
+      {form.categoryIds.length > 1 && (
+        <FormField label="Categoria principal" id="product-primary-category">
+          <Select
+            id="product-primary-category"
+            value={form.categoryIds[0]}
+            onChange={(e) => setPrimaryCategory(e.target.value)}
+            options={form.categoryIds.map((id) => ({
+              value: id,
+              label: categories.find((c) => c.id === id)?.name ?? id,
+            }))}
+          />
+        </FormField>
+      )}
 
       <FormField label="Preço" id="product-price">
         <NumberInput
@@ -266,7 +294,7 @@ export function ProductForm({
         </div>
       </Card>
 
-      <Button type="submit" isLoading={saving} className="self-start">
+      <Button type="submit" isLoading={saving} disabled={form.categoryIds.length === 0} className="self-start">
         Salvar
       </Button>
     </form>

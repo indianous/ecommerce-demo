@@ -95,7 +95,7 @@ export default async function ProductDetailPage({ params }: Props) {
       <Breadcrumb
         items={[
           { label: 'Catálogo', href: '/catalog' },
-          { label: product.categoryName, href: `/catalog?categoryId=${product.categoryId}` },
+          { label: product.categories[0]?.name, href: `/catalog?category=${product.categories[0]?.slug}` },
           { label: product.name },
         ]}
         className="-mb-4"
@@ -120,9 +120,11 @@ export default async function ProductDetailPage({ params }: Props) {
 
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2">
-            <Badge variant="default" size="sm" className="w-fit">
-              {product.categoryName}
-            </Badge>
+            {product.categories.map((c) => (
+              <Badge key={c.id} variant="default" size="sm" className="w-fit">
+                {c.name}
+              </Badge>
+            ))}
             {onPromotion && (
               <Badge variant="danger" size="sm" className="w-fit">
                 Promoção

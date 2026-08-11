@@ -31,7 +31,7 @@ let lastMovementsUrl = ''
 
 const server = setupServer(
   http.get('/api/admin/products/:id', () =>
-    HttpResponse.json({ id: 'prod-1', name: 'Teclado Mecânico', categoryName: 'Eletrônicos' }),
+    HttpResponse.json({ id: 'prod-1', name: 'Teclado Mecânico', categories: [{ id: 'cat-1', name: 'Eletrônicos', slug: 'eletronicos' }] }),
   ),
   http.get('/api/admin/products/:id/stock-movements', ({ request }) => {
     lastMovementsUrl = request.url

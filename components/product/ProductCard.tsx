@@ -60,7 +60,7 @@ export function ProductCard({ product }: Props) {
 
         <div className="flex items-center gap-2">
           <Badge variant="default" size="sm" className="w-fit">
-            {product.categoryName}
+            {product.categories[0]?.name}
           </Badge>
           {onPromotion && (
             <Badge variant="danger" size="sm" className="w-fit">

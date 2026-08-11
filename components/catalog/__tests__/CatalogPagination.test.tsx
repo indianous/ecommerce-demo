@@ -11,16 +11,16 @@ vi.mock('next/navigation', () => ({
 
 describe('CatalogPagination', () => {
   it('does not render when there is only one page', () => {
-    render(<CatalogPagination currentPage={1} totalPages={1} categoryId={undefined} search={undefined} />)
+    render(<CatalogPagination currentPage={1} totalPages={1} category={undefined} search={undefined} />)
     expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument()
   })
 
   it('navigates to the next page preserving filters', async () => {
     const user = userEvent.setup()
-    render(<CatalogPagination currentPage={1} totalPages={3} categoryId="cat-1" search="teclado" />)
+    render(<CatalogPagination currentPage={1} totalPages={3} category="eletronicos" search="teclado" />)
 
     await user.click(screen.getByRole('button', { name: /next page/i }))
 
-    expect(pushMock).toHaveBeenCalledWith('/catalog?categoryId=cat-1&search=teclado&page=2')
+    expect(pushMock).toHaveBeenCalledWith('/catalog?category=eletronicos&search=teclado&page=2')
   })
 })

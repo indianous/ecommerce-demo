@@ -118,7 +118,7 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
 
   const columns: TableColumn<Product>[] = [
     { key: 'name', header: 'Nome', render: (p) => p.name },
-    { key: 'categoryName', header: 'Categoria', render: (p) => p.categoryName },
+    { key: 'categoryName', header: 'Categoria', render: (p) => p.categories[0]?.name ?? '—' },
     { key: 'price', header: 'Preço', render: (p) => formatBRL(p.price) },
     { key: 'stockQuantity', header: 'Estoque', render: (p) => p.stockQuantity },
     { key: 'viewCount', header: 'Visualizações', render: (p) => p.viewCount ?? 0 },

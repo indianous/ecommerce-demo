@@ -170,7 +170,7 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
             {products.map((p) => (
               <tr key={p.id} className="border-b">
                 <td className="p-2">{p.name}</td>
-                <td className="p-2">{p.categoryName}</td>
+                <td className="p-2">{p.categories[0]?.name}</td>
                 <td className="p-2">{p.stockQuantity}</td>
                 <td className="p-2">
                   <div className="flex items-center gap-3">

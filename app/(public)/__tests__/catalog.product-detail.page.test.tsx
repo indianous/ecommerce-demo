@@ -29,8 +29,7 @@ vi.mock('next/navigation', () => ({
 
 const mockProduct: Product = {
   id: 'prod-1',
-  categoryId: 'cat-1',
-  categoryName: 'Electronics',
+  categories: [{ id: 'cat-1', name: 'Electronics', slug: 'electronics' }],
   name: 'Mechanical Keyboard',
   slug: 'mechanical-keyboard',
   description: 'Um teclado mecânico excelente',
@@ -122,9 +121,28 @@ describe('ProductDetailPage', () => {
     expect(within(breadcrumb).getByRole('link', { name: 'Catálogo' })).toHaveAttribute('href', '/catalog')
     expect(within(breadcrumb).getByRole('link', { name: 'Electronics' })).toHaveAttribute(
       'href',
-      '/catalog?categoryId=cat-1',
+      '/catalog?category=electronics',
     )
     expect(within(breadcrumb).getByText('Mechanical Keyboard')).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('produto com múltiplas categorias mostra todas como badges', async () => {
+    server.use(
+      http.get('http://localhost:8080/api/v1/catalog/products/slug/mechanical-keyboard', () =>
+        HttpResponse.json({
+          ...mockProduct,
+          categories: [
+            { id: 'cat-1', name: 'Electronics', slug: 'electronics' },
+            { id: 'cat-2', name: 'Promoções', slug: 'promocoes' },
+          ],
+        }),
+      ),
+    )
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    renderWithToast(jsx)
+
+    expect(screen.getAllByText('Electronics').length).toBeGreaterThan(0)
+    expect(screen.getByText('Promoções')).toBeInTheDocument()
   })
 
   it('mostra "Seja o primeiro a avaliar" quando o produto não tem avaliações', async () => {

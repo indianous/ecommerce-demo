@@ -27,10 +27,8 @@ export function ProductCreateContent({ backPath = '/dashboard/products' }: { bac
     if (!accessToken) return
     setSaving(true)
     try {
-      const category = categories.find((c) => c.id === form.categoryId)
       const body = {
         ...form,
-        categoryName: category?.name ?? '',
         active: true,
         ncm: form.ncm || null,
         cfop: form.cfop || null,
