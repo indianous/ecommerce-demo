@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Button, Dialog, Heading, Image, Text, useToast } from 'base-ds'
+import { Dialog, Heading, Image, Text, useToast } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import { useAuthStore } from '@/stores/auth.store'
 import { ReviewForm } from '@/components/forms/ReviewForm'
 import { ProductReviewCard } from '@/components/product/ProductReviewCard'
@@ -150,17 +151,20 @@ export default function ReviewsPage() {
                   <Text weight="bold">{item.productName}</Text>
                   <ProductReviewCard review={item.review} />
                   <div className="flex gap-3">
-                    <Button variant="secondary" size="sm" onClick={() => openEdit(item)}>
-                      Editar
-                    </Button>
-                    <Button
+                    <IconButton
+                      icon="Pencil"
+                      label="Editar"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => openEdit(item)}
+                    />
+                    <IconButton
+                      icon="Trash2"
+                      label={`Excluir avaliação de ${item.productName}`}
                       variant="danger"
                       size="sm"
-                      aria-label={`Excluir avaliação de ${item.productName}`}
                       onClick={() => setDeleteTarget(item)}
-                    >
-                      Excluir
-                    </Button>
+                    />
                   </div>
                 </div>
               ) : (
@@ -177,9 +181,13 @@ export default function ReviewsPage() {
                     )}
                     <Text weight="bold">{item.productName}</Text>
                   </div>
-                  <Button size="sm" onClick={() => openCreate(item)}>
-                    Avaliar
-                  </Button>
+                  <IconButton
+                    icon="Star"
+                    label="Avaliar"
+                    variant="primary"
+                    size="sm"
+                    onClick={() => openCreate(item)}
+                  />
                 </div>
               )}
             </div>
@@ -218,12 +226,20 @@ export default function ReviewsPage() {
         description="Essa ação não pode ser desfeita."
         footer={
           <div className="flex gap-3">
-            <Button variant="danger" onClick={handleConfirmDelete} disabled={deleting}>
-              Excluir
-            </Button>
-            <Button variant="secondary" onClick={() => setDeleteTarget(null)} disabled={deleting}>
-              Cancelar
-            </Button>
+            <IconButton
+              icon="Trash2"
+              label="Excluir"
+              variant="danger"
+              onClick={handleConfirmDelete}
+              isLoading={deleting}
+            />
+            <IconButton
+              icon="X"
+              label="Cancelar"
+              variant="secondary"
+              onClick={() => setDeleteTarget(null)}
+              disabled={deleting}
+            />
           </div>
         }
       />

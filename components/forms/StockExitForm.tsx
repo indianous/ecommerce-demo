@@ -1,4 +1,5 @@
-import { Button, FormField, Select, Text } from 'base-ds'
+import { FormField, Select, Text } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import type { StockLot, StockMovementReason } from '@/types'
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
   onNote: (v: string) => void
   onSave: () => void
   saving: boolean
+  saveLabel?: string
 }
 
 const EXIT_REASON_OPTIONS: { value: StockMovementReason; label: string }[] = [
@@ -31,6 +33,7 @@ function lotLabel(lot: StockLot): string {
 export function StockExitForm({
   lots, reason, lotId, quantity, note,
   onReason, onLotId, onQuantity, onNote, onSave, saving,
+  saveLabel = 'Salvar',
 }: Props) {
   const selectedLot = lots.find((l) => l.id === lotId) ?? null
   const exceedsLotBalance = selectedLot != null && quantity > selectedLot.quantity
@@ -91,9 +94,7 @@ export function StockExitForm({
       </FormField>
 
       <div>
-        <Button type="submit" disabled={!canSave || saving}>
-          {saving ? 'Salvando...' : 'Salvar'}
-        </Button>
+        <IconButton type="submit" icon="Save" label={saveLabel} variant="primary" disabled={!canSave} isLoading={saving} />
       </div>
     </form>
   )

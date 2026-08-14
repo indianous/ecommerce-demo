@@ -176,7 +176,7 @@ describe('Solicitações Page', () => {
     expect(await screen.findByText('Aprovada')).toBeInTheDocument()
   })
 
-  it('clicar Negar chama PATCH /reject e atualiza badge para REJECTED', async () => {
+  it('clicar Negar abre dialog de confirmação, sem chamar PATCH /reject direto', async () => {
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('#100')
@@ -186,7 +186,41 @@ describe('Solicitações Page', () => {
 
     await user.click(screen.getByRole('button', { name: /negar/i }))
 
+    expect(await screen.findByRole('heading', { name: /negar solicitação/i })).toBeInTheDocument()
+    expect(screen.queryByText('Rejeitada')).not.toBeInTheDocument()
+  })
+
+  it('confirmar no dialog de Negar chama PATCH /reject e atualiza badge para REJECTED', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('#100')
+
+    await user.click(screen.getByRole('button', { name: /ver detalhe/i }))
+    await screen.findByText('Precisa de retrocesso')
+
+    await user.click(screen.getByRole('button', { name: /negar/i }))
+    await screen.findByRole('heading', { name: /negar solicitação/i })
+    await user.click(screen.getByRole('button', { name: /confirmar/i }))
+
     expect(await screen.findByText('Rejeitada')).toBeInTheDocument()
+  })
+
+  it('cancelar no dialog de Negar fecha sem chamar PATCH /reject', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('#100')
+
+    await user.click(screen.getByRole('button', { name: /ver detalhe/i }))
+    await screen.findByText('Precisa de retrocesso')
+
+    await user.click(screen.getByRole('button', { name: /negar/i }))
+    await screen.findByRole('heading', { name: /negar solicitação/i })
+    await user.click(screen.getByRole('button', { name: /cancelar/i }))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: /negar solicitação/i })).not.toBeInTheDocument()
+    })
+    expect(screen.queryByText('Rejeitada')).not.toBeInTheDocument()
   })
 
   it('detalhe APPROVED: sem botões Aceitar/Negar, badge mostra Aprovada', async () => {

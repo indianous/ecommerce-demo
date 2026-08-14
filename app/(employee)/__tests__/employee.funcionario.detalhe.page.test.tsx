@@ -118,7 +118,7 @@ describe('EmployeeFuncionarioDetailContent', () => {
     await screen.findByText('Carlos Dias')
 
     await user.click(screen.getByRole('option', { name: /gerenciamento de produtos/i }))
-    await user.click(screen.getByRole('button', { name: '→' }))
+    await user.click(screen.getByRole('button', { name: /mover selecionado para a direita/i }))
     await user.click(screen.getByRole('button', { name: /salvar permissões/i }))
 
     expect(await screen.findByRole('status')).toHaveTextContent(/permissões salvas/i)

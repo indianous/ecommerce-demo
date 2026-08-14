@@ -1,7 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Badge, Button, Heading, Input, Skeleton, useToast } from 'base-ds'
+import { Badge, Button, Dialog, Heading, Input, Skeleton, useToast } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import type { OrderChangeRequest, OrderChangeRequestStatus, OrderStatus } from '@/types'
@@ -37,6 +38,7 @@ export function SolicitacoesContent() {
   const [statusFilter, setStatusFilter] = useState<OrderChangeRequestStatus | ''>('')
   const [selected, setSelected] = useState<OrderChangeRequest | null>(null)
   const [actioning, setActioning] = useState(false)
+  const [denyDialogOpen, setDenyDialogOpen] = useState(false)
 
   const fetchRequests = useCallback(async () => {
     if (!accessToken) return
@@ -99,6 +101,7 @@ export function SolicitacoesContent() {
       toast({ variant: 'destructive', description: 'Erro ao negar solicitação.' })
     } finally {
       setActioning(false)
+      setDenyDialogOpen(false)
     }
   }
 
@@ -106,9 +109,13 @@ export function SolicitacoesContent() {
     return (
       <main className="mx-auto max-w-3xl px-4 py-8">
         <div className="mb-4">
-          <Button variant="outline" size="sm" onClick={() => setSelected(null)}>
-            ← Voltar à lista
-          </Button>
+          <IconButton
+            icon="ArrowLeft"
+            label="Voltar à lista"
+            variant="outline"
+            size="sm"
+            onClick={() => setSelected(null)}
+          />
         </div>
 
         <Heading as="h1" size="2xl" className="mb-6">
@@ -164,12 +171,20 @@ export function SolicitacoesContent() {
 
           {selected.status === 'PENDING' ? (
             <div className="flex gap-3 pt-2">
-              <Button onClick={handleApprove} disabled={actioning}>
-                Aceitar
-              </Button>
-              <Button variant="danger" onClick={handleReject} disabled={actioning}>
-                Negar
-              </Button>
+              <IconButton
+                icon="Check"
+                label="Aceitar"
+                variant="primary"
+                onClick={handleApprove}
+                isLoading={actioning}
+              />
+              <IconButton
+                icon="Ban"
+                label="Negar"
+                variant="danger"
+                onClick={() => setDenyDialogOpen(true)}
+                disabled={actioning}
+              />
             </div>
           ) : (
             <p className="text-sm text-muted-foreground italic">
@@ -177,6 +192,31 @@ export function SolicitacoesContent() {
             </p>
           )}
         </div>
+
+        <Dialog
+          open={denyDialogOpen}
+          onClose={() => setDenyDialogOpen(false)}
+          title="Negar solicitação"
+          description="Essa ação não pode ser desfeita."
+          footer={
+            <div className="flex gap-3">
+              <IconButton
+                icon="Ban"
+                label="Confirmar"
+                variant="danger"
+                onClick={handleReject}
+                isLoading={actioning}
+              />
+              <IconButton
+                icon="X"
+                label="Cancelar"
+                variant="secondary"
+                onClick={() => setDenyDialogOpen(false)}
+                disabled={actioning}
+              />
+            </div>
+          }
+        />
       </main>
     )
   }
@@ -260,13 +300,13 @@ export function SolicitacoesContent() {
                     </Badge>
                   </td>
                   <td className="p-2">
-                    <Button
+                    <IconButton
+                      icon="Eye"
+                      label="Ver detalhe"
                       variant="outline"
                       size="sm"
                       onClick={() => setSelected(req)}
-                    >
-                      Ver detalhe
-                    </Button>
+                    />
                   </td>
                 </tr>
               ))}

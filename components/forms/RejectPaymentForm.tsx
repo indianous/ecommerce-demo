@@ -1,6 +1,7 @@
 'use client'
 
-import { Button, FormField } from 'base-ds'
+import { FormField } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 
 interface Props {
   reason: string
@@ -33,12 +34,15 @@ export function RejectPaymentForm({ reason, onReasonChange, onSubmit, onCancel, 
       </FormField>
 
       <div className="flex gap-3">
-        <Button type="submit" variant="danger" disabled={!isValid || submitting}>
-          Confirmar rejeição
-        </Button>
-        <Button type="button" variant="secondary" onClick={onCancel} disabled={submitting}>
-          Cancelar
-        </Button>
+        <IconButton
+          type="submit"
+          icon="Ban"
+          label="Confirmar rejeição"
+          variant="danger"
+          disabled={!isValid}
+          isLoading={submitting}
+        />
+        <IconButton type="button" icon="X" label="Cancelar" variant="secondary" onClick={onCancel} disabled={submitting} />
       </div>
     </form>
   )

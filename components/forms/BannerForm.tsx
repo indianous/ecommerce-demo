@@ -1,4 +1,5 @@
-import { Button, FileUpload, FormField, Input } from 'base-ds'
+import { FileUpload, FormField, Input } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 
 interface Props {
   file: File | null
@@ -7,9 +8,10 @@ interface Props {
   onLinkUrl: (v: string) => void
   onSave: () => void
   saving: boolean
+  saveLabel?: string
 }
 
-export function BannerForm({ file, linkUrl, onFileChange, onLinkUrl, onSave, saving }: Props) {
+export function BannerForm({ file, linkUrl, onFileChange, onLinkUrl, onSave, saving, saveLabel = 'Salvar' }: Props) {
   return (
     <form
       onSubmit={(e) => {
@@ -42,9 +44,7 @@ export function BannerForm({ file, linkUrl, onFileChange, onLinkUrl, onSave, sav
       </FormField>
 
       <div>
-        <Button type="submit" disabled={!file || saving}>
-          {saving ? 'Salvando...' : 'Salvar'}
-        </Button>
+        <IconButton type="submit" icon="Save" label={saveLabel} variant="primary" disabled={!file} isLoading={saving} />
       </div>
     </form>
   )

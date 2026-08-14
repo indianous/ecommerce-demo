@@ -1,6 +1,7 @@
 'use client'
 
-import { Button, FormField, Input } from 'base-ds'
+import { FormField, Input } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 
 type Props = {
   name: string
@@ -20,9 +21,14 @@ export function ProfileDataForm({ name, email, onNameChange, onEmailChange, onSu
       <FormField label="Email" id="profile-email">
         <Input id="profile-email" type="email" value={email} onChange={(e) => onEmailChange(e.target.value)} />
       </FormField>
-      <Button type="submit" isLoading={saving} className="self-start">
-        Salvar
-      </Button>
+      <IconButton
+        type="submit"
+        icon="Save"
+        label="Salvar"
+        variant="primary"
+        isLoading={saving}
+        className="self-start"
+      />
     </form>
   )
 }

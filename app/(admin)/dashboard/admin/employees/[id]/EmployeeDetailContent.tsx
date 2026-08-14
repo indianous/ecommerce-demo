@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Avatar, Badge, Button, Heading, Skeleton, useToast } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import { useAuthStore } from '@/stores/auth.store'
 import { DuelingPicklist } from '@/components/ui/DuelingPicklist'
 import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions'
@@ -93,9 +94,7 @@ export function EmployeeDetailPage({ id }: { id: string }) {
           selectedLabel="Atribuídas"
         />
         <div className="flex gap-2 mt-4">
-          <Button onClick={handleSave} disabled={saving}>
-            Salvar permissões
-          </Button>
+          <IconButton icon="Save" label="Salvar permissões" variant="primary" onClick={handleSave} isLoading={saving} />
           <Button variant="secondary" disabled>
             Redefinir senha
           </Button>

@@ -1,6 +1,7 @@
 'use client'
 
-import { Badge, Button } from 'base-ds'
+import { Badge } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import { useCartStore } from '@/stores/cart.store'
 import type { Product } from '@/types'
 
@@ -30,8 +31,10 @@ export function AddToCartButton({ product }: Props) {
   }
 
   return (
-    <Button
-      type="button"
+    <IconButton
+      icon="ShoppingCart"
+      label="Adicionar ao carrinho"
+      variant="primary"
       onClick={() =>
         addItem({
           productId: product.id,
@@ -40,8 +43,6 @@ export function AddToCartButton({ product }: Props) {
           imageUrl: product.imageUrl,
         })
       }
-    >
-      Adicionar ao carrinho
-    </Button>
+    />
   )
 }

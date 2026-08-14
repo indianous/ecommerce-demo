@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Button, Heading, Text } from "base-ds";
+import { Heading, Text } from "base-ds";
+import { IconButton } from "@/components/ui/IconButton";
 import { ProductCarousel } from "@/components/product/ProductCarousel";
 import type { Product } from "@/types";
 
@@ -35,9 +36,7 @@ export default async function Home() {
         <Text size="lg" color="muted" className="max-w-xl">
           Explore nosso catálogo e encontre os melhores produtos com entrega rápida.
         </Text>
-        <Button as="a" href="/catalog">
-          Ver catálogo
-        </Button>
+        <IconButton as="a" href="/catalog" icon="ArrowRight" label="Ver catálogo" variant="primary" />
       </div>
 
       <div className="mx-auto w-full max-w-5xl flex flex-col gap-12">

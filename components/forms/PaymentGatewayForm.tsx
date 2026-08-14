@@ -1,4 +1,5 @@
-import { Badge, Button, FormField, Radio, Text } from 'base-ds'
+import { Badge, FormField, Radio, Text } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import type { PaymentGatewayConfig, PaymentGatewayProvider } from '@/types'
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
   onSave: () => void
   saving: boolean
   error?: string | null
+  saveLabel?: string
 }
 
 const LABELS: Record<PaymentGatewayProvider, string> = {
@@ -16,7 +18,7 @@ const LABELS: Record<PaymentGatewayProvider, string> = {
   PAGSEGURO: 'PagSeguro/PagBank',
 }
 
-export function PaymentGatewayForm({ config, value, onChange, onSave, saving, error }: Props) {
+export function PaymentGatewayForm({ config, value, onChange, onSave, saving, error, saveLabel = 'Salvar' }: Props) {
   return (
     <form
       onSubmit={(e) => {
@@ -60,9 +62,7 @@ export function PaymentGatewayForm({ config, value, onChange, onSave, saving, er
       )}
 
       <div>
-        <Button type="submit" disabled={saving}>
-          {saving ? 'Salvando...' : 'Salvar'}
-        </Button>
+        <IconButton type="submit" icon="Save" label={saveLabel} variant="primary" isLoading={saving} />
       </div>
     </form>
   )

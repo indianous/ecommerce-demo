@@ -1,6 +1,7 @@
 'use client'
 
-import { Button, Card, Checkbox, FileUpload, FormField, Input, NumberInput, Select } from 'base-ds'
+import { Card, Checkbox, FileUpload, FormField, Input, NumberInput, Select } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import type { Category, MerchandiseOrigin } from '@/types'
 
 export type ProductFormState = {
@@ -61,6 +62,7 @@ type ProductFormProps = {
   saving: boolean
   onSubmit: (e: React.FormEvent) => void
   accessToken: string | null
+  saveLabel?: string
 }
 
 export function ProductForm({
@@ -70,6 +72,7 @@ export function ProductForm({
   saving,
   onSubmit,
   accessToken,
+  saveLabel = 'Salvar',
 }: ProductFormProps) {
   const toggleCategory = (id: string) => {
     const next = form.categoryIds.includes(id)
@@ -294,9 +297,15 @@ export function ProductForm({
         </div>
       </Card>
 
-      <Button type="submit" isLoading={saving} disabled={form.categoryIds.length === 0} className="self-start">
-        Salvar
-      </Button>
+      <IconButton
+        type="submit"
+        icon="Save"
+        label={saveLabel}
+        variant="primary"
+        isLoading={saving}
+        disabled={form.categoryIds.length === 0}
+        className="self-start"
+      />
     </form>
   )
 }

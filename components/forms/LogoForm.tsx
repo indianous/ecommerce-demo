@@ -1,13 +1,15 @@
-import { Button, FileUpload, FormField } from 'base-ds'
+import { FileUpload, FormField } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 
 interface Props {
   file: File | null
   onFileChange: (f: File | null) => void
   onSave: () => void
   saving: boolean
+  saveLabel?: string
 }
 
-export function LogoForm({ file, onFileChange, onSave, saving }: Props) {
+export function LogoForm({ file, onFileChange, onSave, saving, saveLabel = 'Salvar' }: Props) {
   return (
     <form
       onSubmit={(e) => {
@@ -30,9 +32,7 @@ export function LogoForm({ file, onFileChange, onSave, saving }: Props) {
       )}
 
       <div>
-        <Button type="submit" disabled={!file || saving}>
-          {saving ? 'Salvando...' : 'Salvar'}
-        </Button>
+        <IconButton type="submit" icon="Save" label={saveLabel} variant="primary" disabled={!file} isLoading={saving} />
       </div>
     </form>
   )

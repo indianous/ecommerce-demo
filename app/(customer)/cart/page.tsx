@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { Button, Heading, NumberInput, Table, Text, type TableColumn } from 'base-ds'
+import { Heading, NumberInput, Table, Text, type TableColumn } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import { useCartStore, selectCartTotal } from '@/stores/cart.store'
 import type { CartItem } from '@/types'
 
@@ -55,14 +56,13 @@ export default function CartPage() {
       key: 'remove',
       header: '',
       render: (item) => (
-        <Button
-          variant="ghost"
+        <IconButton
+          icon="Trash2"
+          label={`Remover ${item.name}`}
+          variant="danger"
           size="sm"
-          aria-label={`Remover ${item.name}`}
           onClick={() => removeItem(item.productId)}
-        >
-          Remover
-        </Button>
+        />
       ),
     },
   ]

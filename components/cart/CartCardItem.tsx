@@ -1,6 +1,7 @@
 'use client'
 
 import { Image, Text } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import { useCartStore } from '@/stores/cart.store'
 import type { CartItem } from '@/types'
 
@@ -16,17 +17,14 @@ export function CartCardItem({ item }: CartCardItemProps) {
 
   return (
     <div className="relative flex gap-3 rounded-lg border border-border p-3">
-      <button
-        type="button"
-        aria-label={`Remover ${item.name}`}
+      <IconButton
+        icon="Trash2"
+        label={`Remover ${item.name}`}
+        variant="danger"
+        size="sm"
         onClick={() => removeItem(item.productId)}
-        className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-destructive hover:text-white"
-      >
-        <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
-          <line x1="1" y1="1" x2="7" y2="7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <line x1="7" y1="1" x2="1" y2="7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-      </button>
+        className="absolute right-1.5 top-1.5 !h-5 !w-5"
+      />
 
       {item.imageUrl && (
         <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md">

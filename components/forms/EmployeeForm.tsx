@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, Input } from 'base-ds'
+import { Input } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import type { EmployeeFormData } from '@/types'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -9,9 +10,10 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 type Props = {
   onSave: (data: EmployeeFormData) => void
   onCancel: () => void
+  saveLabel?: string
 }
 
-export function EmployeeForm({ onSave, onCancel }: Props) {
+export function EmployeeForm({ onSave, onCancel, saveLabel = 'Salvar' }: Props) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -47,8 +49,14 @@ export function EmployeeForm({ onSave, onCancel }: Props) {
         />
       </div>
       <div className="flex gap-2 justify-end">
-        <Button variant="secondary" onClick={onCancel}>Cancelar</Button>
-        <Button onClick={() => onSave({ name, email, password })} disabled={!canSubmit}>Salvar</Button>
+        <IconButton icon="X" label="Cancelar" variant="secondary" onClick={onCancel} />
+        <IconButton
+          icon="Save"
+          label={saveLabel}
+          variant="primary"
+          onClick={() => onSave({ name, email, password })}
+          disabled={!canSubmit}
+        />
       </div>
     </div>
   )

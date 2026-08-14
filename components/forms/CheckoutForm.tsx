@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, FormField, QrCode, Radio, Select, useToast } from 'base-ds'
+import { FormField, QrCode, Radio, Select, useToast } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import { useAuthStore } from '@/stores/auth.store'
 import { useCartStore, selectCartTotal } from '@/stores/cart.store'
 import type { Address, OrderResponse, PaymentMethod } from '@/types'
@@ -77,9 +78,13 @@ export function CheckoutForm({ addresses }: Props) {
           </p>
         )}
         {order.checkoutUrl ? (
-          <Button as="a" href={order.checkoutUrl}>
-            Continuar para pagamento
-          </Button>
+          <IconButton
+            as="a"
+            href={order.checkoutUrl}
+            icon="ArrowRight"
+            label="Continuar para pagamento"
+            variant="primary"
+          />
         ) : (
           order.paymentMethod === 'PIX' && order.paymentId && <QrCode value={order.paymentId} />
         )}
@@ -123,13 +128,14 @@ export function CheckoutForm({ addresses }: Props) {
 
       <p>Total: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)}</p>
 
-      <Button
+      <IconButton
         type="submit"
-        disabled={loading || items.length === 0 || !selectedAddressId}
+        icon="Check"
+        label="Finalizar Pedido"
+        variant="primary"
+        disabled={items.length === 0 || !selectedAddressId}
         isLoading={loading}
-      >
-        {loading ? 'Processando...' : 'Finalizar Pedido'}
-      </Button>
+      />
     </form>
   )
 }
