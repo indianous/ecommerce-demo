@@ -1,4 +1,7 @@
+import type { Metadata } from 'next'
 import { ProductReviewsModerationContent } from './ProductReviewsModerationContent'
+
+export const metadata: Metadata = { title: 'Avaliações do produto' }
 
 export default async function ProductReviewsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
