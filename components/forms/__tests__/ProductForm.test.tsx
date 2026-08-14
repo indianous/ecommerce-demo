@@ -1,6 +1,9 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { useState } from 'react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { http, HttpResponse } from 'msw'
+import { setupServer } from 'msw/node'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { ProductForm, EMPTY_PRODUCT_FORM, type ProductFormState } from '../ProductForm'
 import type { Category } from '@/types'
 
@@ -22,6 +25,21 @@ function renderForm(overrides: Partial<React.ComponentProps<typeof ProductForm>>
     ...overrides,
   }
   return { ...render(<ProductForm {...props} />), props }
+}
+
+function ControlledProductForm() {
+  const [form, setForm] = useState<ProductFormState>(EMPTY_PRODUCT_FORM)
+  return (
+    <ProductForm
+      form={form}
+      onFormChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
+      categories={categories}
+      editingId={null}
+      saving={false}
+      onSubmit={(e) => e.preventDefault()}
+      accessToken="mock-token"
+    />
+  )
 }
 
 describe('ProductForm — categorias', () => {
@@ -224,5 +242,110 @@ describe('ProductForm — promoção', () => {
     })
 
     expect(onFormChange).toHaveBeenCalledWith({ promotionStartDate: '2026-01-01T10:00' })
+  })
+})
+
+describe('ProductForm — imagens', () => {
+  let uploadCallCount = 0
+  const server = setupServer(
+    http.post('/api/upload/image', () => {
+      uploadCallCount += 1
+      return HttpResponse.json({ url: `https://cdn.example.com/${uploadCallCount}.jpg` })
+    }),
+  )
+
+  beforeAll(() => server.listen())
+  afterEach(() => {
+    server.resetHandlers()
+    uploadCallCount = 0
+  })
+  afterAll(() => server.close())
+
+  it('o input de upload de imagem aceita múltiplos arquivos', () => {
+    renderForm()
+
+    expect(screen.getByLabelText(/file upload/i)).toHaveAttribute('multiple')
+  })
+
+  it('selecionar 2 arquivos de uma vez faz upload dos 2 e resulta em imageUrls com as 2 URLs', async () => {
+    const user = userEvent.setup()
+    render(<ControlledProductForm />)
+
+    await user.upload(screen.getByLabelText(/file upload/i), [
+      new File(['a'], 'a.png', { type: 'image/png' }),
+      new File(['b'], 'b.png', { type: 'image/png' }),
+    ])
+
+    await waitFor(() => expect(screen.getAllByRole('img')).toHaveLength(2))
+    expect(screen.getByAltText('Imagem 1 do produto')).toHaveAttribute('src', 'https://cdn.example.com/1.jpg')
+    expect(screen.getByAltText('Imagem 2 do produto')).toHaveAttribute('src', 'https://cdn.example.com/2.jpg')
+  })
+
+  it('selecionar um 3º arquivo depois de já ter 2 acumula, sem sobrescrever', async () => {
+    const user = userEvent.setup()
+    render(<ControlledProductForm />)
+    const input = screen.getByLabelText(/file upload/i)
+
+    await user.upload(input, [
+      new File(['a'], 'a.png', { type: 'image/png' }),
+      new File(['b'], 'b.png', { type: 'image/png' }),
+    ])
+    await waitFor(() => expect(screen.getAllByRole('img')).toHaveLength(2))
+
+    await user.upload(input, [new File(['c'], 'c.png', { type: 'image/png' })])
+
+    await waitFor(() => expect(screen.getAllByRole('img')).toHaveLength(3))
+    expect(screen.getByAltText('Imagem 3 do produto')).toHaveAttribute('src', 'https://cdn.example.com/3.jpg')
+  })
+
+  it('mostra miniatura com botão Remover para cada imagem em imageUrls', () => {
+    const form: ProductFormState = { ...EMPTY_PRODUCT_FORM, imageUrls: ['url1', 'url2'] }
+    renderForm({ form })
+
+    expect(screen.getAllByRole('button', { name: /remover/i })).toHaveLength(2)
+  })
+
+  it('clicar Remover numa miniatura tira aquela URL, mantendo ordem das demais', async () => {
+    const onFormChange = vi.fn()
+    const user = userEvent.setup()
+    const form: ProductFormState = { ...EMPTY_PRODUCT_FORM, imageUrls: ['url1', 'url2', 'url3'] }
+    renderForm({ form, onFormChange })
+
+    await user.click(screen.getAllByRole('button', { name: /remover/i })[1])
+
+    expect(onFormChange).toHaveBeenCalledWith({ imageUrls: ['url1', 'url3'] })
+  })
+
+  it('com 2+ imagens, miniaturas que não são a primeira têm botão "Tornar capa"; clicar reordena', async () => {
+    const onFormChange = vi.fn()
+    const user = userEvent.setup()
+    const form: ProductFormState = { ...EMPTY_PRODUCT_FORM, imageUrls: ['url1', 'url2', 'url3'] }
+    renderForm({ form, onFormChange })
+
+    expect(screen.getAllByRole('button', { name: /tornar capa/i })).toHaveLength(2)
+
+    await user.click(screen.getAllByRole('button', { name: /tornar capa/i })[0])
+
+    expect(onFormChange).toHaveBeenCalledWith({ imageUrls: ['url2', 'url1', 'url3'] })
+  })
+
+  it('miniatura na posição 0 mostra indicação de "Capa"', () => {
+    const form: ProductFormState = { ...EMPTY_PRODUCT_FORM, imageUrls: ['url1', 'url2'] }
+    renderForm({ form })
+
+    expect(screen.getByText('Capa')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /tornar capa/i })).toHaveLength(1)
+  })
+
+  it('selecionar mais de 8 arquivos de uma vez faz upload de só 8 e mostra aviso de limite', async () => {
+    const user = userEvent.setup()
+    render(<ControlledProductForm />)
+
+    const files = Array.from({ length: 9 }, (_, i) => new File([`f${i}`], `f${i}.png`, { type: 'image/png' }))
+    await user.upload(screen.getByLabelText(/file upload/i), files)
+
+    await waitFor(() => expect(screen.getAllByRole('img')).toHaveLength(8))
+    expect(uploadCallCount).toBe(8)
+    expect(screen.getByText(/limite de 8 imagens atingido/i)).toBeInTheDocument()
   })
 })

@@ -16,6 +16,7 @@ const mockProduct: Product = {
   slug: 'mechanical-keyboard',
   price: 499.9,
   stockQuantity: 10,
+  imageUrls: [],
   active: true,
 }
 

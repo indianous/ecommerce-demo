@@ -21,6 +21,7 @@ const mockDeletedProduct: Product = {
   slug: 'headset-antigo',
   price: 299.9,
   stockQuantity: 0,
+  imageUrls: [],
   active: false,
   status: 'UNAVAILABLE',
   createdAt: '2023-06-01T00:00:00Z',
