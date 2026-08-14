@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ProductCard } from '@/components/product/ProductCard'
+import { ProductGrid } from '@/components/product/ProductGrid'
 
 export const metadata: Metadata = {
   title: 'Catálogo',
@@ -83,15 +83,7 @@ export default async function CatalogPage({ searchParams }: Props) {
         </nav>
       )}
 
-      {data.content.length === 0 ? (
-        <p className="text-gray-500">Nenhum produto encontrado.</p>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {data.content.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      )}
+      <ProductGrid products={data.content} />
 
       <div className="mt-8 flex justify-center">
         <CatalogPagination

@@ -142,4 +142,17 @@ describe('CatalogPage', () => {
       '/catalog?category=electronics&search=teclado&sort=NEWEST',
     )
   })
+
+  it('mostra "Nenhum produto encontrado." quando a busca não retorna produtos', async () => {
+    server.use(
+      http.get('http://localhost:8080/api/v1/catalog/products', () =>
+        HttpResponse.json({ ...mockPage, content: [], totalElements: 0 }),
+      ),
+    )
+
+    const jsx = await CatalogPage({ searchParams: Promise.resolve({}) })
+    render(jsx)
+
+    expect(screen.getByText('Nenhum produto encontrado.')).toBeInTheDocument()
+  })
 })
