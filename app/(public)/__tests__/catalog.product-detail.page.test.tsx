@@ -35,6 +35,7 @@ const mockProduct: Product = {
   description: 'Um teclado mecânico excelente',
   price: 499.9,
   stockQuantity: 10,
+  imageUrls: [],
   active: true,
   status: 'AVAILABLE',
   createdAt: '2026-06-29T00:00:00',
@@ -226,5 +227,42 @@ describe('ProductDetailPage', () => {
     renderWithToast(jsx)
 
     expect(screen.queryByRole('heading', { name: /produtos relacionados/i })).not.toBeInTheDocument()
+  })
+
+  it('produto com 2+ imagens renderiza o Carousel com uma slide por imagem', async () => {
+    server.use(
+      http.get('http://localhost:8080/api/v1/catalog/products/slug/mechanical-keyboard', () =>
+        HttpResponse.json({
+          ...mockProduct,
+          imageUrls: ['https://cdn.example.com/1.jpg', 'https://cdn.example.com/2.jpg'],
+        }),
+      ),
+    )
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    renderWithToast(jsx)
+
+    const carousel = screen.getByRole('region', { name: /carousel/i })
+    expect(within(carousel).getAllByRole('group', { name: /slide/i })).toHaveLength(2)
+  })
+
+  it('produto com 1 imagem: galeria ainda funciona', async () => {
+    server.use(
+      http.get('http://localhost:8080/api/v1/catalog/products/slug/mechanical-keyboard', () =>
+        HttpResponse.json({ ...mockProduct, imageUrls: ['https://cdn.example.com/1.jpg'] }),
+      ),
+    )
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    renderWithToast(jsx)
+
+    const carousel = screen.getByRole('region', { name: /carousel/i })
+    expect(within(carousel).getAllByRole('group', { name: /slide/i })).toHaveLength(1)
+  })
+
+  it('produto sem nenhuma imagem cai no placeholder, sem renderizar Carousel', async () => {
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    renderWithToast(jsx)
+
+    expect(screen.queryByRole('region', { name: /carousel/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Mechanical Keyboard' })).toBeInTheDocument()
   })
 })

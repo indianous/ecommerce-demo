@@ -24,6 +24,7 @@ const mockProduct: Product = {
   slug: 'teclado-mecanico',
   price: 499.9,
   stockQuantity: 10,
+  imageUrls: [],
   active: true,
   status: 'AVAILABLE',
   createdAt: '2024-01-01T00:00:00Z',

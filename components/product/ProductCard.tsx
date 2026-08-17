@@ -37,7 +37,7 @@ export function ProductCard({ product }: Props) {
   const addItem = useCartStore((s) => s.addItem);
   const { placeholderImageUrl } = useSiteSettings();
   const inStock = product.stockQuantity > 0;
-  const imageSrc = product.imageUrl ?? placeholderImageUrl ?? null;
+  const imageSrc = product.imageUrls[0] ?? placeholderImageUrl ?? null;
   const onPromotion = product.onPromotion ?? false;
   const effectivePrice = product.effectivePrice ?? product.price;
   const formatBRL = (value: number) =>
@@ -104,7 +104,7 @@ export function ProductCard({ product }: Props) {
                 productId: product.id,
                 name: product.name,
                 price: effectivePrice,
-                imageUrl: product.imageUrl,
+                imageUrl: product.imageUrls[0],
               })
             }
           >

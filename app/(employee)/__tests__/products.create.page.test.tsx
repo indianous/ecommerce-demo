@@ -112,7 +112,7 @@ describe('ProductCreateContent', () => {
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     await user.upload(fileInput, new File(['bytes'], 'foto.jpg', { type: 'image/jpeg' }))
 
-    const preview = await screen.findByRole('img', { name: /preview/i })
+    const preview = await screen.findByRole('img', { name: /imagem 1 do produto/i })
     expect(preview).toHaveAttribute('src', '/uploads/uuid-test.jpg')
   })
 
@@ -156,21 +156,21 @@ describe('ProductCreateContent', () => {
     })
   })
 
-  it('inclui imageUrl no payload ao salvar', async () => {
+  it('inclui imageUrls no payload ao salvar', async () => {
     const user = userEvent.setup()
     renderCreate()
 
     await screen.findByLabelText(/^nome/i)
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     await user.upload(fileInput, new File(['bytes'], 'foto.jpg', { type: 'image/jpeg' }))
-    await screen.findByRole('img', { name: /preview/i })
+    await screen.findByRole('img', { name: /imagem 1 do produto/i })
 
     await user.type(screen.getByLabelText(/^nome/i), 'Produto com Imagem')
     await user.click(screen.getByRole('checkbox', { name: 'Eletrônicos' }))
     await user.click(screen.getByRole('button', { name: /salvar/i }))
 
     await waitFor(() => {
-      expect(lastSavedBody.imageUrl).toBe('/uploads/uuid-test.jpg')
+      expect(lastSavedBody.imageUrls).toEqual(['/uploads/uuid-test.jpg'])
     })
   })
 })

@@ -1,14 +1,17 @@
 'use client'
 
-import { Button, Card, Checkbox, FileUpload, FormField, Input, NumberInput, Select } from 'base-ds'
+import { useRef } from 'react'
+import { Button, Card, Checkbox, FileUpload, FormField, Image, Input, NumberInput, Select, Text } from 'base-ds'
 import type { Category, MerchandiseOrigin } from '@/types'
+
+const MAX_IMAGES = 8
 
 export type ProductFormState = {
   name: string
   description: string
   price: number
   categoryIds: string[]
-  imageUrl: string
+  imageUrls: string[]
   slug: string
   metaTitle: string
   metaDescription: string
@@ -27,7 +30,7 @@ export const EMPTY_PRODUCT_FORM: ProductFormState = {
   description: '',
   price: 0,
   categoryIds: [],
-  imageUrl: '',
+  imageUrls: [],
   slug: '',
   metaTitle: '',
   metaDescription: '',
@@ -71,6 +74,8 @@ export function ProductForm({
   onSubmit,
   accessToken,
 }: ProductFormProps) {
+  const uploadedFileCountRef = useRef(0)
+
   const toggleCategory = (id: string) => {
     const next = form.categoryIds.includes(id)
       ? form.categoryIds.filter((c) => c !== id)
@@ -95,6 +100,40 @@ export function ProductForm({
     form.promotionalPrice > 0 && form.promotionalPrice >= form.price
       ? 'Preço promocional precisa ser menor que o preço normal'
       : undefined
+
+  const handleImagesChange = async (files: File[]) => {
+    const alreadyProcessed = uploadedFileCountRef.current
+    const newFiles = files.slice(alreadyProcessed)
+    uploadedFileCountRef.current = files.length
+
+    const remainingSlots = Math.max(MAX_IMAGES - form.imageUrls.length, 0)
+    const filesToUpload = newFiles.slice(0, remainingSlots)
+
+    let uploaded = form.imageUrls
+    for (const file of filesToUpload) {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/upload/image', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: fd,
+      })
+      if (res.ok) {
+        const { url } = await res.json()
+        uploaded = [...uploaded, url]
+        onFormChange({ imageUrls: uploaded })
+      }
+    }
+  }
+
+  const removeImage = (index: number) => {
+    onFormChange({ imageUrls: form.imageUrls.filter((_, i) => i !== index) })
+  }
+
+  const makeCoverImage = (index: number) => {
+    const url = form.imageUrls[index]
+    onFormChange({ imageUrls: [url, ...form.imageUrls.filter((_, i) => i !== index)] })
+  }
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
@@ -153,28 +192,49 @@ export function ProductForm({
         />
       </FormField>
 
-      <FormField label="Imagem" id="product-image">
+      <FormField
+        label={`Imagens (${form.imageUrls.length}/${MAX_IMAGES})`}
+        id="product-images"
+        hint={
+          form.imageUrls.length >= MAX_IMAGES
+            ? `Limite de ${MAX_IMAGES} imagens atingido`
+            : undefined
+        }
+      >
         <FileUpload
           accept="image/*"
-          onChange={async ([file]) => {
-            if (!file) return
-            const fd = new FormData()
-            fd.append('file', file)
-            const res = await fetch('/api/upload/image', {
-              method: 'POST',
-              headers: { Authorization: `Bearer ${accessToken}` },
-              body: fd,
-            })
-            if (res.ok) {
-              const { url } = await res.json()
-              onFormChange({ imageUrl: url })
-            }
-          }}
+          multiple
+          disabled={form.imageUrls.length >= MAX_IMAGES}
+          onChange={handleImagesChange}
         />
       </FormField>
 
-      {form.imageUrl && (
-        <img src={form.imageUrl} alt="Preview" className="w-16 h-16 object-cover rounded-md" />
+      {form.imageUrls.length > 0 && (
+        <div className="flex flex-wrap gap-3">
+          {form.imageUrls.map((url, index) => (
+            <div key={url} className="flex w-24 flex-col gap-1">
+              <Image
+                src={url}
+                alt={`Imagem ${index + 1} do produto`}
+                aspectRatio="square"
+                objectFit="cover"
+                className="rounded-md"
+              />
+              {index === 0 ? (
+                <Text size="xs" color="muted" className="text-center">
+                  Capa
+                </Text>
+              ) : (
+                <Button type="button" variant="ghost" size="sm" onClick={() => makeCoverImage(index)}>
+                  Tornar capa
+                </Button>
+              )}
+              <Button type="button" variant="ghost" size="sm" onClick={() => removeImage(index)}>
+                Remover
+              </Button>
+            </div>
+          ))}
+        </div>
       )}
 
       <FormField label="Slug" id="product-slug" hint="Gerado automaticamente a partir do nome se deixado em branco">

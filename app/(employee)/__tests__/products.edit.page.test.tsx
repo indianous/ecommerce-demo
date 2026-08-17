@@ -24,6 +24,7 @@ const mockProduct: Product = {
   slug: 'teclado-mecanico',
   price: 499.9,
   stockQuantity: 10,
+  imageUrls: ['https://cdn.example.com/teclado.jpg'],
   active: true,
   status: 'AVAILABLE',
   createdAt: '2024-01-01T00:00:00Z',
@@ -81,6 +82,12 @@ describe('ProductEditContent', () => {
   it('pré-preenche o formulário com os dados do produto', async () => {
     renderEdit()
     expect(await screen.findByDisplayValue('Teclado Mecânico')).toBeInTheDocument()
+  })
+
+  it('pré-preenche o formulário com as imagens (imageUrls) do produto', async () => {
+    renderEdit()
+    const preview = await screen.findByRole('img', { name: /imagem 1 do produto/i })
+    expect(preview).toHaveAttribute('src', 'https://cdn.example.com/teclado.jpg')
   })
 
   it('exibe link "← Voltar" para /dashboard/products', async () => {

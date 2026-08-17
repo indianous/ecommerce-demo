@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
-import { Badge, Breadcrumb, Heading, Image, Text } from 'base-ds'
+import { Badge, Breadcrumb, Heading, Text } from 'base-ds'
 import { AddToCartButton } from '@/components/product/AddToCartButton'
 import { ProductCarousel } from '@/components/product/ProductCarousel'
+import { ProductImageGallery } from '@/components/product/ProductImageGallery'
 import { ProductRatingSummary } from '@/components/product/ProductRatingSummary'
 import { ProductReviewsSection } from '@/components/product/ProductReviewsSection'
 import { ProductViewTracker } from '@/components/product/ProductViewTracker'
@@ -102,21 +103,7 @@ export default async function ProductDetailPage({ params }: Props) {
       />
 
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-        {product.imageUrl ? (
-          <Image
-            src={product.imageUrl}
-            alt={product.name}
-            aspectRatio="portrait"
-            objectFit="contain"
-            className="rounded"
-          />
-        ) : (
-          <div
-            role="img"
-            aria-label={product.name}
-            className="flex aspect-[3/4] items-center justify-center rounded bg-muted text-muted-foreground"
-          />
-        )}
+        <ProductImageGallery imageUrls={product.imageUrls} productName={product.name} />
 
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2">
