@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Button, Heading, Text } from "base-ds";
 import { ProductCarousel } from "@/components/product/ProductCarousel";
-import type { Product } from "@/types";
+import { BannerCarousel } from "@/components/site/BannerCarousel";
+import type { Banner, Product } from "@/types";
 
 export const metadata: Metadata = {
   title: 'Início',
@@ -20,14 +21,27 @@ async function fetchProducts(path: string): Promise<Product[]> {
   }
 }
 
+async function fetchBanners(): Promise<Banner[]> {
+  try {
+    const res = await fetch(`${API}/site/banners`, { next: { revalidate: 60 } })
+    if (!res.ok) return []
+    return res.json()
+  } catch {
+    return []
+  }
+}
+
 export default async function Home() {
-  const [popular, bestSelling] = await Promise.all([
+  const [popular, bestSelling, banners] = await Promise.all([
     fetchProducts('popular'),
     fetchProducts('best-selling'),
+    fetchBanners(),
   ])
 
   return (
     <div className="flex flex-1 flex-col gap-16 px-6 py-16">
+      <BannerCarousel banners={banners} />
+
       <div className="flex flex-col items-center justify-center gap-6 text-center">
         <Heading as="h1" size="4xl">
           Tudo o que você precisa, em um só lugar
