@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { Footer, Navbar } from 'base-ds'
+import { Footer, Image, Navbar } from 'base-ds'
 import type { FooterSocialLink } from 'base-ds'
 import { CartDrawer } from '@/components/cart/CartDrawer'
 import { NavbarSearch } from '@/components/layout/NavbarSearch'
@@ -34,7 +34,7 @@ interface AppShellProps {
 }
 
 export function AppShell({ children }: AppShellProps) {
-  const { instagramUrl, tiktokUrl, facebookUrl, navbarItems, footerColumns } = useSiteSettings()
+  const { logoUrl, instagramUrl, tiktokUrl, facebookUrl, navbarItems, footerColumns } = useSiteSettings()
 
   const socialLinks: FooterSocialLink[] = [
     instagramUrl && { icon: <InstagramIcon />, href: instagramUrl, label: 'Instagram' },
@@ -46,8 +46,12 @@ export function AppShell({ children }: AppShellProps) {
     <>
       <Navbar
         logo={
-          <Link href="/" className="text-lg font-semibold text-foreground">
-            Loja
+          <Link href="/" className="flex items-center">
+            {logoUrl ? (
+              <Image src={logoUrl} alt="Logo da loja" aspectRatio="square" objectFit="contain" className="h-8 w-8" />
+            ) : (
+              <span className="text-lg font-semibold text-foreground">Loja</span>
+            )}
           </Link>
         }
         items={navbarItems.length > 0 ? navbarItems : undefined}

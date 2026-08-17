@@ -144,7 +144,7 @@ describe('ProductCard — imagem placeholder', () => {
 
   it('renderiza placeholder do contexto quando imageUrls é vazio', () => {
     render(
-      <SiteSettingsContext.Provider value={{ placeholderImageUrl: 'https://cdn.example.com/ph.jpg', faviconUrl: null, instagramUrl: null, tiktokUrl: null, facebookUrl: null, navbarItems: [], footerColumns: [] }}>
+      <SiteSettingsContext.Provider value={{ placeholderImageUrl: 'https://cdn.example.com/ph.jpg', faviconUrl: null, logoUrl: null, instagramUrl: null, tiktokUrl: null, facebookUrl: null, navbarItems: [], footerColumns: [] }}>
         <ProductCard product={productSemImagem} />
       </SiteSettingsContext.Provider>,
     )
