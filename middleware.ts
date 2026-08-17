@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const CUSTOMER_ROUTES = ['/cart', '/orders', '/profile']
+const CUSTOMER_ROUTES = ['/cart', '/orders', '/profile', '/reviews']
 const EMPLOYEE_ROUTES = ['/dashboard', '/products']
 const ADMIN_ROUTES = ['/dashboard/admin']
 
@@ -24,6 +24,10 @@ export function middleware(request: NextRequest) {
 
   const role = request.cookies.get('role')?.value
 
+  if (isCustomerRoute && role !== 'CUSTOMER') {
+    return NextResponse.redirect(new URL('/', request.url))
+  }
+
   if (isAdminRoute && role !== 'ADMIN') {
     return NextResponse.redirect(new URL('/', request.url))
   }
@@ -40,6 +44,7 @@ export const config = {
     '/cart/:path*',
     '/orders/:path*',
     '/profile/:path*',
+    '/reviews/:path*',
     '/dashboard/:path*',
     '/products/:path*',
   ],
