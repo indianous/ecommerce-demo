@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
+  // Permite acessar o dev server pela URL de rede (ex: testes em outra
+  // máquina na mesma LAN). Sem isso, o Next.js 15.3+ bloqueia por padrão
+  // requisições cross-origin aos assets internos do dev server.
+  allowedDevOrigins: ["192.168.15.16"],
   turbopack: {
     // base-ds is a `file:` link to ../../../node/base-ds, a directory
     // outside this project root. Turbopack won't resolve files outside its
