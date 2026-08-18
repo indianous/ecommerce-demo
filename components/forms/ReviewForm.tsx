@@ -1,6 +1,7 @@
 'use client'
 
-import { Button, FileUpload, FormField, Rating, Text } from 'base-ds'
+import { FileUpload, FormField, Rating, Text } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 
 interface Props {
   rating: number
@@ -75,13 +76,23 @@ export function ReviewForm({
       )}
 
       <div className="flex gap-3">
-        <Button type="submit" disabled={!isValid || submitting}>
-          {submitLabel}
-        </Button>
+        <IconButton
+          type="submit"
+          icon="Save"
+          label={submitLabel}
+          variant="primary"
+          disabled={!isValid}
+          isLoading={submitting}
+        />
         {onCancel && (
-          <Button type="button" variant="secondary" onClick={onCancel} disabled={submitting}>
-            Cancelar
-          </Button>
+          <IconButton
+            type="button"
+            icon="X"
+            label="Cancelar"
+            variant="secondary"
+            onClick={onCancel}
+            disabled={submitting}
+          />
         )}
       </div>
     </form>

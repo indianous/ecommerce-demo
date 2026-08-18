@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, FormField, Input, PasswordInput, Text } from 'base-ds'
+import { FormField, Input, PasswordInput, Text } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import { useAuthStore } from '@/stores/auth.store'
 
 type Tab = 'login' | 'register'
@@ -114,9 +115,13 @@ export function CheckoutAuth() {
           </Text>
         )}
 
-        <Button type="submit" isLoading={loading} disabled={loading}>
-          {activeTab === 'login' ? 'Entrar' : 'Criar Conta'}
-        </Button>
+        <IconButton
+          type="submit"
+          icon={activeTab === 'login' ? 'LogIn' : 'UserPlus'}
+          label={activeTab === 'login' ? 'Entrar' : 'Criar Conta'}
+          variant="primary"
+          isLoading={loading}
+        />
       </form>
     </div>
   )

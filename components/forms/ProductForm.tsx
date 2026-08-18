@@ -1,7 +1,7 @@
 'use client'
 
-import { useRef } from 'react'
-import { Button, Card, Checkbox, FileUpload, FormField, Image, Input, NumberInput, Select, Text } from 'base-ds'
+import { Card, Checkbox, FileUpload, FormField, Input, NumberInput, Select } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import type { Category, MerchandiseOrigin } from '@/types'
 
 const MAX_IMAGES = 8
@@ -64,6 +64,7 @@ type ProductFormProps = {
   saving: boolean
   onSubmit: (e: React.FormEvent) => void
   accessToken: string | null
+  saveLabel?: string
 }
 
 export function ProductForm({
@@ -73,6 +74,7 @@ export function ProductForm({
   saving,
   onSubmit,
   accessToken,
+  saveLabel = 'Salvar',
 }: ProductFormProps) {
   const uploadedFileCountRef = useRef(0)
 
@@ -354,9 +356,15 @@ export function ProductForm({
         </div>
       </Card>
 
-      <Button type="submit" isLoading={saving} disabled={form.categoryIds.length === 0} className="self-start">
-        Salvar
-      </Button>
+      <IconButton
+        type="submit"
+        icon="Save"
+        label={saveLabel}
+        variant="primary"
+        isLoading={saving}
+        disabled={form.categoryIds.length === 0}
+        className="self-start"
+      />
     </form>
   )
 }

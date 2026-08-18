@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
-import { Button, FormField, Input, PasswordInput, useToast } from 'base-ds'
+import { FormField, Input, PasswordInput, useToast } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import { useAuthStore } from '@/stores/auth.store'
 
 interface Props {
@@ -66,9 +67,7 @@ export function LoginForm({ onSuccess }: Props) {
         />
       </FormField>
 
-      <Button type="submit" disabled={isLoading} isLoading={isLoading}>
-        {isLoading ? 'Carregando...' : 'Entrar'}
-      </Button>
+      <IconButton type="submit" icon="LogIn" label="Entrar" variant="primary" isLoading={isLoading} />
     </form>
   )
 }

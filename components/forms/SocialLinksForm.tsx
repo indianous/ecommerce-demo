@@ -1,4 +1,5 @@
-import { Button, FormField, Input } from 'base-ds'
+import { FormField, Input } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 
 interface Props {
   instagramUrl: string
@@ -9,6 +10,7 @@ interface Props {
   onFacebook: (v: string) => void
   onSave: () => void
   saving: boolean
+  saveLabel?: string
 }
 
 export function SocialLinksForm({
@@ -20,6 +22,7 @@ export function SocialLinksForm({
   onFacebook,
   onSave,
   saving,
+  saveLabel = 'Salvar',
 }: Props) {
   return (
     <form
@@ -60,9 +63,7 @@ export function SocialLinksForm({
       </FormField>
 
       <div>
-        <Button type="submit" disabled={saving}>
-          {saving ? 'Salvando...' : 'Salvar'}
-        </Button>
+        <IconButton type="submit" icon="Save" label={saveLabel} variant="primary" isLoading={saving} />
       </div>
     </form>
   )

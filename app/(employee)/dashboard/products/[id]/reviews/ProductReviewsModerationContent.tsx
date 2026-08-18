@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Button, Dialog, Heading, Text, useToast } from 'base-ds'
+import { Dialog, Heading, Text, useToast } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ProductReviewCard } from '@/components/product/ProductReviewCard'
@@ -86,14 +87,13 @@ export function ProductReviewsModerationContent({ id, basePath = '/dashboard/pro
                 <div className="flex-1">
                   <ProductReviewCard review={review} />
                 </div>
-                <Button
+                <IconButton
+                  icon="Trash2"
+                  label={`Remover avaliação de ${review.userName}`}
                   variant="danger"
                   size="sm"
-                  aria-label={`Remover avaliação de ${review.userName}`}
                   onClick={() => setReviewToDelete(review)}
-                >
-                  Remover
-                </Button>
+                />
               </div>
             ))}
           </div>
@@ -106,12 +106,20 @@ export function ProductReviewsModerationContent({ id, basePath = '/dashboard/pro
           description="Essa ação não pode ser desfeita."
           footer={
             <div className="flex gap-3">
-              <Button variant="danger" onClick={handleConfirmDelete} disabled={deleting}>
-                Remover
-              </Button>
-              <Button variant="secondary" onClick={() => setReviewToDelete(null)} disabled={deleting}>
-                Cancelar
-              </Button>
+              <IconButton
+                icon="Trash2"
+                label="Remover"
+                variant="danger"
+                onClick={handleConfirmDelete}
+                isLoading={deleting}
+              />
+              <IconButton
+                icon="X"
+                label="Cancelar"
+                variant="secondary"
+                onClick={() => setReviewToDelete(null)}
+                disabled={deleting}
+              />
             </div>
           }
         />

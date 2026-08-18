@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
-import { Button, FormField, Input, PasswordInput, useToast } from 'base-ds'
+import { FormField, Input, PasswordInput, useToast } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import { useAuthStore } from '@/stores/auth.store'
 
 interface Props {
@@ -78,9 +79,7 @@ export function RegisterForm({ onSuccess }: Props) {
         />
       </FormField>
 
-      <Button type="submit" disabled={isLoading} isLoading={isLoading}>
-        {isLoading ? 'Carregando...' : 'Cadastrar'}
-      </Button>
+      <IconButton type="submit" icon="UserPlus" label="Cadastrar" variant="primary" isLoading={isLoading} />
     </form>
   )
 }

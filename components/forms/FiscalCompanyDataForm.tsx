@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, FormField, Input, Select } from 'base-ds'
+import { FormField, Input, Select } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import type { FiscalCompanyData, TaxRegime } from '@/types'
 
 const TAX_REGIME_OPTIONS: { value: TaxRegime; label: string }[] = [
@@ -50,9 +51,10 @@ type Props = {
   onChange: (patch: Partial<FiscalCompanyData>) => void
   onSave: () => void
   saving: boolean
+  saveLabel?: string
 }
 
-export function FiscalCompanyDataForm({ data, onChange, onSave, saving }: Props) {
+export function FiscalCompanyDataForm({ data, onChange, onSave, saving, saveLabel = 'Salvar' }: Props) {
   const [submitted, setSubmitted] = useState(false)
 
   const cnpjValid = isValidCnpj(data.cnpj)
@@ -165,9 +167,7 @@ export function FiscalCompanyDataForm({ data, onChange, onSave, saving }: Props)
         />
       </FormField>
 
-      <Button type="submit" isLoading={saving} className="self-start">
-        Salvar
-      </Button>
+      <IconButton type="submit" icon="Save" label={saveLabel} variant="primary" isLoading={saving} className="self-start" />
     </form>
   )
 }

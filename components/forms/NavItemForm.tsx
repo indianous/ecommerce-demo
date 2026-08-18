@@ -1,6 +1,7 @@
 'use client'
 
-import { Button, FormField, Input, Select } from 'base-ds'
+import { FormField, Input, Select } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import type { NavPlacement, SiteNavItemType } from '@/types'
 
 export type NavItemFormState = {
@@ -34,9 +35,10 @@ type Props = {
   onSubmit: (e: React.FormEvent) => void
   saving: boolean
   isChild?: boolean
+  saveLabel?: string
 }
 
-export function NavItemForm({ form, onFormChange, onSubmit, saving, isChild = false }: Props) {
+export function NavItemForm({ form, onFormChange, onSubmit, saving, isChild = false, saveLabel = 'Salvar' }: Props) {
   const requiresUrl = isChild || form.type === 'LINK'
   const requiresPlacement = !isChild
 
@@ -93,9 +95,15 @@ export function NavItemForm({ form, onFormChange, onSubmit, saving, isChild = fa
         </FormField>
       )}
 
-      <Button type="submit" isLoading={saving} disabled={!canSubmit} className="self-start">
-        Salvar
-      </Button>
+      <IconButton
+        type="submit"
+        icon="Save"
+        label={saveLabel}
+        variant="primary"
+        isLoading={saving}
+        disabled={!canSubmit}
+        className="self-start"
+      />
     </form>
   )
 }

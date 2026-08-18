@@ -1,13 +1,15 @@
-import { Button, FormField, Input } from 'base-ds'
+import { FormField, Input } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 
 interface Props {
   name: string
   onChange: (v: string) => void
   onSave: () => void
   saving: boolean
+  saveLabel?: string
 }
 
-export function CategoryForm({ name, onChange, onSave, saving }: Props) {
+export function CategoryForm({ name, onChange, onSave, saving, saveLabel = 'Salvar' }: Props) {
   return (
     <form
       onSubmit={(e) => {
@@ -21,9 +23,7 @@ export function CategoryForm({ name, onChange, onSave, saving }: Props) {
       </FormField>
 
       <div>
-        <Button type="submit" disabled={!name.trim() || saving}>
-          {saving ? 'Salvando...' : 'Salvar'}
-        </Button>
+        <IconButton type="submit" icon="Save" label={saveLabel} variant="primary" disabled={!name.trim()} isLoading={saving} />
       </div>
     </form>
   )

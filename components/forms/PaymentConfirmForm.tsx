@@ -1,6 +1,7 @@
 'use client'
 
-import { Button, FileUpload, FormField } from 'base-ds'
+import { FileUpload, FormField } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 
 interface Props {
   file: File | null
@@ -33,12 +34,15 @@ export function PaymentConfirmForm({ file, onFileChange, onConfirm, onCancel, co
       )}
 
       <div className="flex gap-3">
-        <Button type="submit" disabled={!file || confirming}>
-          Confirmar pagamento
-        </Button>
-        <Button type="button" variant="secondary" onClick={onCancel} disabled={confirming}>
-          Cancelar
-        </Button>
+        <IconButton
+          type="submit"
+          icon="Check"
+          label="Confirmar pagamento"
+          variant="primary"
+          disabled={!file}
+          isLoading={confirming}
+        />
+        <IconButton type="button" icon="X" label="Cancelar" variant="secondary" onClick={onCancel} disabled={confirming} />
       </div>
     </form>
   )

@@ -343,7 +343,7 @@ describe('SiteContent — banners', () => {
     const section = await screen.findByRole('region', { name: /banners/i })
     await userEvent.click(within(section).getByRole('button', { name: /gerenciar/i }))
     const dialog = screen.getByRole('dialog')
-    expect(within(dialog).getByRole('button', { name: /salvar/i })).toBeDisabled()
+    expect(within(dialog).getByRole('button', { name: /adicionar banner/i })).toBeDisabled()
   })
 
   it('"Salvar" na seção banners chama POST e exibe toast de sucesso', async () => {
@@ -353,7 +353,7 @@ describe('SiteContent — banners', () => {
     const dialog = screen.getByRole('dialog')
     const fileInputEl = dialog.querySelector('input[type="file"]') as HTMLInputElement
     await userEvent.upload(fileInputEl, new File(['x'], 'banner.jpg', { type: 'image/jpeg' }))
-    await userEvent.click(within(dialog).getByRole('button', { name: /salvar/i }))
+    await userEvent.click(within(dialog).getByRole('button', { name: /adicionar banner/i }))
     expect(await screen.findByRole('status')).toHaveTextContent(/banner adicionado/i)
   })
 
@@ -365,7 +365,7 @@ describe('SiteContent — banners', () => {
     const dialog = screen.getByRole('dialog')
     const fileInputEl = dialog.querySelector('input[type="file"]') as HTMLInputElement
     await userEvent.upload(fileInputEl, new File(['x'], 'banner.jpg', { type: 'image/jpeg' }))
-    await userEvent.click(within(dialog).getByRole('button', { name: /salvar/i }))
+    await userEvent.click(within(dialog).getByRole('button', { name: /adicionar banner/i }))
     expect(await screen.findByRole('alert')).toHaveTextContent(/erro ao salvar/i)
   })
 })

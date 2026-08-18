@@ -34,7 +34,7 @@ describe('DuelingPicklist', () => {
 
     const leftList = screen.getByRole('listbox', { name: /disponível/i })
     await user.click(within(leftList).getByText('Permissão A'))
-    await user.click(screen.getByRole('button', { name: /^→$/ }))
+    await user.click(screen.getByRole('button', { name: /mover selecionado para a direita/i }))
 
     expect(onChange).toHaveBeenCalledWith(['PERM_A'])
   })
@@ -47,7 +47,7 @@ describe('DuelingPicklist', () => {
 
     const rightList = screen.getByRole('listbox', { name: /selecionado/i })
     await user.click(within(rightList).getByText('Permissão B'))
-    await user.click(screen.getByRole('button', { name: /^←$/ }))
+    await user.click(screen.getByRole('button', { name: /mover selecionado para a esquerda/i }))
 
     expect(onChange).toHaveBeenCalledWith([])
   })
@@ -58,7 +58,7 @@ describe('DuelingPicklist', () => {
 
     render(<DuelingPicklist options={OPTIONS} value={['PERM_B']} onChange={onChange} />)
 
-    await user.click(screen.getByRole('button', { name: /^→→$/ }))
+    await user.click(screen.getByRole('button', { name: /mover todos para a direita/i }))
 
     expect(onChange).toHaveBeenCalledWith(
       expect.arrayContaining(['PERM_A', 'PERM_B', 'PERM_C'])
@@ -77,7 +77,7 @@ describe('DuelingPicklist', () => {
       />
     )
 
-    await user.click(screen.getByRole('button', { name: /^←←$/ }))
+    await user.click(screen.getByRole('button', { name: /mover todos para a esquerda/i }))
 
     expect(onChange).toHaveBeenCalledWith([])
   })
@@ -85,9 +85,9 @@ describe('DuelingPicklist', () => {
   it('disabled=true desabilita todos os botões de transferência', () => {
     render(<DuelingPicklist options={OPTIONS} value={[]} onChange={vi.fn()} disabled />)
 
-    expect(screen.getByRole('button', { name: /^→$/ })).toBeDisabled()
-    expect(screen.getByRole('button', { name: /^←$/ })).toBeDisabled()
-    expect(screen.getByRole('button', { name: /^→→$/ })).toBeDisabled()
-    expect(screen.getByRole('button', { name: /^←←$/ })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /mover selecionado para a direita/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /mover selecionado para a esquerda/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /mover todos para a direita/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /mover todos para a esquerda/i })).toBeDisabled()
   })
 })

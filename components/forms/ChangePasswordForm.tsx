@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
-import { Button, FormField, PasswordInput, useToast } from 'base-ds'
+import { FormField, PasswordInput, useToast } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import { useAuthStore } from '@/stores/auth.store'
 
 export function ChangePasswordForm() {
@@ -92,9 +93,7 @@ export function ChangePasswordForm() {
         />
       </FormField>
 
-      <Button type="submit" disabled={isLoading} isLoading={isLoading}>
-        {isLoading ? 'Salvando...' : 'Alterar senha'}
-      </Button>
+      <IconButton type="submit" icon="KeyRound" label="Alterar senha" variant="primary" isLoading={isLoading} />
     </form>
   )
 }

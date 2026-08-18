@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, Dialog, FormField, Heading, Input, Select, Table, useToast, type TableColumn } from 'base-ds'
+import { Badge, Dialog, FormField, Heading, Input, Select, Table, useToast, type TableColumn } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CategoryForm } from '@/components/forms/CategoryForm'
@@ -138,24 +139,31 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
       render: (p) => (
         <div className="flex gap-2 flex-wrap">
           {canManageProducts && (
-            <Button variant="outline" size="sm" aria-label={`Editar ${p.name}`} onClick={() => router.push(`${basePath}/${p.id}/edit`)}>
-              Editar
-            </Button>
-          )}
-          {canManageProducts && (
-            <Button
+            <IconButton
+              icon="Pencil"
+              label={`Editar ${p.name}`}
               variant="outline"
               size="sm"
-              aria-label={p.status === 'AVAILABLE' ? `Tornar Indisponível ${p.name}` : `Tornar Disponível ${p.name}`}
-              onClick={() => handleToggleStatus(p)}
-            >
-              {p.status === 'AVAILABLE' ? 'Tornar Indisponível' : 'Tornar Disponível'}
-            </Button>
+              onClick={() => router.push(`${basePath}/${p.id}/edit`)}
+            />
           )}
           {canManageProducts && (
-            <Button variant="danger" size="sm" aria-label={`Excluir ${p.name}`} onClick={() => handleDelete(p)}>
-              Excluir
-            </Button>
+            <IconButton
+              icon={p.status === 'AVAILABLE' ? 'EyeOff' : 'Eye'}
+              label={p.status === 'AVAILABLE' ? `Tornar Indisponível ${p.name}` : `Tornar Disponível ${p.name}`}
+              variant="outline"
+              size="sm"
+              onClick={() => handleToggleStatus(p)}
+            />
+          )}
+          {canManageProducts && (
+            <IconButton
+              icon="Trash2"
+              label={`Excluir ${p.name}`}
+              variant="danger"
+              size="sm"
+              onClick={() => handleDelete(p)}
+            />
           )}
         </div>
       ),
@@ -169,8 +177,18 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
           <Heading as="h1" size="2xl">Gestão de Produtos</Heading>
           {canManageProducts && (
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setCategoryDialogOpen(true)}>Nova categoria</Button>
-              <Button onClick={() => router.push(`${basePath}/new`)}>Novo produto</Button>
+              <IconButton
+                icon="FolderPlus"
+                label="Nova categoria"
+                variant="outline"
+                onClick={() => setCategoryDialogOpen(true)}
+              />
+              <IconButton
+                icon="Plus"
+                label="Novo produto"
+                variant="primary"
+                onClick={() => router.push(`${basePath}/new`)}
+              />
             </div>
           )}
         </div>

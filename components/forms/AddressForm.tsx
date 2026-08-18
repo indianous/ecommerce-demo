@@ -1,6 +1,7 @@
 'use client'
 
-import { Button, FormField, Input } from 'base-ds'
+import { FormField, Input } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import type { Address } from '@/types'
 
 export type NewAddress = Omit<Address, 'id' | 'isDefault'>
@@ -72,9 +73,14 @@ export function AddressForm({ address, onChange, onSubmit, saving }: Props) {
           required
         />
       </FormField>
-      <Button type="submit" isLoading={saving} className="col-span-2 self-start">
-        Adicionar endereço
-      </Button>
+      <IconButton
+        type="submit"
+        icon="Plus"
+        label="Adicionar endereço"
+        variant="primary"
+        isLoading={saving}
+        className="col-span-2 self-start"
+      />
     </form>
   )
 }

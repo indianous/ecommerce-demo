@@ -1,4 +1,5 @@
-import { Button, FormField } from 'base-ds'
+import { FormField } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 
 interface Props {
   label: string
@@ -6,9 +7,10 @@ interface Props {
   onChange: (v: string) => void
   onSave: () => void
   saving: boolean
+  saveLabel?: string
 }
 
-export function MarkdownContentForm({ label, value, onChange, onSave, saving }: Props) {
+export function MarkdownContentForm({ label, value, onChange, onSave, saving, saveLabel = 'Salvar' }: Props) {
   return (
     <form
       onSubmit={(e) => {
@@ -28,9 +30,7 @@ export function MarkdownContentForm({ label, value, onChange, onSave, saving }: 
       </FormField>
 
       <div>
-        <Button type="submit" disabled={saving}>
-          {saving ? 'Salvando...' : 'Salvar'}
-        </Button>
+        <IconButton type="submit" icon="Save" label={saveLabel} variant="primary" isLoading={saving} />
       </div>
     </form>
   )

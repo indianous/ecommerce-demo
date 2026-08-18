@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, Dialog, Skeleton, Table, type TableColumn } from 'base-ds'
+import { Dialog, Skeleton, Table, type TableColumn } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import type { Employee, EmployeeFormData } from '@/types'
 import { EmployeeForm } from '@/components/forms/EmployeeForm'
 
@@ -25,21 +26,14 @@ export function EmployeeManagementTable({ employees, loading, onCreate, onDelete
       render: (row) => (
         <div className="flex gap-2">
           {onManagePermissions && (
-            <Button
+            <IconButton
+              icon="Shield"
+              label={`Permissões de ${row.name}`}
               variant="secondary"
-              aria-label={`Permissões de ${row.name}`}
               onClick={() => onManagePermissions(row)}
-            >
-              Permissões
-            </Button>
+            />
           )}
-          <Button
-            variant="danger"
-            aria-label={`Excluir ${row.name}`}
-            onClick={() => onDelete(row.id)}
-          >
-            Excluir
-          </Button>
+          <IconButton icon="Trash2" label={`Excluir ${row.name}`} variant="danger" onClick={() => onDelete(row.id)} />
         </div>
       ),
     },
@@ -48,7 +42,7 @@ export function EmployeeManagementTable({ employees, loading, onCreate, onDelete
   return (
     <div>
       <div className="flex justify-end mb-4">
-        <Button onClick={() => setDialogOpen(true)}>Novo funcionário</Button>
+        <IconButton icon="UserPlus" label="Novo funcionário" variant="primary" onClick={() => setDialogOpen(true)} />
       </div>
 
       {loading ? (

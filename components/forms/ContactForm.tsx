@@ -1,4 +1,5 @@
-import { Button, FormField, Input } from 'base-ds'
+import { FormField, Input } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 
 interface Props {
   description: string
@@ -9,6 +10,7 @@ interface Props {
   onEmail: (v: string) => void
   onSave: () => void
   saving: boolean
+  saveLabel?: string
 }
 
 export function ContactForm({
@@ -20,6 +22,7 @@ export function ContactForm({
   onEmail,
   onSave,
   saving,
+  saveLabel = 'Salvar',
 }: Props) {
   return (
     <form
@@ -48,9 +51,7 @@ export function ContactForm({
       </FormField>
 
       <div>
-        <Button type="submit" disabled={saving}>
-          {saving ? 'Salvando...' : 'Salvar'}
-        </Button>
+        <IconButton type="submit" icon="Save" label={saveLabel} variant="primary" isLoading={saving} />
       </div>
     </form>
   )

@@ -1,4 +1,5 @@
-import { Button, FormField, Select } from 'base-ds'
+import { FormField, Select } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import type { StockMovementReason } from '@/types'
 
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
   onExpiryDate: (v: string) => void
   onSave: () => void
   saving: boolean
+  saveLabel?: string
 }
 
 const ENTRY_REASON_OPTIONS: { value: StockMovementReason; label: string }[] = [
@@ -26,6 +28,7 @@ const ENTRY_REASON_OPTIONS: { value: StockMovementReason; label: string }[] = [
 export function StockEntryForm({
   reason, quantity, note, lotNumber, expiryDate,
   onReason, onQuantity, onNote, onLotNumber, onExpiryDate, onSave, saving,
+  saveLabel = 'Salvar',
 }: Props) {
   const canSave = quantity > 0
 
@@ -88,9 +91,7 @@ export function StockEntryForm({
       </FormField>
 
       <div>
-        <Button type="submit" disabled={!canSave || saving}>
-          {saving ? 'Salvando...' : 'Salvar'}
-        </Button>
+        <IconButton type="submit" icon="Save" label={saveLabel} variant="primary" disabled={!canSave} isLoading={saving} />
       </div>
     </form>
   )

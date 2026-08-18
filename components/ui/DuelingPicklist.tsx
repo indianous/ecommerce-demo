@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { IconButton } from '@/components/ui/IconButton'
 
 interface Option<T extends string> {
   value: T
@@ -88,42 +89,34 @@ export function DuelingPicklist<T extends string>({
       {renderList(available, availableLabel)}
 
       <div className="flex flex-col gap-1.5">
-        <button
-          type="button"
-          aria-label="→"
+        <IconButton
+          icon="ChevronRight"
+          label="Mover selecionado para a direita"
+          variant="outline"
           onClick={moveRight}
           disabled={disabled}
-          className="px-2 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed min-w-9"
-        >
-          →
-        </button>
-        <button
-          type="button"
-          aria-label="→→"
+        />
+        <IconButton
+          icon="ChevronsRight"
+          label="Mover todos para a direita"
+          variant="outline"
           onClick={moveAllRight}
           disabled={disabled}
-          className="px-2 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed min-w-9"
-        >
-          →→
-        </button>
-        <button
-          type="button"
-          aria-label="←←"
+        />
+        <IconButton
+          icon="ChevronsLeft"
+          label="Mover todos para a esquerda"
+          variant="outline"
           onClick={moveAllLeft}
           disabled={disabled}
-          className="px-2 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed min-w-9"
-        >
-          ←←
-        </button>
-        <button
-          type="button"
-          aria-label="←"
+        />
+        <IconButton
+          icon="ChevronLeft"
+          label="Mover selecionado para a esquerda"
+          variant="outline"
           onClick={moveLeft}
           disabled={disabled}
-          className="px-2 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed min-w-9"
-        >
-          ←
-        </button>
+        />
       </div>
 
       {renderList(selected, selectedLabel)}

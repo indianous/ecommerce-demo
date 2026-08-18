@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Button, Drawer, Text } from 'base-ds'
+import { Badge, Drawer, Text } from 'base-ds'
+import { IconButton } from '@/components/ui/IconButton'
 import { useCartStore, selectCartTotal, selectItemCount } from '@/stores/cart.store'
 import { CartCardItem } from './CartCardItem'
 
@@ -17,9 +18,22 @@ export function CartDrawer() {
 
   return (
     <>
-      <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-        Carrinho ({itemCount})
-      </Button>
+      <div className="relative inline-flex">
+        <IconButton
+          icon="ShoppingCart"
+          label={`Carrinho (${itemCount})`}
+          variant="ghost"
+          size="sm"
+          onClick={() => setOpen(true)}
+        />
+        {itemCount > 0 && (
+          <span aria-hidden="true" className="pointer-events-none absolute -right-1 -top-1">
+            <Badge variant="primary" size="sm" className="!px-1.5 !py-0">
+              {itemCount}
+            </Badge>
+          </span>
+        )}
+      </div>
 
       <Drawer
         open={open}

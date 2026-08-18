@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { Badge, Button, Card, Heading, Image, Rating, Text } from "base-ds";
+import { Badge, Card, Heading, Image, Rating, Text } from "base-ds";
+import { IconButton } from "@/components/ui/IconButton";
 import { useCartStore } from "@/stores/cart.store";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import type { Product } from "@/types";
@@ -96,8 +97,10 @@ export function ProductCard({ product }: Props) {
         </div>
 
         {inStock ? (
-          <Button
-            type="button"
+          <IconButton
+            icon="ShoppingCart"
+            label="Adicionar ao carrinho"
+            variant="primary"
             size="sm"
             onClick={() =>
               addItem({
@@ -107,9 +110,7 @@ export function ProductCard({ product }: Props) {
                 imageUrl: product.imageUrls[0],
               })
             }
-          >
-            Adicionar ao carrinho
-          </Button>
+          />
         ) : (
           <Badge variant="danger" size="sm">
             Sem estoque
