@@ -1,4 +1,7 @@
+import type { Metadata } from 'next'
 import { OrderDetailContent } from '@/app/(employee)/dashboard/orders/[id]/OrderDetailContent'
+
+export const metadata: Metadata = { title: 'Detalhes do pedido' }
 
 export default async function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

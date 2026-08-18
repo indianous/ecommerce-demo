@@ -1,4 +1,7 @@
+import type { Metadata } from 'next'
 import { ProductEditContent } from '@/app/(employee)/dashboard/products/[id]/edit/ProductEditContent'
+
+export const metadata: Metadata = { title: 'Editar produto' }
 
 export default async function AdminProductEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
