@@ -105,6 +105,7 @@ describe('AppShell', () => {
         value={{
           placeholderImageUrl: null,
           faviconUrl: null,
+          logoUrl: null,
           instagramUrl: 'https://instagram.com/loja',
           tiktokUrl: 'https://tiktok.com/@loja',
           facebookUrl: 'https://facebook.com/loja',
@@ -128,6 +129,7 @@ describe('AppShell', () => {
         value={{
           placeholderImageUrl: null,
           faviconUrl: null,
+          logoUrl: null,
           instagramUrl: 'https://instagram.com/loja',
           tiktokUrl: null,
           facebookUrl: null,
@@ -151,6 +153,7 @@ describe('AppShell', () => {
         value={{
           placeholderImageUrl: null,
           faviconUrl: null,
+          logoUrl: null,
           instagramUrl: null,
           tiktokUrl: null,
           facebookUrl: null,
@@ -167,6 +170,57 @@ describe('AppShell', () => {
     expect(screen.getAllByRole('link', { name: 'Catálogo' }).length).toBeGreaterThan(0)
     expect(screen.getByRole('navigation', { name: 'Institucional' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Sobre nós' })).toHaveAttribute('href', '/about-us')
+  })
+
+  it('com logoUrl configurado, renderiza a imagem do logo no lugar do texto "Loja"', () => {
+    render(
+      <SiteSettingsContext.Provider
+        value={{
+          placeholderImageUrl: null,
+          faviconUrl: null,
+          logoUrl: 'https://cdn.example.com/logo.svg',
+          instagramUrl: null,
+          tiktokUrl: null,
+          facebookUrl: null,
+          navbarItems: [],
+          footerColumns: [],
+        }}
+      >
+        <AppShell>
+          <p>conteúdo</p>
+        </AppShell>
+      </SiteSettingsContext.Provider>,
+    )
+
+    expect(screen.getByRole('img', { name: /logo da loja/i })).toHaveAttribute(
+      'src',
+      'https://cdn.example.com/logo.svg',
+    )
+    expect(screen.queryByText('Loja')).not.toBeInTheDocument()
+  })
+
+  it('com logoUrl null, continua mostrando o texto "Loja"', () => {
+    render(
+      <SiteSettingsContext.Provider
+        value={{
+          placeholderImageUrl: null,
+          faviconUrl: null,
+          logoUrl: null,
+          instagramUrl: null,
+          tiktokUrl: null,
+          facebookUrl: null,
+          navbarItems: [],
+          footerColumns: [],
+        }}
+      >
+        <AppShell>
+          <p>conteúdo</p>
+        </AppShell>
+      </SiteSettingsContext.Provider>,
+    )
+
+    expect(screen.getByText('Loja')).toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: /logo da loja/i })).not.toBeInTheDocument()
   })
 
   it('lets descendants trigger toasts that render through the mounted ToastViewport', async () => {

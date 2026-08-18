@@ -8,6 +8,7 @@ import type { SiteNavItem } from '@/types'
 interface SiteSettingsContextValue {
   placeholderImageUrl: string | null
   faviconUrl: string | null
+  logoUrl: string | null
   instagramUrl: string | null
   tiktokUrl: string | null
   facebookUrl: string | null
@@ -18,6 +19,7 @@ interface SiteSettingsContextValue {
 export const SiteSettingsContext = createContext<SiteSettingsContextValue>({
   placeholderImageUrl: null,
   faviconUrl: null,
+  logoUrl: null,
   instagramUrl: null,
   tiktokUrl: null,
   facebookUrl: null,
@@ -55,6 +57,7 @@ function buildFooterColumns(tree: SiteNavItem[]): FooterColumn[] {
 export function SiteSettingsProvider({ children }: { children: ReactNode }) {
   const [placeholderImageUrl, setPlaceholderImageUrl] = useState<string | null>(null)
   const [faviconUrl, setFaviconUrl] = useState<string | null>(null)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [instagramUrl, setInstagramUrl] = useState<string | null>(null)
   const [tiktokUrl, setTiktokUrl] = useState<string | null>(null)
   const [facebookUrl, setFacebookUrl] = useState<string | null>(null)
@@ -69,6 +72,7 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
       .then(([settings, navItems]: [Record<string, string> | null, SiteNavItem[]]) => {
         if (settings?.placeholderImageUrl) setPlaceholderImageUrl(settings.placeholderImageUrl)
         if (settings?.faviconUrl) setFaviconUrl(settings.faviconUrl)
+        if (settings?.logoUrl) setLogoUrl(settings.logoUrl)
         if (settings?.instagramUrl) setInstagramUrl(settings.instagramUrl)
         if (settings?.tiktokUrl) setTiktokUrl(settings.tiktokUrl)
         if (settings?.facebookUrl) setFacebookUrl(settings.facebookUrl)
@@ -85,6 +89,7 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
       value={{
         placeholderImageUrl,
         faviconUrl,
+        logoUrl,
         instagramUrl,
         tiktokUrl,
         facebookUrl,

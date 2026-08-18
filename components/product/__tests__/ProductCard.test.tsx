@@ -20,7 +20,7 @@ const mockProduct: Product = {
   description: 'An awesome mechanical keyboard',
   price: 499.9,
   stockQuantity: 10,
-  imageUrl: 'https://example.com/keyboard.jpg',
+  imageUrls: ['https://example.com/keyboard.jpg'],
   active: true,
 }
 
@@ -35,10 +35,10 @@ describe('ProductCard', () => {
     expect(screen.getByText(/499/)).toBeInTheDocument()
   })
 
-  it('renders product image when imageUrl is provided', () => {
+  it('renders product image when imageUrls is provided', () => {
     render(<ProductCard product={mockProduct} />)
     const img = screen.getByRole('img', { name: /mechanical keyboard/i })
-    expect(img).toHaveAttribute('src', mockProduct.imageUrl)
+    expect(img).toHaveAttribute('src', mockProduct.imageUrls[0])
   })
 
   it('renders category name', () => {
@@ -134,17 +134,17 @@ describe('ProductCard — promoção', () => {
 })
 
 describe('ProductCard — imagem placeholder', () => {
-  const productSemImagem: Product = { ...mockProduct, imageUrl: undefined }
+  const productSemImagem: Product = { ...mockProduct, imageUrls: [] }
 
-  it('renderiza imagem do produto quando imageUrl está presente', () => {
+  it('renderiza imagem do produto quando imageUrls está presente', () => {
     render(<ProductCard product={mockProduct} />)
     const img = screen.getByRole('img', { name: /mechanical keyboard/i })
-    expect(img).toHaveAttribute('src', mockProduct.imageUrl)
+    expect(img).toHaveAttribute('src', mockProduct.imageUrls[0])
   })
 
-  it('renderiza placeholder do contexto quando imageUrl é nulo', () => {
+  it('renderiza placeholder do contexto quando imageUrls é vazio', () => {
     render(
-      <SiteSettingsContext.Provider value={{ placeholderImageUrl: 'https://cdn.example.com/ph.jpg', faviconUrl: null, instagramUrl: null, tiktokUrl: null, facebookUrl: null, navbarItems: [], footerColumns: [] }}>
+      <SiteSettingsContext.Provider value={{ placeholderImageUrl: 'https://cdn.example.com/ph.jpg', faviconUrl: null, logoUrl: null, instagramUrl: null, tiktokUrl: null, facebookUrl: null, navbarItems: [], footerColumns: [] }}>
         <ProductCard product={productSemImagem} />
       </SiteSettingsContext.Provider>,
     )
@@ -152,7 +152,7 @@ describe('ProductCard — imagem placeholder', () => {
     expect(img).toHaveAttribute('src', 'https://cdn.example.com/ph.jpg')
   })
 
-  it('renderiza SVG de fallback quando imageUrl e placeholderImageUrl são nulos', () => {
+  it('renderiza SVG de fallback quando imageUrls e placeholderImageUrl são vazios/nulos', () => {
     render(<ProductCard product={productSemImagem} />)
     const fallback = screen.getByRole('img', { name: /mechanical keyboard/i })
     expect(fallback.tagName.toLowerCase()).toBe('div')

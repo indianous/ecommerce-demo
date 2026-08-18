@@ -33,7 +33,7 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
           description: product.description ?? '',
           price: product.price,
           categoryIds: product.categories.map((c) => c.id),
-          imageUrl: product.imageUrl ?? '',
+          imageUrls: product.imageUrls ?? [],
           slug: product.slug ?? '',
           metaTitle: product.metaTitle ?? '',
           metaDescription: product.metaDescription ?? '',

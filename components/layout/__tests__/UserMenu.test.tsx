@@ -119,6 +119,9 @@ describe('UserMenu', () => {
     const link = screen.getByRole('menuitem', { name: /dashboard/i })
     expect(link).toBeInTheDocument()
     expect(link).toHaveAttribute('href', '/dashboard/admin')
+    expect(screen.queryByRole('menuitem', { name: /^perfil$/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('menuitem', { name: /meus pedidos/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('menuitem', { name: /minhas avaliações/i })).not.toBeInTheDocument()
   })
 
   it('exibe link "Dashboard" apontando para /dashboard quando role=EMPLOYEE', async () => {
@@ -136,6 +139,9 @@ describe('UserMenu', () => {
     const link = screen.getByRole('menuitem', { name: /dashboard/i })
     expect(link).toBeInTheDocument()
     expect(link).toHaveAttribute('href', '/dashboard')
+    expect(screen.queryByRole('menuitem', { name: /^perfil$/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('menuitem', { name: /meus pedidos/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('menuitem', { name: /minhas avaliações/i })).not.toBeInTheDocument()
   })
 
   it('não exibe link "Dashboard" para role=CUSTOMER', async () => {

@@ -5,9 +5,9 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { SiteSettingsProvider, useSiteSettings } from '../SiteSettingsContext'
 
 function Probe() {
-  const { navbarItems, footerColumns } = useSiteSettings()
+  const { navbarItems, footerColumns, logoUrl } = useSiteSettings()
   return (
-    <pre data-testid="probe">{JSON.stringify({ navbarItems, footerColumns })}</pre>
+    <pre data-testid="probe">{JSON.stringify({ navbarItems, footerColumns, logoUrl })}</pre>
   )
 }
 
@@ -24,6 +24,7 @@ async function readProbe() {
   return JSON.parse(el.textContent ?? '{}') as {
     navbarItems: unknown[]
     footerColumns: unknown[]
+    logoUrl: string | null
   }
 }
 
@@ -117,5 +118,19 @@ describe('SiteSettingsProvider — navegação', () => {
 
     expect(navbarItems).toEqual([])
     expect(footerColumns).toEqual([])
+  })
+})
+
+describe('SiteSettingsProvider — logoUrl', () => {
+  it('expõe logoUrl retornado por GET /api/site/settings', async () => {
+    server.use(
+      http.get('/api/site/settings', () =>
+        HttpResponse.json({ ...emptySettings, logoUrl: 'https://cdn.example.com/logo.svg' }),
+      ),
+    )
+    renderProbe()
+    const { logoUrl } = await readProbe()
+
+    expect(logoUrl).toBe('https://cdn.example.com/logo.svg')
   })
 })

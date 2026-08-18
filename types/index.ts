@@ -141,7 +141,7 @@ export interface Product {
   description?: string
   price: number
   stockQuantity: number
-  imageUrl?: string
+  imageUrls: string[]
   ncm?: string
   cfop?: string
   commercialUnit?: string
