@@ -165,6 +165,15 @@ export interface Product {
   updatedAt: string
   averageRating?: number
   reviewCount?: number
+  isWishlisted?: boolean
+}
+
+export interface WishlistItem {
+  productId: string
+  productName: string
+  imageUrl: string | null
+  price: number
+  addedAt: string
 }
 
 export interface ProductPage {
@@ -441,6 +450,7 @@ export interface CustomerDetailResponse {
   purchaseSummary: CustomerPurchaseSummary
   recentOrders: CustomerOrderSummary[]
   reviews: CustomerReviewSummary[]
+  wishlist: WishlistItem[]
   addresses: Address[]
 }
 

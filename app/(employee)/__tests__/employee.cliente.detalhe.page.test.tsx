@@ -43,6 +43,15 @@ const mockDetail = {
       createdAt: '2026-08-05T00:00:00Z',
     },
   ],
+  wishlist: [
+    {
+      productId: 'p-2',
+      productName: 'Mouse Sem Fio',
+      imageUrl: null,
+      price: 89.9,
+      addedAt: '2026-08-12T00:00:00Z',
+    },
+  ],
   addresses: [
     {
       id: 'a-1',
@@ -179,6 +188,7 @@ describe('CustomerDetailContent', () => {
           purchaseSummary: { totalOrders: 0, totalSpent: 0, lastPurchaseAt: null },
           recentOrders: [],
           reviews: [],
+          wishlist: [],
         }),
       ),
     )
@@ -187,6 +197,18 @@ describe('CustomerDetailContent', () => {
 
     expect(screen.getByText(/nenhuma compra ainda/i)).toBeInTheDocument()
     expect(screen.getByText(/nenhuma avaliação ainda/i)).toBeInTheDocument()
+    expect(screen.getByText(/nenhum favorito ainda/i)).toBeInTheDocument()
+  })
+
+  // ── Wishlist (fase 23) ───────────────────────────────────────────────────
+
+  it('lista os produtos favoritados com nome, preço e data', async () => {
+    renderDetail()
+    await screen.findByText('João Silva')
+
+    expect(screen.getByText('Mouse Sem Fio')).toBeInTheDocument()
+    expect(screen.getByText('R$ 89,90')).toBeInTheDocument()
+    expect(screen.getByText('12/08/2026')).toBeInTheDocument()
   })
 
   it('exibe mensagem de erro quando cliente não é encontrado', async () => {

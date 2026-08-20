@@ -2,8 +2,18 @@ import { render, screen } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { ToastProvider, ToastViewport } from 'base-ds'
 import CatalogPage from '../catalog/page'
 import type { Product, ProductPage } from '@/types'
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(
+    <ToastProvider>
+      {ui}
+      <ToastViewport />
+    </ToastProvider>,
+  )
+}
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -41,7 +51,7 @@ afterAll(() => server.close())
 describe('CatalogPage', () => {
   it('renders products and pagination when there is more than one page', async () => {
     const jsx = await CatalogPage({ searchParams: Promise.resolve({}) })
-    render(jsx)
+    renderWithProviders(jsx)
 
     expect(screen.getByText('Mechanical Keyboard')).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: /pagination/i })).toBeInTheDocument()
@@ -83,7 +93,7 @@ describe('CatalogPage', () => {
     )
 
     const jsx = await CatalogPage({ searchParams: Promise.resolve({}) })
-    render(jsx)
+    renderWithProviders(jsx)
 
     expect(screen.getByRole('link', { name: 'Electronics' })).toHaveAttribute(
       'href',
@@ -93,21 +103,21 @@ describe('CatalogPage', () => {
 
   it('renderiza o campo de busca (CatalogSearch)', async () => {
     const jsx = await CatalogPage({ searchParams: Promise.resolve({}) })
-    render(jsx)
+    renderWithProviders(jsx)
 
     expect(screen.getByRole('textbox', { name: /search input/i })).toBeInTheDocument()
   })
 
   it('renderiza o seletor de ordenação (CatalogSort) com "Nome (A-Z)" selecionado por padrão', async () => {
     const jsx = await CatalogPage({ searchParams: Promise.resolve({}) })
-    render(jsx)
+    renderWithProviders(jsx)
 
     expect(screen.getByRole('combobox', { name: /ordenar por/i })).toHaveValue('NAME_ASC')
   })
 
   it('CatalogSort reflete o sort vindo de searchParams', async () => {
     const jsx = await CatalogPage({ searchParams: Promise.resolve({ sort: 'PRICE_DESC' }) })
-    render(jsx)
+    renderWithProviders(jsx)
 
     expect(screen.getByRole('combobox', { name: /ordenar por/i })).toHaveValue('PRICE_DESC')
   })
@@ -136,7 +146,7 @@ describe('CatalogPage', () => {
     const jsx = await CatalogPage({
       searchParams: Promise.resolve({ search: 'teclado', sort: 'NEWEST' }),
     })
-    render(jsx)
+    renderWithProviders(jsx)
 
     expect(screen.getByRole('link', { name: 'Electronics' })).toHaveAttribute(
       'href',
@@ -152,7 +162,7 @@ describe('CatalogPage', () => {
     )
 
     const jsx = await CatalogPage({ searchParams: Promise.resolve({}) })
-    render(jsx)
+    renderWithProviders(jsx)
 
     expect(screen.getByText('Nenhum produto encontrado.')).toBeInTheDocument()
   })

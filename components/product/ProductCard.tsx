@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { Badge, Card, Heading, Image, Rating, Text } from "base-ds";
 import { IconButton } from "@/components/ui/IconButton";
+import { WishlistButton } from "@/components/product/WishlistButton";
 import { useCartStore } from "@/stores/cart.store";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import { formatBRL } from "@/lib/format";
@@ -95,26 +96,29 @@ export function ProductCard({ product }: Props) {
           </Text>
         </div>
 
-        {inStock ? (
-          <IconButton
-            icon="ShoppingCart"
-            label="Adicionar ao carrinho"
-            variant="primary"
-            size="sm"
-            onClick={() =>
-              addItem({
-                productId: product.id,
-                name: product.name,
-                price: effectivePrice,
-                imageUrl: product.imageUrls[0],
-              })
-            }
-          />
-        ) : (
-          <Badge variant="danger" size="sm">
-            Sem estoque
-          </Badge>
-        )}
+        <div className="flex items-center gap-1">
+          <WishlistButton productId={product.id} initialWishlisted={product.isWishlisted ?? false} />
+          {inStock ? (
+            <IconButton
+              icon="ShoppingCart"
+              label="Adicionar ao carrinho"
+              variant="primary"
+              size="sm"
+              onClick={() =>
+                addItem({
+                  productId: product.id,
+                  name: product.name,
+                  price: effectivePrice,
+                  imageUrl: product.imageUrls[0],
+                })
+              }
+            />
+          ) : (
+            <Badge variant="danger" size="sm">
+              Sem estoque
+            </Badge>
+          )}
+        </div>
       </div>
     </Card>
   );

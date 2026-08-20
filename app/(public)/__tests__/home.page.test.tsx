@@ -2,8 +2,18 @@ import { render, screen } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { ToastProvider, ToastViewport } from 'base-ds'
 import Home from '../page'
 import type { Banner, Product } from '@/types'
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(
+    <ToastProvider>
+      {ui}
+      <ToastViewport />
+    </ToastProvider>,
+  )
+}
 
 function makeProduct(overrides: Partial<Product> = {}): Product {
   return {
@@ -48,7 +58,7 @@ afterAll(() => server.close())
 describe('Home page', () => {
   it('renderiza as seções de produtos populares e mais vendidos com ProductCard para cada item', async () => {
     const jsx = await Home()
-    render(jsx)
+    renderWithProviders(jsx)
 
     expect(screen.getByRole('heading', { name: /produtos populares/i })).toBeInTheDocument()
     expect(screen.getByText('Produto Popular')).toBeInTheDocument()
@@ -61,7 +71,7 @@ describe('Home page', () => {
       http.get('http://localhost:8080/api/v1/catalog/products/popular', () => HttpResponse.json([], { status: 500 })),
     )
     const jsx = await Home()
-    render(jsx)
+    renderWithProviders(jsx)
 
     expect(screen.queryByRole('heading', { name: /produtos populares/i })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /mais vendidos/i })).toBeInTheDocument()
@@ -73,7 +83,7 @@ describe('Home page', () => {
       http.get('http://localhost:8080/api/v1/catalog/products/best-selling', () => HttpResponse.json([], { status: 500 })),
     )
     const jsx = await Home()
-    render(jsx)
+    renderWithProviders(jsx)
 
     expect(screen.getByRole('heading', { name: /produtos populares/i })).toBeInTheDocument()
     expect(screen.getByText('Produto Popular')).toBeInTheDocument()
@@ -90,7 +100,7 @@ describe('Home page', () => {
       ),
     )
     const jsx = await Home()
-    render(jsx)
+    renderWithProviders(jsx)
 
     expect(screen.getAllByAltText('Banner promocional')).toHaveLength(2)
     expect(screen.getByRole('heading', { name: /produtos populares/i })).toBeInTheDocument()
@@ -102,7 +112,7 @@ describe('Home page', () => {
       http.get('http://localhost:8080/api/v1/site/banners', () => HttpResponse.json([], { status: 500 })),
     )
     const jsx = await Home()
-    render(jsx)
+    renderWithProviders(jsx)
 
     expect(screen.queryByAltText('Banner promocional')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /produtos populares/i })).toBeInTheDocument()

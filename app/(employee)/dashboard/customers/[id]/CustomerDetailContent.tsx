@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Badge, Heading, Rating, Skeleton, Text, useToast } from 'base-ds'
+import { Badge, Heading, Image, Rating, Skeleton, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { calculateAge } from '@/lib/age'
@@ -177,6 +177,30 @@ export function CustomerDetailContent({ id, backPath = '/dashboard/customers' }:
                   <Rating value={review.rating} readOnly size="sm" />
                 </div>
                 {review.comment && <Text size="sm">{review.comment}</Text>}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <Heading as="h2" size="xl" className="mb-3 mt-6">Favoritos</Heading>
+        {customer.wishlist.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhum favorito ainda.</p>
+        ) : (
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {customer.wishlist.map((item) => (
+              <li key={item.productId} className="border rounded p-3 text-sm flex flex-col gap-1">
+                {item.imageUrl && (
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.productName}
+                    aspectRatio="square"
+                    objectFit="contain"
+                    className="rounded"
+                  />
+                )}
+                <Text weight="bold" size="sm">{item.productName}</Text>
+                <Text size="sm">{formatBRL(item.price)}</Text>
+                <Text size="xs" color="muted">{formatDateTime(item.addedAt)}</Text>
               </li>
             ))}
           </ul>

@@ -1,7 +1,17 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import { ToastProvider, ToastViewport } from 'base-ds'
 import { ProductGrid } from '../ProductGrid'
 import type { Product } from '@/types'
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(
+    <ToastProvider>
+      {ui}
+      <ToastViewport />
+    </ToastProvider>,
+  )
+}
 
 function makeProduct(overrides: Partial<Product> = {}): Product {
   return {
@@ -26,7 +36,7 @@ describe('ProductGrid', () => {
       makeProduct({ id: 'prod-1', name: 'Mechanical Keyboard', slug: 'mechanical-keyboard' }),
       makeProduct({ id: 'prod-2', name: 'Wireless Mouse', slug: 'wireless-mouse' }),
     ]
-    render(<ProductGrid products={products} />)
+    renderWithProviders(<ProductGrid products={products} />)
 
     expect(screen.getByText('Mechanical Keyboard')).toBeInTheDocument()
     expect(screen.getByText('Wireless Mouse')).toBeInTheDocument()
@@ -34,7 +44,7 @@ describe('ProductGrid', () => {
   })
 
   it('com products=[], renderiza "Nenhum produto encontrado." e nenhum ProductCard', () => {
-    render(<ProductGrid products={[]} />)
+    renderWithProviders(<ProductGrid products={[]} />)
 
     expect(screen.getByText('Nenhum produto encontrado.')).toBeInTheDocument()
     expect(screen.queryAllByRole('link')).toHaveLength(0)
