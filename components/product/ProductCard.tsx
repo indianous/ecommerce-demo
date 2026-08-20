@@ -4,6 +4,7 @@ import { Badge, Card, Heading, Image, Rating, Text } from "base-ds";
 import { IconButton } from "@/components/ui/IconButton";
 import { useCartStore } from "@/stores/cart.store";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
+import { formatBRL } from "@/lib/format";
 import type { Product } from "@/types";
 
 interface Props {
@@ -41,8 +42,6 @@ export function ProductCard({ product }: Props) {
   const imageSrc = product.imageUrls[0] ?? placeholderImageUrl ?? null;
   const onPromotion = product.onPromotion ?? false;
   const effectivePrice = product.effectivePrice ?? product.price;
-  const formatBRL = (value: number) =>
-    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
   return (
     <Card variant="outlined" className="flex flex-col gap-2">

@@ -1,6 +1,7 @@
 'use client'
 
 import { Badge, Select, Table, type TableColumn } from 'base-ds'
+import { formatBRL } from '@/lib/format'
 import type { AdminOrderResponse, OrderStatus } from '@/types'
 
 interface Props {
@@ -25,9 +26,6 @@ const STATUS_BADGE_VARIANT: Record<OrderStatus, 'warning' | 'info' | 'primary' |
   DELIVERED: 'success',
   CANCELLED: 'danger',
 }
-
-const formatBRL = (value: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 
 export function OrderManagementTable({ orders, onStatusChange }: Props) {
   if (orders.length === 0) {

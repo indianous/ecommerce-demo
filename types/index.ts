@@ -407,6 +407,29 @@ export interface CustomerPage {
   last: boolean
 }
 
+export interface CustomerPurchaseSummary {
+  totalOrders: number
+  totalSpent: number
+  lastPurchaseAt: string | null
+}
+
+export interface CustomerOrderSummary {
+  id: string
+  orderNumber: number
+  status: OrderStatus
+  totalAmount: number
+  createdAt: string
+}
+
+export interface CustomerReviewSummary {
+  id: string
+  productName: string
+  productId: string
+  rating: number
+  comment: string
+  createdAt: string
+}
+
 export interface CustomerDetailResponse {
   id: string
   name: string
@@ -415,6 +438,9 @@ export interface CustomerDetailResponse {
   phone: string | null
   birthDate: string | null
   gender: Gender
+  purchaseSummary: CustomerPurchaseSummary
+  recentOrders: CustomerOrderSummary[]
+  reviews: CustomerReviewSummary[]
   addresses: Address[]
 }
 

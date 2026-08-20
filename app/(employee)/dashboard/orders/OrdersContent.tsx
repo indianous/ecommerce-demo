@@ -6,6 +6,7 @@ import { Badge, FormField, Heading, Input, Select, Skeleton, useToast } from 'ba
 import { IconButton } from '@/components/ui/IconButton'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { formatBRL } from '@/lib/format'
 import type { AdminOrderResponse, AdminOrderPage, OrderStatus } from '@/types'
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -27,9 +28,6 @@ const STATUS_BADGE_VARIANT: Record<OrderStatus, 'default' | 'success' | 'warning
 }
 
 const ALL_STATUSES: OrderStatus[] = ['PENDING', 'CONFIRMED', 'SHIPPED', 'RETURNED', 'DELIVERED', 'CANCELLED']
-
-const formatBRL = (v: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 
 export function OrdersContent({ orderBasePath = '/dashboard/orders' }: { orderBasePath?: string }) {
   const { accessToken } = useAuthStore()

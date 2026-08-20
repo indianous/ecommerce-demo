@@ -1,11 +1,12 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Heading, Skeleton, useToast } from 'base-ds'
+import { Badge, Heading, Rating, Skeleton, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { calculateAge } from '@/lib/age'
-import type { CustomerDetailResponse, Gender } from '@/types'
+import { formatBRL } from '@/lib/format'
+import type { CustomerDetailResponse, Gender, OrderStatus } from '@/types'
 
 const GENDER_LABELS: Record<Gender, string> = {
   FEMININO: 'Feminino',
@@ -14,10 +15,36 @@ const GENDER_LABELS: Record<Gender, string> = {
   PREFIRO_NAO_DIZER: 'Prefiro não dizer',
 }
 
+const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  PENDING: 'Pendente',
+  CONFIRMED: 'Confirmado',
+  SHIPPED: 'Enviado',
+  RETURNED: 'Devolvido',
+  DELIVERED: 'Entregue',
+  CANCELLED: 'Cancelado',
+}
+
+const ORDER_STATUS_BADGE_VARIANT: Record<OrderStatus, 'warning' | 'info' | 'primary' | 'success' | 'danger'> = {
+  PENDING: 'warning',
+  CONFIRMED: 'info',
+  SHIPPED: 'primary',
+  RETURNED: 'warning',
+  DELIVERED: 'success',
+  CANCELLED: 'danger',
+}
+
 function formatDate(value: string | null): string {
   if (!value) return 'Não informado'
   const [year, month, day] = value.split('-')
   return `${day}/${month}/${year}`
+}
+
+function formatDateTime(value: string | null): string {
+  // Só extrai a data (sem hora), sem passar por Date/Intl — evita
+  // deslocar o dia por conversão de fuso horário (ex.: 2026-08-10T00:00:00Z
+  // vira 09/08 em UTC-3 se convertido pro horário local).
+  if (!value) return 'Não informado'
+  return formatDate(value.slice(0, 10))
 }
 
 export function CustomerDetailContent({ id, backPath = '/dashboard/customers' }: { id: string; backPath?: string }) {
@@ -101,6 +128,55 @@ export function CustomerDetailContent({ id, backPath = '/dashboard/customers' }:
                   {a.district} — {a.city}/{a.state}
                 </p>
                 <p>CEP: {a.zipCode}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <Heading as="h2" size="xl" className="mb-3 mt-6">Histórico de compras</Heading>
+        <dl className="mb-6 grid grid-cols-3 gap-3 text-sm">
+          <div>
+            <dt className="text-muted-foreground">Total de pedidos</dt>
+            <dd>{customer.purchaseSummary.totalOrders}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Total gasto</dt>
+            <dd>{formatBRL(customer.purchaseSummary.totalSpent)}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Última compra</dt>
+            <dd>{formatDateTime(customer.purchaseSummary.lastPurchaseAt)}</dd>
+          </div>
+        </dl>
+
+        {customer.recentOrders.length === 0 ? (
+          <p className="text-sm text-muted-foreground mb-6">Nenhuma compra ainda.</p>
+        ) : (
+          <ul className="mb-6 flex flex-col gap-2">
+            {customer.recentOrders.map((order) => (
+              <li key={order.id} className="flex items-center justify-between gap-2 border rounded p-3 text-sm">
+                <span>#{order.orderNumber}</span>
+                <Badge variant={ORDER_STATUS_BADGE_VARIANT[order.status]} size="sm">
+                  {ORDER_STATUS_LABELS[order.status]}
+                </Badge>
+                <span>{formatBRL(order.totalAmount)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <Heading as="h2" size="xl" className="mb-3">Avaliações</Heading>
+        {customer.reviews.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhuma avaliação ainda.</p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {customer.reviews.map((review) => (
+              <li key={review.id} className="border rounded p-3 text-sm flex flex-col gap-1">
+                <div className="flex items-center justify-between">
+                  <Text weight="bold" size="sm">{review.productName}</Text>
+                  <Rating value={review.rating} readOnly size="sm" />
+                </div>
+                {review.comment && <Text size="sm">{review.comment}</Text>}
               </li>
             ))}
           </ul>

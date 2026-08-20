@@ -24,6 +24,25 @@ const mockDetail = {
   phone: '11999998888',
   birthDate: `${birthYear30YearsAgo}-01-01`,
   gender: 'FEMININO',
+  purchaseSummary: {
+    totalOrders: 2,
+    totalSpent: 349.8,
+    lastPurchaseAt: '2026-08-10T00:00:00Z',
+  },
+  recentOrders: [
+    { id: 'o-1', orderNumber: 1042, status: 'DELIVERED', totalAmount: 199.9, createdAt: '2026-08-10T00:00:00Z' },
+    { id: 'o-2', orderNumber: 1030, status: 'PENDING', totalAmount: 149.9, createdAt: '2026-07-01T00:00:00Z' },
+  ],
+  reviews: [
+    {
+      id: 'r-1',
+      productName: 'Teclado Mecânico',
+      productId: 'p-1',
+      rating: 5,
+      comment: 'Excelente produto',
+      createdAt: '2026-08-05T00:00:00Z',
+    },
+  ],
   addresses: [
     {
       id: 'a-1',
@@ -118,6 +137,56 @@ describe('CustomerDetailContent', () => {
 
     expect(screen.getAllByText('Não informado')).toHaveLength(3)
     expect(screen.getByText('Prefiro não dizer')).toBeInTheDocument()
+  })
+
+  // ── Histórico comercial (fase 22) ────────────────────────────────────────
+
+  it('exibe total de pedidos, total gasto formatado em BRL e data da última compra', async () => {
+    renderDetail()
+    await screen.findByText('João Silva')
+
+    expect(screen.getByText('2')).toBeInTheDocument()
+    expect(screen.getByText('R$ 349,80')).toBeInTheDocument()
+    expect(screen.getByText('10/08/2026')).toBeInTheDocument()
+  })
+
+  it('lista os pedidos recentes com número, status e valor', async () => {
+    renderDetail()
+    await screen.findByText('João Silva')
+
+    expect(screen.getByText('#1042')).toBeInTheDocument()
+    expect(screen.getByText('Entregue')).toBeInTheDocument()
+    expect(screen.getByText('R$ 199,90')).toBeInTheDocument()
+
+    expect(screen.getByText('#1030')).toBeInTheDocument()
+    expect(screen.getByText('Pendente')).toBeInTheDocument()
+    expect(screen.getByText('R$ 149,90')).toBeInTheDocument()
+  })
+
+  it('lista as avaliações com nome do produto, nota e comentário', async () => {
+    renderDetail()
+    await screen.findByText('João Silva')
+
+    expect(screen.getByText('Teclado Mecânico')).toBeInTheDocument()
+    expect(screen.getByText('Excelente produto')).toBeInTheDocument()
+  })
+
+  it('mostra estado vazio quando não há pedidos nem avaliações', async () => {
+    server.use(
+      http.get('/api/admin/customers/:id', () =>
+        HttpResponse.json({
+          ...mockDetail,
+          purchaseSummary: { totalOrders: 0, totalSpent: 0, lastPurchaseAt: null },
+          recentOrders: [],
+          reviews: [],
+        }),
+      ),
+    )
+    renderDetail()
+    await screen.findByText('João Silva')
+
+    expect(screen.getByText(/nenhuma compra ainda/i)).toBeInTheDocument()
+    expect(screen.getByText(/nenhuma avaliação ainda/i)).toBeInTheDocument()
   })
 
   it('exibe mensagem de erro quando cliente não é encontrado', async () => {
