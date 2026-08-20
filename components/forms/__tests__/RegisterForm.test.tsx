@@ -129,4 +129,45 @@ describe('RegisterForm', () => {
     await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1))
     expect(lastRequestBody?.gender).toBeFalsy()
   })
+
+  // ── Origem de tráfego (fase 25) ─────────────────────────────────────────────
+
+  it('inclui os campos de UTM lidos do cookie no payload de cadastro', async () => {
+    document.cookie = `traffic_attribution=${encodeURIComponent(
+      JSON.stringify({ utmSource: 'google', utmMedium: 'cpc', utmCampaign: 'black-friday', referrer: 'https://google.com', landingPage: '/catalog' }),
+    )}; path=/`
+
+    const user = userEvent.setup()
+    renderRegisterForm({ onSuccess: () => {} })
+
+    await user.type(screen.getByLabelText(/nome/i), 'João Victor')
+    await user.type(screen.getByLabelText(/email/i), 'new@test.com')
+    await user.type(screen.getByLabelText(/^senha/i), 'SecurePass123!')
+    await user.click(screen.getByRole('button', { name: /cadastrar/i }))
+
+    await waitFor(() => expect(lastRequestBody).not.toBeNull())
+    expect(lastRequestBody).toMatchObject({
+      utmSource: 'google',
+      utmMedium: 'cpc',
+      utmCampaign: 'black-friday',
+      referrer: 'https://google.com',
+      landingPage: '/catalog',
+    })
+
+    document.cookie = 'traffic_attribution=; path=/; max-age=0'
+  })
+
+  it('sem cookie de atribuição, envia o cadastro sem quebrar e sem campos de UTM', async () => {
+    const onSuccess = vi.fn()
+    const user = userEvent.setup()
+    renderRegisterForm({ onSuccess })
+
+    await user.type(screen.getByLabelText(/nome/i), 'João Victor')
+    await user.type(screen.getByLabelText(/email/i), 'new@test.com')
+    await user.type(screen.getByLabelText(/^senha/i), 'SecurePass123!')
+    await user.click(screen.getByRole('button', { name: /cadastrar/i }))
+
+    await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1))
+    expect(lastRequestBody?.utmSource).toBeFalsy()
+  })
 })

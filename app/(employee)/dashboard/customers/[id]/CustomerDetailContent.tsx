@@ -223,6 +223,57 @@ export function CustomerDetailContent({ id, backPath = '/dashboard/customers' }:
             <Text weight="bold" size="sm">Total: {formatBRL(customer.cartTotal)}</Text>
           </>
         )}
+
+        <Heading as="h2" size="xl" className="mb-3 mt-6">Comportamento e tráfego</Heading>
+
+        {!customer.trafficSource ? (
+          <p className="text-sm text-muted-foreground mb-6">Origem não identificada.</p>
+        ) : (
+          <dl className="mb-6 grid grid-cols-3 gap-3 text-sm">
+            <div>
+              <dt className="text-muted-foreground">Origem (UTM Source)</dt>
+              <dd>{customer.trafficSource.utmSource ?? 'Acesso direto'}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Mídia (UTM Medium)</dt>
+              <dd>{customer.trafficSource.utmMedium ?? 'Não informado'}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Campanha (UTM Campaign)</dt>
+              <dd>{customer.trafficSource.utmCampaign ?? 'Não informado'}</dd>
+            </div>
+          </dl>
+        )}
+
+        <Heading as="h2" size="xl" className="mb-3">Páginas visitadas recentes</Heading>
+        {customer.recentPageViews.length === 0 ? (
+          <p className="text-sm text-muted-foreground mb-6">Nenhuma navegação registrada.</p>
+        ) : (
+          <ul className="mb-6 flex flex-col gap-2">
+            {customer.recentPageViews.map((pageView, index) => (
+              <li key={index} className="flex items-center justify-between gap-2 border rounded p-3 text-sm">
+                <span>{pageView.path}</span>
+                <span>{formatDateTime(pageView.viewedAt)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <Heading as="h2" size="xl" className="mb-3">Produtos vistos recentemente</Heading>
+        {customer.recentlyViewedProducts.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhum produto visualizado ainda.</p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {customer.recentlyViewedProducts.map((product) => (
+              <li key={product.productId} className="flex items-center justify-between gap-2 border rounded p-3 text-sm">
+                <Link href={`/catalog/${product.productSlug}`} className="hover:underline">
+                  {product.productName}
+                </Link>
+                <span>{formatDateTime(product.viewedAt)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </main>
     </PermissionGuard>
   )

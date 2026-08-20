@@ -56,6 +56,20 @@ const mockDetail = {
     { productId: 'p-3', productName: 'Cabo USB-C', quantity: 2, unitPrice: 29.9, subtotal: 59.8 },
   ],
   cartTotal: 59.8,
+  trafficSource: {
+    utmSource: 'google',
+    utmMedium: 'cpc',
+    utmCampaign: 'black-friday',
+    referrer: 'https://google.com',
+    landingPage: '/catalog',
+    capturedAt: '2026-08-01T00:00:00Z',
+  },
+  recentPageViews: [
+    { path: '/catalog/mouse-sem-fio', viewedAt: '2026-08-14T00:00:00Z' },
+  ],
+  recentlyViewedProducts: [
+    { productId: 'p-4', productName: 'Headset Gamer', productSlug: 'headset-gamer', viewedAt: '2026-08-13T00:00:00Z' },
+  ],
   addresses: [
     {
       id: 'a-1',
@@ -195,6 +209,9 @@ describe('CustomerDetailContent', () => {
           wishlist: [],
           currentCart: [],
           cartTotal: 0,
+          trafficSource: null,
+          recentPageViews: [],
+          recentlyViewedProducts: [],
         }),
       ),
     )
@@ -205,6 +222,9 @@ describe('CustomerDetailContent', () => {
     expect(screen.getByText(/nenhuma avaliação ainda/i)).toBeInTheDocument()
     expect(screen.getByText(/nenhum favorito ainda/i)).toBeInTheDocument()
     expect(screen.getByText(/carrinho vazio no momento/i)).toBeInTheDocument()
+    expect(screen.getByText(/origem não identificada/i)).toBeInTheDocument()
+    expect(screen.getByText(/nenhuma navegação registrada/i)).toBeInTheDocument()
+    expect(screen.getByText(/nenhum produto visualizado ainda/i)).toBeInTheDocument()
   })
 
   // ── Wishlist (fase 23) ───────────────────────────────────────────────────
@@ -226,6 +246,34 @@ describe('CustomerDetailContent', () => {
 
     expect(screen.getByText('Cabo USB-C')).toBeInTheDocument()
     expect(screen.getByText('R$ 59,80')).toBeInTheDocument()
+  })
+
+  // ── Comportamento e tráfego (fase 25) ─────────────────────────────────────
+
+  it('exibe a origem de tráfego capturada no cadastro', async () => {
+    renderDetail()
+    await screen.findByText('João Silva')
+
+    expect(screen.getByText('google')).toBeInTheDocument()
+    expect(screen.getByText('cpc')).toBeInTheDocument()
+    expect(screen.getByText('black-friday')).toBeInTheDocument()
+  })
+
+  it('lista as páginas visitadas recentes com path e data', async () => {
+    renderDetail()
+    await screen.findByText('João Silva')
+
+    expect(screen.getByText('/catalog/mouse-sem-fio')).toBeInTheDocument()
+    expect(screen.getByText('14/08/2026')).toBeInTheDocument()
+  })
+
+  it('lista os produtos vistos recentemente com nome, link e data', async () => {
+    renderDetail()
+    await screen.findByText('João Silva')
+
+    const link = screen.getByRole('link', { name: /headset gamer/i })
+    expect(link).toHaveAttribute('href', '/catalog/headset-gamer')
+    expect(screen.getByText('13/08/2026')).toBeInTheDocument()
   })
 
   it('exibe mensagem de erro quando cliente não é encontrado', async () => {

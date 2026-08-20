@@ -13,7 +13,7 @@ afterEach(() => {
 })
 
 describe('POST /api/products/[id]/views (BFF route)', () => {
-  it('repassa para o backend sem Authorization e devolve 204 sem corpo em sucesso', async () => {
+  it('anônimo, repassa para o backend sem Authorization e devolve 204 sem corpo em sucesso', async () => {
     fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }))
 
     const response = await POST(new Request('http://localhost/api/products/prod-1/views', { method: 'POST' }), {
@@ -25,6 +25,21 @@ describe('POST /api/products/[id]/views (BFF route)', () => {
     expect(init.method).toBe('POST')
     expect((init.headers as Record<string, string> | undefined)?.['Authorization']).toBeUndefined()
     expect(response.status).toBe(204)
+  })
+
+  it('autenticado, repassa o header Authorization pro backend', async () => {
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }))
+
+    await POST(
+      new Request('http://localhost/api/products/prod-1/views', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer token-123' },
+      }),
+      { params: Promise.resolve({ id: 'prod-1' }) },
+    )
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect((init.headers as Record<string, string>)['Authorization']).toBe('Bearer token-123')
   })
 
   it('devolve 429 quando o rate limit do backend dispara', async () => {

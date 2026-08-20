@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ProductViewTracker } from '../ProductViewTracker'
+import { useAuthStore } from '@/stores/auth.store'
 
 const fetchMock = vi.fn()
 
@@ -12,6 +13,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals()
   fetchMock.mockReset()
+  useAuthStore.setState({ accessToken: null, isAuthenticated: false })
 })
 
 describe('ProductViewTracker', () => {
@@ -20,11 +22,23 @@ describe('ProductViewTracker', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('dispara exatamente um POST /api/products/{id}/views ao montar', () => {
+  it('anônimo, dispara POST /api/products/{id}/views sem Authorization', () => {
     render(<ProductViewTracker productId="prod-1" />)
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
-    expect(fetchMock).toHaveBeenCalledWith('/api/products/prod-1/views', { method: 'POST' })
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe('/api/products/prod-1/views')
+    expect(init.method).toBe('POST')
+    expect((init.headers as Record<string, string> | undefined)?.['Authorization']).toBeUndefined()
+  })
+
+  it('autenticado, dispara POST /api/products/{id}/views com Authorization', () => {
+    useAuthStore.setState({ accessToken: 'token-123', isAuthenticated: true })
+
+    render(<ProductViewTracker productId="prod-1" />)
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect((init.headers as Record<string, string>)['Authorization']).toBe('Bearer token-123')
   })
 
   it('remontar (nova navegação) dispara o registro de novo', () => {

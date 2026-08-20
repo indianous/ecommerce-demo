@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { FormField, Input, PasswordInput, Select, useToast } from 'base-ds'
 import { IconButton } from '@/components/ui/IconButton'
 import { useAuthStore } from '@/stores/auth.store'
+import { readAttribution } from '@/lib/traffic-attribution'
 import type { Gender } from '@/types'
 
 const GENDER_OPTIONS: { value: Gender; label: string }[] = [
@@ -51,6 +52,7 @@ export function RegisterForm({ onSuccess }: Props) {
         phone: phone || undefined,
         birthDate: birthDate || undefined,
         gender: gender || undefined,
+        ...readAttribution(),
       })
       onSuccess()
     } catch (err) {

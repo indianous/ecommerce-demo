@@ -14,6 +14,11 @@ interface RegisterData {
   phone?: string
   birthDate?: string
   gender?: Gender
+  utmSource?: string
+  utmMedium?: string
+  utmCampaign?: string
+  referrer?: string
+  landingPage?: string
 }
 
 interface AuthTokens {

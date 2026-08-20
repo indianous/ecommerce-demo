@@ -447,6 +447,27 @@ export interface CustomerCartItem {
   subtotal: number
 }
 
+export interface TrafficSourceSummary {
+  utmSource: string | null
+  utmMedium: string | null
+  utmCampaign: string | null
+  referrer: string | null
+  landingPage: string | null
+  capturedAt: string
+}
+
+export interface PageViewSummary {
+  path: string
+  viewedAt: string
+}
+
+export interface RecentlyViewedProduct {
+  productId: string
+  productName: string
+  productSlug: string
+  viewedAt: string
+}
+
 export interface CustomerDetailResponse {
   id: string
   name: string
@@ -462,6 +483,9 @@ export interface CustomerDetailResponse {
   currentCart: CustomerCartItem[]
   cartTotal: number
   addresses: Address[]
+  trafficSource: TrafficSourceSummary | null
+  recentPageViews: PageViewSummary[]
+  recentlyViewedProducts: RecentlyViewedProduct[]
 }
 
 export type AuditEntityType = 'PRODUCT' | 'CATEGORY' | 'ORDER' | 'USER' | 'ADDRESS'
