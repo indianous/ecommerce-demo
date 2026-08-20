@@ -11,6 +11,7 @@ export type EmployeePermission =
   | 'MANAGE_EMPLOYEES'
   | 'MANAGE_ORDER_STATUS_REQUESTS'
   | 'MANAGE_SITE'
+  | 'MANAGE_ANALYTICS'
 
 export type TaxRegime = 'SIMPLES_NACIONAL' | 'LUCRO_PRESUMIDO' | 'LUCRO_REAL'
 
@@ -466,6 +467,27 @@ export interface RecentlyViewedProduct {
   productName: string
   productSlug: string
   viewedAt: string
+}
+
+export interface FunnelResponse {
+  visitors: number
+  productViews: number
+  cartAdds: number
+  checkoutsStarted: number
+  purchasesCompleted: number
+  visitorToProductViewRate: number
+  productViewToCartAddRate: number
+  cartAddToCheckoutRate: number
+  checkoutToPurchaseRate: number
+}
+
+export interface ChannelConversionResponse {
+  channel: string
+  signups: number
+  buyers: number
+  conversionRate: number
+  revenue: number
+  averageOrderValue: number
 }
 
 export interface CustomerDetailResponse {

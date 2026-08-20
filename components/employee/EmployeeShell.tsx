@@ -17,6 +17,7 @@ const ALL_NAV_ITEMS = [
   { label: 'Pagamentos', href: '/dashboard/payments', perms: ['MANAGE_PAYMENTS'] as EmployeePermission[] },
   { label: 'Funcionários', href: '/dashboard/employees', perms: ['MANAGE_EMPLOYEES'] as EmployeePermission[] },
   { label: 'Site', href: '/dashboard/site', perms: ['MANAGE_SITE'] as EmployeePermission[] },
+  { label: 'Analytics', href: '/dashboard/analytics', perms: ['MANAGE_ANALYTICS'] as EmployeePermission[] },
   { label: 'Ver site', href: '/', perms: [] as EmployeePermission[], external: true },
 ]
 

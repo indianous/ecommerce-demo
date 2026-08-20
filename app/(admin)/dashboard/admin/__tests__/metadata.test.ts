@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { metadata as dashboardMetadata } from '../page'
+import { metadata as analyticsMetadata } from '../analytics/page'
 import { metadata as auditLogsMetadata } from '../audit-logs/page'
 import { metadata as changeRequestsMetadata } from '../change-requests/page'
 import { metadata as customersMetadata } from '../customers/page'
@@ -26,6 +27,7 @@ import { metadata as stockExpiringMetadata } from '../stock/expiring/page'
 describe('(admin)/dashboard/admin — metadata.title', () => {
   it.each([
     ['page.tsx', dashboardMetadata, 'Painel'],
+    ['analytics/page.tsx', analyticsMetadata, 'Analytics'],
     ['audit-logs/page.tsx', auditLogsMetadata, 'Auditoria'],
     ['change-requests/page.tsx', changeRequestsMetadata, 'Solicitações'],
     ['customers/page.tsx', customersMetadata, 'Clientes'],

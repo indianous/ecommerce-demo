@@ -16,6 +16,7 @@ const navItems = [
   { label: 'Pagamentos', href: '/dashboard/admin/payments' },
   { label: 'Auditoria', href: '/dashboard/admin/audit-logs' },
   { label: 'Site', href: '/dashboard/admin/site' },
+  { label: 'Analytics', href: '/dashboard/admin/analytics' },
   { label: 'Ver site', href: '/', external: true },
 ]
 

@@ -26,6 +26,9 @@ function makeEmployee(permissions: EmployeePermission[] = []) {
       email: 'employee@test.com',
       role: 'EMPLOYEE' as const,
       permissions,
+      phone: null,
+      birthDate: null,
+      gender: 'PREFIRO_NAO_DIZER' as const,
     },
   }
 }
@@ -126,6 +129,18 @@ describe('EmployeeShell — Sidebar (desktop)', () => {
     useAuthStore.setState(makeEmployee(['MANAGE_EMPLOYEES']))
     renderEmployeeShell()
     expect(screen.getByRole('link', { name: /funcionários/i })).toBeInTheDocument()
+  })
+
+  it('MANAGE_ANALYTICS exibe item "Analytics"', () => {
+    useAuthStore.setState(makeEmployee(['MANAGE_ANALYTICS']))
+    renderEmployeeShell()
+    expect(screen.getByRole('link', { name: /analytics/i })).toBeInTheDocument()
+  })
+
+  it('sem MANAGE_ANALYTICS não exibe item "Analytics"', () => {
+    useAuthStore.setState(makeEmployee(['MANAGE_ORDERS']))
+    renderEmployeeShell()
+    expect(screen.queryByRole('link', { name: /analytics/i })).not.toBeInTheDocument()
   })
 
   it('múltiplas permissões exibem múltiplos itens', () => {
