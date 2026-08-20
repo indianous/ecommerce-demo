@@ -56,14 +56,6 @@ describe('Home page', () => {
     expect(screen.getByText('Produto Mais Vendido')).toBeInTheDocument()
   })
 
-  it('mantém o hero e o botão "Ver catálogo"', async () => {
-    const jsx = await Home()
-    render(jsx)
-
-    expect(screen.getByRole('heading', { name: /tudo o que você precisa/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /ver catálogo/i })).toHaveAttribute('href', '/catalog')
-  })
-
   it('quando "populares" falha/retorna vazio, a seção some sem quebrar a de mais vendidos', async () => {
     server.use(
       http.get('http://localhost:8080/api/v1/catalog/products/popular', () => HttpResponse.json([], { status: 500 })),
@@ -88,7 +80,7 @@ describe('Home page', () => {
     expect(screen.queryByRole('heading', { name: /mais vendidos/i })).not.toBeInTheDocument()
   })
 
-  it('renderiza os banners cadastrados antes/junto do hero, sem quebrar as seções de produtos', async () => {
+  it('renderiza os banners cadastrados junto das seções de produtos, sem quebrá-las', async () => {
     server.use(
       http.get('http://localhost:8080/api/v1/site/banners', () =>
         HttpResponse.json([
@@ -113,7 +105,6 @@ describe('Home page', () => {
     render(jsx)
 
     expect(screen.queryByAltText('Banner promocional')).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /tudo o que você precisa/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /produtos populares/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /mais vendidos/i })).toBeInTheDocument()
   })

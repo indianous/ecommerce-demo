@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { Heading, Text } from "base-ds";
-import { IconButton } from "@/components/ui/IconButton";
-import { ProductCarousel } from "@/components/product/ProductCarousel";
+import { ProductGridSection } from "@/components/product/ProductGridSection";
 import { BannerCarousel } from "@/components/site/BannerCarousel";
 import type { Banner, Product } from "@/types";
 
@@ -41,21 +39,10 @@ export default async function Home() {
 
   return (
     <div className="flex flex-1 flex-col gap-16 px-6 py-16">
-      <BannerCarousel banners={banners} />
-
-      <div className="flex flex-col items-center justify-center gap-6 text-center">
-        <Heading as="h1" size="4xl">
-          Tudo o que você precisa, em um só lugar
-        </Heading>
-        <Text size="lg" color="muted" className="max-w-xl">
-          Explore nosso catálogo e encontre os melhores produtos com entrega rápida.
-        </Text>
-        <IconButton as="a" href="/catalog" icon="ArrowRight" label="Ver catálogo" variant="primary" />
-      </div>
-
-      <div className="mx-auto w-full max-w-5xl flex flex-col gap-12">
-        <ProductCarousel title="Produtos populares" products={popular} />
-        <ProductCarousel title="Mais vendidos" products={bestSelling} />
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-16">
+        <BannerCarousel banners={banners} />
+        <ProductGridSection title="Produtos populares" products={popular} />
+        <ProductGridSection title="Mais vendidos" products={bestSelling} />
       </div>
     </div>
   );
