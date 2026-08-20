@@ -6,6 +6,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import { ToastProvider, ToastViewport } from 'base-ds'
 import LoginPage from '../login/page'
 import { useAuthStore } from '@/stores/auth.store'
+import { useCartStore } from '@/stores/cart.store'
 
 const pushMock = vi.fn()
 
@@ -30,6 +31,7 @@ afterEach(() => {
   server.resetHandlers()
   pushMock.mockClear()
   useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
+  useCartStore.setState({ items: [] })
 })
 afterAll(() => server.close())
 
@@ -108,5 +110,25 @@ describe('LoginPage', () => {
     await user.click(screen.getByRole('button', { name: /entrar/i }))
 
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/dashboard/admin'))
+  })
+
+  it('login com itens no carrinho local dispara POST /api/cart/merge', async () => {
+    let mergeCalled = false
+    server.use(
+      http.post('/api/cart/merge', () => {
+        mergeCalled = true
+        return HttpResponse.json({ items: [], total: 0 })
+      }),
+    )
+    useCartStore.setState({ items: [{ productId: 'p-1', name: 'Produto', price: 10, quantity: 1 }] })
+
+    const user = userEvent.setup()
+    renderLoginPage()
+
+    await user.type(screen.getByLabelText(/email/i), 'valid@test.com')
+    await user.type(screen.getByLabelText(/senha/i), 'password123')
+    await user.click(screen.getByRole('button', { name: /entrar/i }))
+
+    await waitFor(() => expect(mergeCalled).toBe(true))
   })
 })

@@ -439,6 +439,14 @@ export interface CustomerReviewSummary {
   createdAt: string
 }
 
+export interface CustomerCartItem {
+  productId: string
+  productName: string
+  quantity: number
+  unitPrice: number
+  subtotal: number
+}
+
 export interface CustomerDetailResponse {
   id: string
   name: string
@@ -451,6 +459,8 @@ export interface CustomerDetailResponse {
   recentOrders: CustomerOrderSummary[]
   reviews: CustomerReviewSummary[]
   wishlist: WishlistItem[]
+  currentCart: CustomerCartItem[]
+  cartTotal: number
   addresses: Address[]
 }
 

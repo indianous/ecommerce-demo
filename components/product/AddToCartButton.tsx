@@ -1,6 +1,7 @@
 'use client'
 
-import { Badge } from 'base-ds'
+import { useState } from 'react'
+import { Badge, useToast } from 'base-ds'
 import { IconButton } from '@/components/ui/IconButton'
 import { useCartStore } from '@/stores/cart.store'
 import type { Product } from '@/types'
@@ -11,6 +12,8 @@ interface Props {
 
 export function AddToCartButton({ product }: Props) {
   const addItem = useCartStore((s) => s.addItem)
+  const { toast } = useToast()
+  const [isLoading, setIsLoading] = useState(false)
   const unavailable = !product.active || product.status === 'UNAVAILABLE'
   const inStock = product.stockQuantity > 0
 
@@ -30,19 +33,29 @@ export function AddToCartButton({ product }: Props) {
     )
   }
 
+  const handleClick = async () => {
+    setIsLoading(true)
+    try {
+      await addItem({
+        productId: product.id,
+        name: product.name,
+        price: product.effectivePrice ?? product.price,
+        imageUrl: product.imageUrls[0],
+      })
+    } catch {
+      toast({ variant: 'destructive', description: 'Erro ao adicionar ao carrinho.' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <IconButton
       icon="ShoppingCart"
       label="Adicionar ao carrinho"
       variant="primary"
-      onClick={() =>
-        addItem({
-          productId: product.id,
-          name: product.name,
-          price: product.effectivePrice ?? product.price,
-          imageUrl: product.imageUrls[0],
-        })
-      }
+      isLoading={isLoading}
+      onClick={handleClick}
     />
   )
 }

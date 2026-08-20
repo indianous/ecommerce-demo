@@ -1,73 +1,134 @@
-import { afterEach, describe, expect, it } from 'vitest'
-import { useCartStore, selectCartTotal, selectItemCount } from '../cart.store'
+import { http, HttpResponse } from 'msw'
+import { setupServer } from 'msw/node'
+import { act } from '@testing-library/react'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { useCartStore } from '../cart.store'
+import { useAuthStore } from '../auth.store'
 
-const getStore = () => useCartStore.getState()
+const serverCart = {
+  items: [
+    { productId: 'prod-1', productName: 'Teclado', imageUrl: null, unitPrice: 100, quantity: 2, subtotal: 200 },
+  ],
+  total: 200,
+}
 
-afterEach(() => {
-  useCartStore.getState().clearCart()
+const server = setupServer(
+  http.post('/api/cart/items', () => HttpResponse.json(serverCart)),
+  http.patch('/api/cart/items/:productId', () => HttpResponse.json(serverCart)),
+  http.delete('/api/cart/items/:productId', () => HttpResponse.json({ items: [], total: 0 })),
+  http.post('/api/cart/merge', () => HttpResponse.json(serverCart)),
+)
+
+beforeAll(() => server.listen())
+afterEach(async () => {
+  server.resetHandlers()
+  await act(async () => {
+    useCartStore.setState({ items: [] })
+    useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
+  })
+})
+afterAll(() => server.close())
+
+describe('cart.store — anônimo', () => {
+  it('addItem adiciona localmente, sem chamada de rede', async () => {
+    await useCartStore.getState().addItem({ productId: 'prod-1', name: 'Teclado', price: 100 })
+
+    expect(useCartStore.getState().items).toEqual([
+      { productId: 'prod-1', name: 'Teclado', price: 100, quantity: 1 },
+    ])
+  })
+
+  it('addItem duas vezes incrementa a quantidade localmente', async () => {
+    await useCartStore.getState().addItem({ productId: 'prod-1', name: 'Teclado', price: 100 })
+    await useCartStore.getState().addItem({ productId: 'prod-1', name: 'Teclado', price: 100 })
+
+    expect(useCartStore.getState().items[0].quantity).toBe(2)
+  })
+
+  it('removeItem remove localmente', async () => {
+    await useCartStore.getState().addItem({ productId: 'prod-1', name: 'Teclado', price: 100 })
+    await useCartStore.getState().removeItem('prod-1')
+
+    expect(useCartStore.getState().items).toHaveLength(0)
+  })
+
+  it('updateQuantity(0) remove o item localmente', async () => {
+    await useCartStore.getState().addItem({ productId: 'prod-1', name: 'Teclado', price: 100 })
+    await useCartStore.getState().updateQuantity('prod-1', 0)
+
+    expect(useCartStore.getState().items).toHaveLength(0)
+  })
 })
 
-describe('cart store', () => {
-  it('starts with empty cart', () => {
-    expect(getStore().items).toHaveLength(0)
+describe('cart.store — autenticado', () => {
+  beforeEach(async () => {
+    await act(async () => {
+      useAuthStore.setState({ accessToken: 'mock-token', isAuthenticated: true })
+    })
   })
 
-  it('adds item to cart with quantity 1', () => {
-    getStore().addItem({ productId: 'p1', name: 'Laptop', price: 2999 })
-    const { items } = getStore()
-    expect(items).toHaveLength(1)
-    expect(items[0].quantity).toBe(1)
-    expect(items[0].name).toBe('Laptop')
+  it('addItem chama POST /api/cart/items e atualiza items a partir da resposta do servidor', async () => {
+    await useCartStore.getState().addItem({ productId: 'prod-1', name: 'Teclado', price: 100 })
+
+    expect(useCartStore.getState().items).toEqual([
+      { productId: 'prod-1', name: 'Teclado', price: 100, quantity: 2, imageUrl: undefined },
+    ])
   })
 
-  it('increments quantity when same product is added again', () => {
-    getStore().addItem({ productId: 'p1', name: 'Laptop', price: 2999 })
-    getStore().addItem({ productId: 'p1', name: 'Laptop', price: 2999 })
-    expect(getStore().items[0].quantity).toBe(2)
+  it('addItem: falha de rede não atualiza items e propaga o erro', async () => {
+    server.use(http.post('/api/cart/items', () => HttpResponse.json({ message: 'Erro' }, { status: 500 })))
+
+    await expect(
+      useCartStore.getState().addItem({ productId: 'prod-1', name: 'Teclado', price: 100 }),
+    ).rejects.toThrow()
+
+    expect(useCartStore.getState().items).toHaveLength(0)
   })
 
-  it('keeps separate entries for different products', () => {
-    getStore().addItem({ productId: 'p1', name: 'Laptop', price: 2999 })
-    getStore().addItem({ productId: 'p2', name: 'Mouse', price: 99 })
-    expect(getStore().items).toHaveLength(2)
+  it('removeItem chama DELETE e atualiza items a partir da resposta do servidor', async () => {
+    await useCartStore.getState().removeItem('prod-1')
+    expect(useCartStore.getState().items).toHaveLength(0)
   })
 
-  it('removes item by productId', () => {
-    getStore().addItem({ productId: 'p1', name: 'Laptop', price: 2999 })
-    getStore().removeItem('p1')
-    expect(getStore().items).toHaveLength(0)
+  it('updateQuantity chama PATCH e atualiza items a partir da resposta do servidor', async () => {
+    await useCartStore.getState().updateQuantity('prod-1', 5)
+    expect(useCartStore.getState().items[0].quantity).toBe(2)
   })
 
-  it('updates item quantity', () => {
-    getStore().addItem({ productId: 'p1', name: 'Laptop', price: 2999 })
-    getStore().updateQuantity('p1', 5)
-    expect(getStore().items[0].quantity).toBe(5)
+  it('mergeOnLogin com items locais chama POST /api/cart/merge e substitui items pelo resultado', async () => {
+    await act(async () => {
+      useCartStore.setState({ items: [{ productId: 'prod-2', name: 'Mouse', price: 50, quantity: 1 }] })
+    })
+
+    await useCartStore.getState().mergeOnLogin()
+
+    expect(useCartStore.getState().items).toEqual([
+      { productId: 'prod-1', name: 'Teclado', price: 100, quantity: 2, imageUrl: undefined },
+    ])
   })
 
-  it('removes item when quantity is updated to 0', () => {
-    getStore().addItem({ productId: 'p1', name: 'Laptop', price: 2999 })
-    getStore().updateQuantity('p1', 0)
-    expect(getStore().items).toHaveLength(0)
-  })
+  it('mergeOnLogin sem items locais não faz chamada nenhuma', async () => {
+    let called = false
+    server.use(http.post('/api/cart/merge', () => {
+      called = true
+      return HttpResponse.json(serverCart)
+    }))
 
-  it('calculates total correctly', () => {
-    getStore().addItem({ productId: 'p1', name: 'Laptop', price: 2999 })
-    getStore().updateQuantity('p1', 2)
-    getStore().addItem({ productId: 'p2', name: 'Mouse', price: 99 })
-    expect(selectCartTotal(getStore())).toBe(6097)
-  })
+    await useCartStore.getState().mergeOnLogin()
 
-  it('calculates total item count', () => {
-    getStore().addItem({ productId: 'p1', name: 'Laptop', price: 2999 })
-    getStore().updateQuantity('p1', 3)
-    getStore().addItem({ productId: 'p2', name: 'Mouse', price: 99 })
-    expect(selectItemCount(getStore())).toBe(4)
+    expect(called).toBe(false)
   })
+})
 
-  it('clears all items', () => {
-    getStore().addItem({ productId: 'p1', name: 'Laptop', price: 2999 })
-    getStore().addItem({ productId: 'p2', name: 'Mouse', price: 99 })
-    getStore().clearCart()
-    expect(getStore().items).toHaveLength(0)
+describe('cart.store — clearCart', () => {
+  it('sempre só reseta o estado local, sem chamada de rede, independente de autenticação', async () => {
+    await act(async () => {
+      useCartStore.setState({ items: [{ productId: 'prod-1', name: 'Teclado', price: 100, quantity: 1 }] })
+      useAuthStore.setState({ accessToken: 'token', isAuthenticated: true })
+    })
+
+    await useCartStore.getState().clearCart()
+
+    expect(useCartStore.getState().items).toHaveLength(0)
   })
 })

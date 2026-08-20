@@ -52,6 +52,10 @@ const mockDetail = {
       addedAt: '2026-08-12T00:00:00Z',
     },
   ],
+  currentCart: [
+    { productId: 'p-3', productName: 'Cabo USB-C', quantity: 2, unitPrice: 29.9, subtotal: 59.8 },
+  ],
+  cartTotal: 59.8,
   addresses: [
     {
       id: 'a-1',
@@ -189,6 +193,8 @@ describe('CustomerDetailContent', () => {
           recentOrders: [],
           reviews: [],
           wishlist: [],
+          currentCart: [],
+          cartTotal: 0,
         }),
       ),
     )
@@ -198,6 +204,7 @@ describe('CustomerDetailContent', () => {
     expect(screen.getByText(/nenhuma compra ainda/i)).toBeInTheDocument()
     expect(screen.getByText(/nenhuma avaliação ainda/i)).toBeInTheDocument()
     expect(screen.getByText(/nenhum favorito ainda/i)).toBeInTheDocument()
+    expect(screen.getByText(/carrinho vazio no momento/i)).toBeInTheDocument()
   })
 
   // ── Wishlist (fase 23) ───────────────────────────────────────────────────
@@ -209,6 +216,16 @@ describe('CustomerDetailContent', () => {
     expect(screen.getByText('Mouse Sem Fio')).toBeInTheDocument()
     expect(screen.getByText('R$ 89,90')).toBeInTheDocument()
     expect(screen.getByText('12/08/2026')).toBeInTheDocument()
+  })
+
+  // ── Carrinho atual (fase 24) ─────────────────────────────────────────────
+
+  it('mostra os itens do carrinho atual com quantidade e subtotal', async () => {
+    renderDetail()
+    await screen.findByText('João Silva')
+
+    expect(screen.getByText('Cabo USB-C')).toBeInTheDocument()
+    expect(screen.getByText('R$ 59,80')).toBeInTheDocument()
   })
 
   it('exibe mensagem de erro quando cliente não é encontrado', async () => {

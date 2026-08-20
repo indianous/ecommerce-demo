@@ -62,6 +62,15 @@ async function fetchMe(accessToken: string): Promise<User | null> {
   }
 }
 
+async function mergeCartOnLogin(): Promise<void> {
+  try {
+    const { useCartStore } = await import('@/stores/cart.store')
+    await useCartStore.getState().mergeOnLogin()
+  } catch {
+    // carrinho local não foi mesclado — não impede o login
+  }
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
   user: null,
@@ -72,12 +81,14 @@ export const useAuthStore = create<AuthState>((set) => ({
     const tokens = await postAuth('/api/auth/login', credentials)
     const user = await fetchMe(tokens.accessToken)
     set({ accessToken: tokens.accessToken, isAuthenticated: true, role: tokens.role ?? null, user })
+    void mergeCartOnLogin()
   },
 
   register: async (data) => {
     const tokens = await postAuth('/api/auth/register', data)
     const user = await fetchMe(tokens.accessToken)
     set({ accessToken: tokens.accessToken, isAuthenticated: true, role: tokens.role ?? 'CUSTOMER', user })
+    void mergeCartOnLogin()
   },
 
   logout: () => {

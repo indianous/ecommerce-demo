@@ -205,6 +205,24 @@ export function CustomerDetailContent({ id, backPath = '/dashboard/customers' }:
             ))}
           </ul>
         )}
+
+        <Heading as="h2" size="xl" className="mb-3 mt-6">Carrinho atual</Heading>
+        {customer.currentCart.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Carrinho vazio no momento.</p>
+        ) : (
+          <>
+            <ul className="mb-3 flex flex-col gap-2">
+              {customer.currentCart.map((item) => (
+                <li key={item.productId} className="flex items-center justify-between gap-2 border rounded p-3 text-sm">
+                  <span>{item.productName}</span>
+                  <span>Qtd: {item.quantity}</span>
+                  <span>{formatBRL(item.subtotal)}</span>
+                </li>
+              ))}
+            </ul>
+            <Text weight="bold" size="sm">Total: {formatBRL(customer.cartTotal)}</Text>
+          </>
+        )}
       </main>
     </PermissionGuard>
   )

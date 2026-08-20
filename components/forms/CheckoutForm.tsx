@@ -44,10 +44,6 @@ export function CheckoutForm({ addresses }: Props) {
         body: JSON.stringify({
           addressId: selectedAddressId,
           paymentMethod,
-          items: items.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-          })),
         }),
       })
 

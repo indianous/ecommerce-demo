@@ -1,9 +1,8 @@
 "use client";
 import Link from "next/link";
 import { Badge, Card, Heading, Image, Rating, Text } from "base-ds";
-import { IconButton } from "@/components/ui/IconButton";
+import { AddToCartButton } from "@/components/product/AddToCartButton";
 import { WishlistButton } from "@/components/product/WishlistButton";
-import { useCartStore } from "@/stores/cart.store";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import { formatBRL } from "@/lib/format";
 import type { Product } from "@/types";
@@ -37,9 +36,7 @@ function ImagePlaceholder({ name }: { name: string }) {
 }
 
 export function ProductCard({ product }: Props) {
-  const addItem = useCartStore((s) => s.addItem);
   const { placeholderImageUrl } = useSiteSettings();
-  const inStock = product.stockQuantity > 0;
   const imageSrc = product.imageUrls[0] ?? placeholderImageUrl ?? null;
   const onPromotion = product.onPromotion ?? false;
   const effectivePrice = product.effectivePrice ?? product.price;
@@ -98,26 +95,7 @@ export function ProductCard({ product }: Props) {
 
         <div className="flex items-center gap-1">
           <WishlistButton productId={product.id} initialWishlisted={product.isWishlisted ?? false} />
-          {inStock ? (
-            <IconButton
-              icon="ShoppingCart"
-              label="Adicionar ao carrinho"
-              variant="primary"
-              size="sm"
-              onClick={() =>
-                addItem({
-                  productId: product.id,
-                  name: product.name,
-                  price: effectivePrice,
-                  imageUrl: product.imageUrls[0],
-                })
-              }
-            />
-          ) : (
-            <Badge variant="danger" size="sm">
-              Sem estoque
-            </Badge>
-          )}
+          <AddToCartButton product={product} />
         </div>
       </div>
     </Card>

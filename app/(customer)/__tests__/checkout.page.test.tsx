@@ -21,6 +21,12 @@ const mockAddress: Address = {
 
 const server = setupServer(
   http.get('/api/addresses', () => HttpResponse.json([mockAddress])),
+  http.post('/api/cart/items', () =>
+    HttpResponse.json({
+      items: [{ productId: 'prod-1', productName: 'Laptop', imageUrl: null, unitPrice: 2999, quantity: 1, subtotal: 2999 }],
+      total: 2999,
+    }),
+  ),
 )
 
 beforeAll(() => server.listen())
@@ -33,9 +39,11 @@ afterEach(async () => {
 })
 afterAll(() => server.close())
 
-beforeEach(() => {
+beforeEach(async () => {
   useAuthStore.setState({ accessToken: 'mock-token', isAuthenticated: true })
-  useCartStore.getState().addItem({ productId: 'prod-1', name: 'Laptop', price: 2999 })
+  await act(async () => {
+    await useCartStore.getState().addItem({ productId: 'prod-1', name: 'Laptop', price: 2999 })
+  })
 })
 
 function renderCheckoutPage() {
