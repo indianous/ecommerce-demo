@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { proxyJson } from '@/lib/api-proxy'
 
 const API = process.env.API_INTERNAL_URL ?? 'http://localhost:8080/api/v1'
 
@@ -14,6 +15,5 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   })
 
   if (res.status === 204) return new Response(null, { status: 204 })
-  const data = await res.json()
-  return Response.json(data, { status: res.status })
+  return proxyJson(res)
 }

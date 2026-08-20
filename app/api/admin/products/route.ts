@@ -1,4 +1,5 @@
 import type { NextRequest } from 'next/server'
+import { proxyJson } from '@/lib/api-proxy'
 
 const API = process.env.API_INTERNAL_URL ?? 'http://localhost:8080/api/v1'
 
@@ -12,8 +13,7 @@ export async function GET(request: NextRequest) {
     },
   })
 
-  const data = await res.json()
-  return Response.json(data, { status: res.status })
+  return proxyJson(res)
 }
 
 export async function POST(request: NextRequest) {
@@ -29,6 +29,5 @@ export async function POST(request: NextRequest) {
     body: JSON.stringify(body),
   })
 
-  const data = await res.json()
-  return Response.json(data, { status: res.status })
+  return proxyJson(res)
 }
