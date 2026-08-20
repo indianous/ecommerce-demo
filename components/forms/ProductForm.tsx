@@ -1,6 +1,7 @@
 'use client'
 
-import { Card, Checkbox, FileUpload, FormField, Input, NumberInput, Select } from 'base-ds'
+import { useRef } from 'react'
+import { Button, Card, Checkbox, FileUpload, FormField, Image, Input, NumberInput, Select, Text } from 'base-ds'
 import { IconButton } from '@/components/ui/IconButton'
 import type { Category, MerchandiseOrigin } from '@/types'
 

@@ -11,6 +11,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     slug: 'mechanical-keyboard',
     price: 499.9,
     stockQuantity: 10,
+    imageUrls: [],
     active: true,
     status: 'AVAILABLE',
     createdAt: '2026-06-29T00:00:00',
