@@ -1,6 +1,6 @@
 'use client'
 import { create } from 'zustand'
-import type { User, UserRole } from '@/types'
+import type { Gender, User, UserRole } from '@/types'
 
 interface LoginCredentials {
   email: string
@@ -11,6 +11,9 @@ interface RegisterData {
   name: string
   email: string
   password: string
+  phone?: string
+  birthDate?: string
+  gender?: Gender
 }
 
 interface AuthTokens {

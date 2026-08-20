@@ -12,11 +12,18 @@ import { ToastProvider } from 'base-ds'
 import { CustomerDetailContent } from '../dashboard/customers/[id]/CustomerDetailContent'
 import { useAuthStore } from '@/stores/auth.store'
 
+// Nascido em 1º de janeiro há 30 anos: o aniversário já passou em qualquer
+// dia do ano em que o teste rodar, então a idade calculada é sempre 30.
+const birthYear30YearsAgo = new Date().getFullYear() - 30
+
 const mockDetail = {
   id: 'c-1',
   name: 'João Silva',
   email: 'joao@test.com',
   createdAt: '2024-01-01T00:00:00Z',
+  phone: '11999998888',
+  birthDate: `${birthYear30YearsAgo}-01-01`,
+  gender: 'FEMININO',
   addresses: [
     {
       id: 'a-1',
@@ -54,7 +61,7 @@ beforeEach(() => {
   useAuthStore.setState({
     accessToken: 'mock-token',
     isAuthenticated: true,
-    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_CUSTOMERS'] },
+    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_CUSTOMERS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' },
   })
 })
 
@@ -87,6 +94,32 @@ describe('CustomerDetailContent', () => {
     expect(link).toHaveAttribute('href', '/dashboard/customers')
   })
 
+  // ── Dados pessoais (fase 21) ─────────────────────────────────────────────
+
+  it('exibe telefone, data de nascimento, idade calculada e gênero mapeado', async () => {
+    renderDetail()
+    await screen.findByText('João Silva')
+
+    expect(screen.getByText('11999998888')).toBeInTheDocument()
+    expect(screen.getByText('01/01/' + birthYear30YearsAgo)).toBeInTheDocument()
+    expect(screen.getByText('30')).toBeInTheDocument()
+    expect(screen.getByText('Feminino')).toBeInTheDocument()
+    expect(screen.queryByText('FEMININO')).not.toBeInTheDocument()
+  })
+
+  it('exibe "Não informado" para telefone, data de nascimento e idade quando ausentes', async () => {
+    server.use(
+      http.get('/api/admin/customers/:id', () =>
+        HttpResponse.json({ ...mockDetail, phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' }),
+      ),
+    )
+    renderDetail()
+    await screen.findByText('João Silva')
+
+    expect(screen.getAllByText('Não informado')).toHaveLength(3)
+    expect(screen.getByText('Prefiro não dizer')).toBeInTheDocument()
+  })
+
   it('exibe mensagem de erro quando cliente não é encontrado', async () => {
     renderDetail('nao-existe')
     expect(await screen.findByText(/não encontrado/i)).toBeInTheDocument()
@@ -96,7 +129,7 @@ describe('CustomerDetailContent', () => {
     useAuthStore.setState({
       accessToken: 'tok',
       isAuthenticated: true,
-      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] },
+      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' },
     })
     await act(async () => {
       render(<ToastProvider><CustomerDetailContent id="c-1" /></ToastProvider>)

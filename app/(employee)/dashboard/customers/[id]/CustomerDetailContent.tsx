@@ -4,7 +4,21 @@ import Link from 'next/link'
 import { Heading, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
-import type { CustomerDetailResponse } from '@/types'
+import { calculateAge } from '@/lib/age'
+import type { CustomerDetailResponse, Gender } from '@/types'
+
+const GENDER_LABELS: Record<Gender, string> = {
+  FEMININO: 'Feminino',
+  MASCULINO: 'Masculino',
+  NAO_BINARIO: 'Não-binário',
+  PREFIRO_NAO_DIZER: 'Prefiro não dizer',
+}
+
+function formatDate(value: string | null): string {
+  if (!value) return 'Não informado'
+  const [year, month, day] = value.split('-')
+  return `${day}/${month}/${year}`
+}
 
 export function CustomerDetailContent({ id, backPath = '/dashboard/customers' }: { id: string; backPath?: string }) {
   const { accessToken } = useAuthStore()
@@ -51,7 +65,27 @@ export function CustomerDetailContent({ id, backPath = '/dashboard/customers' }:
 
         <p className="text-sm text-muted-foreground mb-6">{customer.email}</p>
 
-        <Heading as="h2" size="lg" className="mb-3">Endereços</Heading>
+        <Heading as="h2" size="xl" className="mb-3">Dados pessoais</Heading>
+        <dl className="mb-6 grid grid-cols-2 gap-3 text-sm">
+          <div>
+            <dt className="text-muted-foreground">Telefone</dt>
+            <dd>{customer.phone ?? 'Não informado'}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Data de nascimento</dt>
+            <dd>{formatDate(customer.birthDate)}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Idade</dt>
+            <dd>{calculateAge(customer.birthDate) ?? 'Não informado'}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Gênero</dt>
+            <dd>{GENDER_LABELS[customer.gender]}</dd>
+          </div>
+        </dl>
+
+        <Heading as="h2" size="xl" className="mb-3">Endereços</Heading>
 
         {customer.addresses.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nenhum endereço cadastrado.</p>

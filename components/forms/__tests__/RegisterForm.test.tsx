@@ -15,9 +15,12 @@ function renderRegisterForm(props: React.ComponentProps<typeof RegisterForm>) {
   )
 }
 
+let lastRequestBody: Record<string, unknown> | null = null
+
 const server = setupServer(
   http.post('/api/auth/register', async ({ request }) => {
     const body = (await request.json()) as { email: string }
+    lastRequestBody = body
     if (body.email === 'taken@test.com') {
       return HttpResponse.json({ message: 'Email já cadastrado' }, { status: 409 })
     }
@@ -29,7 +32,10 @@ const server = setupServer(
 )
 
 beforeAll(() => server.listen())
-afterEach(() => server.resetHandlers())
+afterEach(() => {
+  server.resetHandlers()
+  lastRequestBody = null
+})
 afterAll(() => server.close())
 
 describe('RegisterForm', () => {
@@ -78,5 +84,49 @@ describe('RegisterForm', () => {
     await user.click(screen.getByRole('button', { name: /cadastrar/i }))
 
     await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1))
+  })
+
+  // ── Dados pessoais (fase 21) ───────────────────────────────────────────────
+
+  it('renders phone, birth date and gender fields as optional', () => {
+    renderRegisterForm({ onSuccess: () => {} })
+
+    expect(screen.getByLabelText(/telefone/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/data de nascimento/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/gênero/i)).toBeInTheDocument()
+  })
+
+  it('includes phone, birthDate and gender in the payload when filled', async () => {
+    const user = userEvent.setup()
+    renderRegisterForm({ onSuccess: () => {} })
+
+    await user.type(screen.getByLabelText(/nome/i), 'João Victor')
+    await user.type(screen.getByLabelText(/email/i), 'new@test.com')
+    await user.type(screen.getByLabelText(/^senha/i), 'SecurePass123!')
+    await user.type(screen.getByLabelText(/telefone/i), '11999998888')
+    await user.type(screen.getByLabelText(/data de nascimento/i), '1996-03-20')
+    await user.selectOptions(screen.getByLabelText(/gênero/i), 'FEMININO')
+    await user.click(screen.getByRole('button', { name: /cadastrar/i }))
+
+    await waitFor(() => expect(lastRequestBody).not.toBeNull())
+    expect(lastRequestBody).toMatchObject({
+      phone: '11999998888',
+      birthDate: '1996-03-20',
+      gender: 'FEMININO',
+    })
+  })
+
+  it('submits successfully without phone, birthDate or gender filled', async () => {
+    const onSuccess = vi.fn()
+    const user = userEvent.setup()
+    renderRegisterForm({ onSuccess })
+
+    await user.type(screen.getByLabelText(/nome/i), 'João Victor')
+    await user.type(screen.getByLabelText(/email/i), 'new@test.com')
+    await user.type(screen.getByLabelText(/^senha/i), 'SecurePass123!')
+    await user.click(screen.getByRole('button', { name: /cadastrar/i }))
+
+    await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1))
+    expect(lastRequestBody?.gender).toBeFalsy()
   })
 })

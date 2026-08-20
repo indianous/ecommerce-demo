@@ -8,7 +8,16 @@ import ProfilePage from '../profile/page'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Address, User } from '@/types'
 
-const mockUser: User = { id: 'user-1', name: 'João Victor', email: 'joao@test.com', role: 'CUSTOMER' }
+const mockUser: User = {
+  id: 'user-1',
+  name: 'João Victor',
+  email: 'joao@test.com',
+  role: 'CUSTOMER',
+  permissions: [],
+  phone: null,
+  birthDate: null,
+  gender: 'PREFIRO_NAO_DIZER',
+}
 
 const mockAddress: Address = {
   id: 'addr-1',
@@ -123,6 +132,34 @@ describe('ProfilePage', () => {
       expect(screen.getByLabelText(/nome/i)).toHaveValue('João Victor (Servidor)')
       expect(screen.getByLabelText(/email/i)).toHaveValue('joao.servidor@test.com')
     })
+  })
+
+  it('salva phone/birthDate/gender no PATCH /api/auth/me, sem age', async () => {
+    let capturedBody: Record<string, unknown> | null = null
+    server.use(
+      http.patch('/api/auth/me', async ({ request }) => {
+        capturedBody = (await request.json()) as Record<string, unknown>
+        return HttpResponse.json({ ...mockUser, ...capturedBody })
+      }),
+    )
+
+    const user = userEvent.setup()
+    renderProfilePage()
+
+    await screen.findByDisplayValue('João Victor')
+
+    await user.type(screen.getByLabelText(/telefone/i), '11999998888')
+    await user.type(screen.getByLabelText(/data de nascimento/i), '1996-03-20')
+    await user.selectOptions(screen.getByLabelText(/gênero/i), 'FEMININO')
+    await user.click(screen.getByRole('button', { name: /salvar/i }))
+
+    await waitFor(() => expect(capturedBody).not.toBeNull())
+    expect(capturedBody).toMatchObject({
+      phone: '11999998888',
+      birthDate: '1996-03-20',
+      gender: 'FEMININO',
+    })
+    expect(capturedBody).not.toHaveProperty('age')
   })
 
   it('popula formulário quando accessToken é setado após o mount (hidratação)', async () => {

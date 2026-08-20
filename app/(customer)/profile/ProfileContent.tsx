@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Heading, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
-import type { Address, User } from '@/types'
+import type { Address, Gender, User } from '@/types'
 import { ChangePasswordForm } from '@/components/forms/ChangePasswordForm'
 import { ProfileDataForm } from '@/components/forms/ProfileDataForm'
 import { AddressForm, EMPTY_ADDRESS, type NewAddress } from '@/components/forms/AddressForm'
@@ -14,6 +14,9 @@ export function ProfileContent() {
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [birthDate, setBirthDate] = useState('')
+  const [gender, setGender] = useState<Gender>('PREFIRO_NAO_DIZER')
   const [savingUser, setSavingUser] = useState(false)
 
   const [addresses, setAddresses] = useState<Address[]>([])
@@ -28,6 +31,9 @@ export function ProfileContent() {
         if (data) {
           setName(data.name)
           setEmail(data.email)
+          setPhone(data.phone ?? '')
+          setBirthDate(data.birthDate ?? '')
+          setGender(data.gender)
         }
       })
     fetch('/api/addresses', { headers: { Authorization: `Bearer ${accessToken}` } })
@@ -43,12 +49,15 @@ export function ProfileContent() {
       const res = await fetch('/api/auth/me', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ name, email }),
+        body: JSON.stringify({ name, email, phone: phone || null, birthDate: birthDate || null, gender }),
       })
       if (!res.ok) throw new Error()
       const updated: User = await res.json()
       setName(updated.name)
       setEmail(updated.email)
+      setPhone(updated.phone ?? '')
+      setBirthDate(updated.birthDate ?? '')
+      setGender(updated.gender)
       setUser(updated)
       toast({ variant: 'success', description: 'Dados atualizados com sucesso.' })
     } catch {
@@ -96,8 +105,14 @@ export function ProfileContent() {
         <ProfileDataForm
           name={name}
           email={email}
+          phone={phone}
+          birthDate={birthDate}
+          gender={gender}
           onNameChange={setName}
           onEmailChange={setEmail}
+          onPhoneChange={setPhone}
+          onBirthDateChange={setBirthDate}
+          onGenderChange={setGender}
           onSubmit={handleSaveUser}
           saving={savingUser}
         />

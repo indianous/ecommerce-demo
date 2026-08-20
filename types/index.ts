@@ -89,12 +89,17 @@ export interface SiteNavItem {
   children?: SiteNavItem[]
 }
 
+export type Gender = 'FEMININO' | 'MASCULINO' | 'NAO_BINARIO' | 'PREFIRO_NAO_DIZER'
+
 export interface User {
   id: string
   name: string
   email: string
   role: UserRole
   permissions: EmployeePermission[]
+  phone: string | null
+  birthDate: string | null
+  gender: Gender
 }
 
 export interface Address {
@@ -407,6 +412,9 @@ export interface CustomerDetailResponse {
   name: string
   email: string
   createdAt: string
+  phone: string | null
+  birthDate: string | null
+  gender: Gender
   addresses: Address[]
 }
 

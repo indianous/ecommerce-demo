@@ -1,8 +1,16 @@
 'use client'
 import { useState } from 'react'
-import { FormField, Input, PasswordInput, useToast } from 'base-ds'
+import { FormField, Input, PasswordInput, Select, useToast } from 'base-ds'
 import { IconButton } from '@/components/ui/IconButton'
 import { useAuthStore } from '@/stores/auth.store'
+import type { Gender } from '@/types'
+
+const GENDER_OPTIONS: { value: Gender; label: string }[] = [
+  { value: 'FEMININO', label: 'Feminino' },
+  { value: 'MASCULINO', label: 'Masculino' },
+  { value: 'NAO_BINARIO', label: 'Não-binário' },
+  { value: 'PREFIRO_NAO_DIZER', label: 'Prefiro não dizer' },
+]
 
 interface Props {
   onSuccess: () => void
@@ -14,6 +22,9 @@ export function RegisterForm({ onSuccess }: Props) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [phone, setPhone] = useState('')
+  const [birthDate, setBirthDate] = useState('')
+  const [gender, setGender] = useState<Gender | ''>('')
   const [nameError, setNameError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -33,7 +44,14 @@ export function RegisterForm({ onSuccess }: Props) {
     setIsLoading(true)
 
     try {
-      await register({ name, email, password })
+      await register({
+        name,
+        email,
+        password,
+        phone: phone || undefined,
+        birthDate: birthDate || undefined,
+        gender: gender || undefined,
+      })
       onSuccess()
     } catch (err) {
       toast({
@@ -76,6 +94,39 @@ export function RegisterForm({ onSuccess }: Props) {
           onChange={(e) => setPassword(e.target.value)}
           disabled={isLoading}
           autoComplete="new-password"
+        />
+      </FormField>
+
+      <FormField label="Telefone" id="phone" hint="Opcional">
+        <Input
+          id="phone"
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          disabled={isLoading}
+          autoComplete="tel"
+        />
+      </FormField>
+
+      <FormField label="Data de nascimento" id="birthDate" hint="Opcional">
+        <Input
+          id="birthDate"
+          type="date"
+          value={birthDate}
+          onChange={(e) => setBirthDate(e.target.value)}
+          disabled={isLoading}
+          max={new Date().toISOString().slice(0, 10)}
+        />
+      </FormField>
+
+      <FormField label="Gênero" id="gender" hint="Opcional">
+        <Select
+          id="gender"
+          value={gender}
+          onChange={(e) => setGender(e.target.value as Gender | '')}
+          disabled={isLoading}
+          placeholder="Selecione"
+          options={GENDER_OPTIONS}
         />
       </FormField>
 
