@@ -2,7 +2,13 @@
 
 ## Contexto
 
-Par do plano de backend [[26-analytics-dashboard]]. Com a permissão
+Par do plano de backend [[26-analytics-dashboard]] — dependências (fases
+24 e 25) confirmadas em produção em 2026-08-20, e as duas decisões em
+aberto do plano de backend (funil pós-login mantido como está, janela
+padrão de 30 dias) já foram confirmadas pelo usuário na mesma data. Este
+plano está pronto pra implementar.
+
+Com a permissão
 `MANAGE_ANALYTICS` (decisão confirmada no plano de backend, substitui a
 ideia inicial de "só ADMIN"), esta tela segue o mesmo padrão de toda
 seção do dashboard controlada por permissão granular: existe em **dois**
@@ -129,7 +135,12 @@ lado admin)
 - Funil: visualização das 5 etapas com contagem e taxa de conversão entre
   cada uma — forma exata (barras horizontais decrescentes, ou um funil
   propriamente dito) definida seguindo a skill `dataviz` na hora de
-  implementar, não fixada aqui de antemão.
+  implementar, não fixada aqui de antemão. As etapas "Visualizou produto"
+  e "Adicionou ao carrinho" precisam de uma indicação visual (ex. ícone/
+  tooltip de info) explicando que só refletem clientes já cadastrados,
+  não visitante 100% anônimo (decisão confirmada no plano de backend) —
+  não esconder essa limitação atrás de um número que pareceria mais
+  completo do que é.
 - Conversão por canal: tabela ou gráfico de barras (cadastros vs.
   compradores por canal) + colunas de receita e ticket médio — mesma
   ressalva, forma final decidida com a skill `dataviz`.
