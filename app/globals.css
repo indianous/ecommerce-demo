@@ -78,6 +78,22 @@
   --color-info-muted-fg: var(--color-info-muted-fg);
   --color-info-border: var(--color-info-border);
 
+  --color-chart-1: var(--color-chart-1);
+  --color-chart-2: var(--color-chart-2);
+  --color-chart-3: var(--color-chart-3);
+  --color-chart-4: var(--color-chart-4);
+
+  --color-chart-sequential-250: var(--color-chart-sequential-250);
+  --color-chart-sequential-300: var(--color-chart-sequential-300);
+  --color-chart-sequential-350: var(--color-chart-sequential-350);
+  --color-chart-sequential-400: var(--color-chart-sequential-400);
+  --color-chart-sequential-450: var(--color-chart-sequential-450);
+  --color-chart-sequential-500: var(--color-chart-sequential-500);
+  --color-chart-sequential-550: var(--color-chart-sequential-550);
+  --color-chart-sequential-600: var(--color-chart-sequential-600);
+  --color-chart-sequential-650: var(--color-chart-sequential-650);
+  --color-chart-sequential-700: var(--color-chart-sequential-700);
+
   --radius-none: var(--radius-none);
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);

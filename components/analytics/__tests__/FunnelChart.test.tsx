@@ -1,5 +1,4 @@
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { FunnelChart } from '../FunnelChart'
 import type { FunnelResponse } from '@/types'
@@ -20,35 +19,40 @@ describe('FunnelChart', () => {
   it('exibe as 5 etapas com seus valores', () => {
     render(<FunnelChart data={data} />)
 
-    expect(screen.getByText(/visitantes/i)).toBeInTheDocument()
-    expect(screen.getByText('100')).toBeInTheDocument()
-    expect(screen.getByText(/visualizou produto/i)).toBeInTheDocument()
-    expect(screen.getByText('50')).toBeInTheDocument()
-    expect(screen.getByText(/adicionou ao carrinho/i)).toBeInTheDocument()
-    expect(screen.getByText('20')).toBeInTheDocument()
-    expect(screen.getByText(/iniciou checkout/i)).toBeInTheDocument()
-    expect(screen.getByText('10')).toBeInTheDocument()
-    expect(screen.getByText(/comprou/i)).toBeInTheDocument()
-    expect(screen.getByText('5')).toBeInTheDocument()
+    const body = screen.getByTestId('funnel-body')
+    expect(within(body).getByText(/visitantes/i)).toBeInTheDocument()
+    expect(within(body).getByText(/visualizou produto/i)).toBeInTheDocument()
+    expect(within(body).getByText(/adicionou ao carrinho/i)).toBeInTheDocument()
+    expect(within(body).getByText(/iniciou checkout/i)).toBeInTheDocument()
+    expect(within(body).getByText(/comprou/i)).toBeInTheDocument()
+
+    expect(body).toHaveTextContent('100')
+    expect(body).toHaveTextContent('50')
+    expect(body).toHaveTextContent('20')
+    expect(body).toHaveTextContent('10')
+    expect(body).toHaveTextContent('5')
   })
 
-  it('exibe a taxa de conversão entre etapas consecutivas', () => {
+  it('exibe a queda percentual entre etapas consecutivas', () => {
     render(<FunnelChart data={data} />)
 
-    expect(screen.getByText('50%')).toBeInTheDocument()
-    expect(screen.getByText('40%')).toBeInTheDocument()
+    const body = screen.getByTestId('funnel-body')
+    // productViews (50) vem de visitors (100): queda de 50%
+    expect(within(body).getByText(/visualizou produto/i).closest('button')).toHaveTextContent(
+      '-50% vs anterior',
+    )
+    // cartAdds (20) vem de productViews (50): queda de 60%
+    expect(within(body).getByText(/adicionou ao carrinho/i).closest('button')).toHaveTextContent(
+      '-60% vs anterior',
+    )
   })
 
   it('sinaliza que "Visualizou produto" e "Adicionou ao carrinho" refletem só clientes cadastrados', () => {
     render(<FunnelChart data={data} />)
 
-    const productViewsRow = screen.getByText(/visualizou produto/i).closest('[data-stage]')
-    const cartAddsRow = screen.getByText(/adicionou ao carrinho/i).closest('[data-stage]')
-    expect(productViewsRow).toHaveTextContent(/só clientes cadastrados/i)
-    expect(cartAddsRow).toHaveTextContent(/só clientes cadastrados/i)
-
-    const visitorsRow = screen.getByText(/^visitantes$/i).closest('[data-stage]')
-    expect(visitorsRow).not.toHaveTextContent(/só clientes cadastrados/i)
+    expect(
+      screen.getByText(/visualizou produto e adicionou ao carrinho refletem só clientes cadastrados/i),
+    ).toBeInTheDocument()
   })
 
   it('sem visitantes no período, não quebra (barras zeradas)', () => {
@@ -57,17 +61,5 @@ describe('FunnelChart', () => {
       visitorToProductViewRate: 0, productViewToCartAddRate: 0, cartAddToCheckoutRate: 0, checkoutToPurchaseRate: 0,
     }
     expect(() => render(<FunnelChart data={empty} />)).not.toThrow()
-    expect(screen.getAllByText('0')).toHaveLength(5)
-  })
-
-  it('alterna para visualização em tabela', async () => {
-    const user = userEvent.setup()
-    render(<FunnelChart data={data} />)
-
-    await user.click(screen.getByRole('button', { name: /ver como tabela/i }))
-
-    const table = screen.getByRole('table')
-    expect(table).toHaveTextContent('Visitantes')
-    expect(table).toHaveTextContent('100')
   })
 })

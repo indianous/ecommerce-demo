@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FormField, Input, Select } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, FormField, Icon, Input, Select } from 'base-ds'
 import type { FiscalCompanyData, TaxRegime } from '@/types'
 
 const TAX_REGIME_OPTIONS: { value: TaxRegime; label: string }[] = [
@@ -167,7 +166,7 @@ export function FiscalCompanyDataForm({ data, onChange, onSave, saving, saveLabe
         />
       </FormField>
 
-      <IconButton type="submit" icon="Save" label={saveLabel} variant="primary" isLoading={saving} className="self-start" />
+      <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={saveLabel} type="submit" variant="primary" isLoading={saving} className="self-start" />
     </form>
   )
 }

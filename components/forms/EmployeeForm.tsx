@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Input } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, Icon, Input } from 'base-ds'
 import type { EmployeeFormData } from '@/types'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -49,14 +48,8 @@ export function EmployeeForm({ onSave, onCancel, saveLabel = 'Salvar' }: Props) 
         />
       </div>
       <div className="flex gap-2 justify-end">
-        <IconButton icon="X" label="Cancelar" variant="secondary" onClick={onCancel} />
-        <IconButton
-          icon="Save"
-          label={saveLabel}
-          variant="primary"
-          onClick={() => onSave({ name, email, password })}
-          disabled={!canSubmit}
-        />
+        <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" variant="secondary" onClick={onCancel} />
+        <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={saveLabel} variant="primary" onClick={() => onSave({ name, email, password })} disabled={!canSubmit} />
       </div>
     </div>
   )

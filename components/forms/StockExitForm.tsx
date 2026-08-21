@@ -1,5 +1,4 @@
-import { FormField, Select, Text } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, FormField, Icon, Select, Text } from 'base-ds'
 import type { StockLot, StockMovementReason } from '@/types'
 
 interface Props {
@@ -94,7 +93,7 @@ export function StockExitForm({
       </FormField>
 
       <div>
-        <IconButton type="submit" icon="Save" label={saveLabel} variant="primary" disabled={!canSave} isLoading={saving} />
+        <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={saveLabel} type="submit" variant="primary" disabled={!canSave} isLoading={saving} />
       </div>
     </form>
   )

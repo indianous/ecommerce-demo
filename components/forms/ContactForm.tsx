@@ -1,5 +1,4 @@
-import { FormField, Input } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, FormField, Icon, Input, Textarea } from 'base-ds'
 
 interface Props {
   description: string
@@ -33,12 +32,12 @@ export function ContactForm({
       className="flex flex-col gap-4"
     >
       <FormField label="Descrição" id="contact-description">
-        <textarea
+        <Textarea
           id="contact-description"
           value={description}
           onChange={(e) => onDescription(e.target.value)}
           rows={6}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring"
+          className="font-mono"
         />
       </FormField>
 
@@ -51,7 +50,7 @@ export function ContactForm({
       </FormField>
 
       <div>
-        <IconButton type="submit" icon="Save" label={saveLabel} variant="primary" isLoading={saving} />
+        <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={saveLabel} type="submit" variant="primary" isLoading={saving} />
       </div>
     </form>
   )

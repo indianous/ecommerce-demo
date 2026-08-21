@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Avatar, Button, DropdownMenu } from 'base-ds'
-import { Tooltip } from '@/components/ui/Tooltip'
 import { useAuthStore } from '@/stores/auth.store'
 
 export function UserMenu() {
@@ -35,11 +34,9 @@ export function UserMenu() {
     <DropdownMenu
       align="end"
       trigger={
-        <Tooltip label="Menu do usuário">
-          <Button variant="ghost" size="sm" aria-label="Menu do usuário">
-            <Avatar alt={user?.name ?? 'Usuário'} fallback={initials} size="sm" />
-          </Button>
-        </Tooltip>
+        <Button variant="ghost" size="sm" aria-label="Menu do usuário">
+          <Avatar alt={user?.name ?? 'Usuário'} fallback={initials} size="sm" />
+        </Button>
       }
       items={[
         ...(dashboardHref ? [{ label: 'Dashboard', href: dashboardHref }, { type: 'separator' as const }] : []),

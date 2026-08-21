@@ -229,7 +229,7 @@ describe('ProductDetailPage', () => {
     expect(screen.queryByRole('heading', { name: /produtos relacionados/i })).not.toBeInTheDocument()
   })
 
-  it('produto com 2+ imagens renderiza o Carousel com uma slide por imagem', async () => {
+  it('produto com 2+ imagens renderiza a galeria com uma thumbnail por imagem', async () => {
     server.use(
       http.get('http://localhost:8080/api/v1/catalog/products/slug/mechanical-keyboard', () =>
         HttpResponse.json({
@@ -241,8 +241,8 @@ describe('ProductDetailPage', () => {
     const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
     renderWithToast(jsx)
 
-    const carousel = screen.getByRole('region', { name: /carousel/i })
-    expect(within(carousel).getAllByRole('group', { name: /slide/i })).toHaveLength(2)
+    const gallery = screen.getByRole('group', { name: /product image gallery/i })
+    expect(within(gallery).getAllByRole('button', { name: /view image \d+:/i })).toHaveLength(2)
   })
 
   it('produto com 1 imagem: galeria ainda funciona', async () => {
@@ -254,15 +254,15 @@ describe('ProductDetailPage', () => {
     const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
     renderWithToast(jsx)
 
-    const carousel = screen.getByRole('region', { name: /carousel/i })
-    expect(within(carousel).getAllByRole('group', { name: /slide/i })).toHaveLength(1)
+    const gallery = screen.getByRole('group', { name: /product image gallery/i })
+    expect(within(gallery).getAllByRole('button', { name: /view image \d+:/i })).toHaveLength(1)
   })
 
-  it('produto sem nenhuma imagem cai no placeholder, sem renderizar Carousel', async () => {
+  it('produto sem nenhuma imagem cai no placeholder, sem renderizar a galeria', async () => {
     const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
     renderWithToast(jsx)
 
-    expect(screen.queryByRole('region', { name: /carousel/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: /product image gallery/i })).not.toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Mechanical Keyboard' })).toBeInTheDocument()
   })
 })

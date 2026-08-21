@@ -83,7 +83,8 @@ describe('ProductCreateContent', () => {
     renderCreate()
 
     await user.type(await screen.findByLabelText(/^nome/i), 'Novo Teclado')
-    await user.click(screen.getByRole('checkbox', { name: 'Eletrônicos' }))
+    await user.click(screen.getByRole('combobox', { name: /categorias/i }))
+    await user.click(screen.getByRole('option', { name: 'Eletrônicos' }))
     await user.click(screen.getByRole('button', { name: /salvar/i }))
 
     await waitFor(() => {
@@ -128,7 +129,8 @@ describe('ProductCreateContent', () => {
     renderCreate()
 
     await user.type(await screen.findByLabelText(/^nome/i), 'Produto Sem Slug')
-    await user.click(screen.getByRole('checkbox', { name: 'Eletrônicos' }))
+    await user.click(screen.getByRole('combobox', { name: /categorias/i }))
+    await user.click(screen.getByRole('option', { name: 'Eletrônicos' }))
     await user.click(screen.getByRole('button', { name: /salvar/i }))
 
     await waitFor(() => {
@@ -143,7 +145,8 @@ describe('ProductCreateContent', () => {
     renderCreate()
 
     await user.type(await screen.findByLabelText(/^nome/i), 'Produto Com SEO')
-    await user.click(screen.getByRole('checkbox', { name: 'Eletrônicos' }))
+    await user.click(screen.getByRole('combobox', { name: /categorias/i }))
+    await user.click(screen.getByRole('option', { name: 'Eletrônicos' }))
     await user.type(screen.getByLabelText(/^slug/i), 'produto-com-seo')
     await user.type(screen.getByLabelText(/meta título/i), 'Produto Com SEO — Loja')
     await user.type(screen.getByLabelText(/meta descrição/i), 'Descrição para buscadores')
@@ -166,7 +169,8 @@ describe('ProductCreateContent', () => {
     await screen.findByRole('img', { name: /imagem 1 do produto/i })
 
     await user.type(screen.getByLabelText(/^nome/i), 'Produto com Imagem')
-    await user.click(screen.getByRole('checkbox', { name: 'Eletrônicos' }))
+    await user.click(screen.getByRole('combobox', { name: /categorias/i }))
+    await user.click(screen.getByRole('option', { name: 'Eletrônicos' }))
     await user.click(screen.getByRole('button', { name: /salvar/i }))
 
     await waitFor(() => {

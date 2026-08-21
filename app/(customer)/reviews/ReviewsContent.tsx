@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Dialog, Heading, Image, Text, useToast } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, Dialog, Heading, Icon, Image, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { ReviewForm } from '@/components/forms/ReviewForm'
 import { ProductReviewCard } from '@/components/product/ProductReviewCard'
@@ -151,20 +150,8 @@ export function ReviewsContent() {
                   <Text weight="bold">{item.productName}</Text>
                   <ProductReviewCard review={item.review} />
                   <div className="flex gap-3">
-                    <IconButton
-                      icon="Pencil"
-                      label="Editar"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => openEdit(item)}
-                    />
-                    <IconButton
-                      icon="Trash2"
-                      label={`Excluir avaliação de ${item.productName}`}
-                      variant="danger"
-                      size="sm"
-                      onClick={() => setDeleteTarget(item)}
-                    />
+                    <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label="Editar" variant="secondary" size="sm" onClick={() => openEdit(item)} />
+                    <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Excluir avaliação de ${item.productName}`} variant="danger" size="sm" onClick={() => setDeleteTarget(item)} />
                   </div>
                 </div>
               ) : (
@@ -181,13 +168,7 @@ export function ReviewsContent() {
                     )}
                     <Text weight="bold">{item.productName}</Text>
                   </div>
-                  <IconButton
-                    icon="Star"
-                    label="Avaliar"
-                    variant="primary"
-                    size="sm"
-                    onClick={() => openCreate(item)}
-                  />
+                  <Button iconOnly leftIcon={<Icon name="Star" size="sm" />} aria-label="Avaliar" variant="primary" size="sm" onClick={() => openCreate(item)} />
                 </div>
               )}
             </div>
@@ -226,20 +207,8 @@ export function ReviewsContent() {
         description="Essa ação não pode ser desfeita."
         footer={
           <div className="flex gap-3">
-            <IconButton
-              icon="Trash2"
-              label="Excluir"
-              variant="danger"
-              onClick={handleConfirmDelete}
-              isLoading={deleting}
-            />
-            <IconButton
-              icon="X"
-              label="Cancelar"
-              variant="secondary"
-              onClick={() => setDeleteTarget(null)}
-              disabled={deleting}
-            />
+            <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label="Excluir" variant="danger" onClick={handleConfirmDelete} isLoading={deleting} />
+            <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" variant="secondary" onClick={() => setDeleteTarget(null)} disabled={deleting} />
           </div>
         }
       />

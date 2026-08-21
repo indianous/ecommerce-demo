@@ -1,8 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Heading, useToast } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, Heading, Icon, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import type { AdminProductPage, Product } from '@/types'
@@ -76,13 +75,7 @@ export function DeletedProductsContent() {
                   <td className="p-2">{p.categories[0]?.name}</td>
                   <td className="p-2">{formatDate(p.updatedAt)}</td>
                   <td className="p-2">
-                    <IconButton
-                      icon="Undo2"
-                      label={`Restaurar ${p.name}`}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRestore(p)}
-                    />
+                    <Button iconOnly leftIcon={<Icon name="Undo2" size="sm" />} aria-label={`Restaurar ${p.name}`} variant="outline" size="sm" onClick={() => handleRestore(p)} />
                   </td>
                 </tr>
               ))}

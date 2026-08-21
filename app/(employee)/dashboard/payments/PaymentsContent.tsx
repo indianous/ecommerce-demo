@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Dialog, Heading, Skeleton, useToast } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, Dialog, Heading, Icon, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { RejectPaymentForm } from '@/components/forms/RejectPaymentForm'
@@ -109,20 +108,8 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
                   <td className="p-2">{formatBRL(order.totalAmount)}</td>
                   <td className="p-2">
                     <div className="flex gap-2">
-                      <IconButton
-                        icon="Check"
-                        label={`Confirmar pagamento do pedido ${order.orderNumber}`}
-                        size="sm"
-                        variant="outline"
-                        onClick={() => router.push(`${basePath}/${order.id}/confirm`)}
-                      />
-                      <IconButton
-                        icon="Ban"
-                        label={`Rejeitar pagamento do pedido ${order.orderNumber}`}
-                        size="sm"
-                        variant="danger"
-                        onClick={() => setRejectTarget(order)}
-                      />
+                      <Button iconOnly leftIcon={<Icon name="Check" size="sm" />} aria-label={`Confirmar pagamento do pedido ${order.orderNumber}`} size="sm" variant="outline" onClick={() => router.push(`${basePath}/${order.id}/confirm`)} />
+                      <Button iconOnly leftIcon={<Icon name="Ban" size="sm" />} aria-label={`Rejeitar pagamento do pedido ${order.orderNumber}`} size="sm" variant="danger" onClick={() => setRejectTarget(order)} />
                     </div>
                   </td>
                 </tr>

@@ -1,11 +1,13 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
+import type { ComponentProps } from 'react'
 import Link from 'next/link'
-import { Badge, Heading, Select, Skeleton, useToast } from 'base-ds'
-import { IconButton, type IconName } from '@/components/ui/IconButton'
+import { Badge, Button, Heading, Icon, Select, Skeleton, Textarea, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import type { AdminOrderDetailResponse, Invoice, InvoiceStatus, OrderStatus, PaymentStatus } from '@/types'
+
+type IconName = ComponentProps<typeof Icon>['name']
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   PENDING: 'Pendente',
@@ -280,15 +282,7 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
             <h2 className="text-sm font-semibold mb-2">Nota fiscal</h2>
             {!order.invoice && (
               <div className="flex flex-col gap-2">
-                <IconButton
-                  icon="FileText"
-                  label="Emitir NF-e"
-                  variant="primary"
-                  size="sm"
-                  disabled={order.paymentStatus !== 'PAID'}
-                  isLoading={issuingInvoice}
-                  onClick={handleIssueInvoice}
-                />
+                <Button iconOnly leftIcon={<Icon name="FileText" size="sm" />} aria-label="Emitir NF-e" variant="primary" size="sm" disabled={order.paymentStatus !== 'PAID'} isLoading={issuingInvoice} onClick={handleIssueInvoice} />
                 {order.paymentStatus !== 'PAID' && (
                   <p className="text-sm text-muted-foreground">
                     A nota fiscal só pode ser emitida após o pagamento ser aprovado.
@@ -305,16 +299,7 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
 
                 {order.invoice.status === 'ISSUED' && order.invoice.danfeUrl && (
                   <>
-                    <IconButton
-                      as="a"
-                      href={order.invoice.danfeUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      icon="FileText"
-                      label="Ver nota"
-                      size="sm"
-                      variant="outline"
-                    />
+                    <Button iconOnly leftIcon={<Icon name="FileText" size="sm" />} aria-label="Ver nota" as="a" href={order.invoice.danfeUrl} target="_blank" rel="noreferrer" size="sm" variant="outline" />
                     {order.invoice.accessKey && (
                       <p className="text-sm text-muted-foreground">
                         Chave de acesso: {order.invoice.accessKey}
@@ -324,7 +309,7 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
                 )}
 
                 {order.invoice.status === 'PROCESSING' && (
-                  <IconButton icon="RefreshCw" label="Atualizar status" size="sm" variant="outline" onClick={fetchOrder} />
+                  <Button iconOnly leftIcon={<Icon name="RefreshCw" size="sm" />} aria-label="Atualizar status" size="sm" variant="outline" onClick={fetchOrder} />
                 )}
 
                 {order.invoice.status === 'ERROR' && (
@@ -332,14 +317,7 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
                     {order.invoice.errorMessage && (
                       <p className="text-sm text-muted-foreground">{order.invoice.errorMessage}</p>
                     )}
-                    <IconButton
-                      icon="RotateCcw"
-                      label="Tentar novamente"
-                      variant="primary"
-                      size="sm"
-                      isLoading={issuingInvoice}
-                      onClick={handleIssueInvoice}
-                    />
+                    <Button iconOnly leftIcon={<Icon name="RotateCcw" size="sm" />} aria-label="Tentar novamente" variant="primary" size="sm" isLoading={issuingInvoice} onClick={handleIssueInvoice} />
                   </>
                 )}
               </div>
@@ -350,14 +328,7 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
         {nextStates.length > 0 && !transitionTarget && !showRetroForm && (
           <div className="mb-4 flex flex-wrap gap-2">
             {nextStates.map((s) => (
-              <IconButton
-                key={s}
-                icon={ACTION_ICONS[s]}
-                label={ACTION_LABELS[s]}
-                variant="primary"
-                size="sm"
-                onClick={() => setTransitionTarget(s)}
-              />
+              <Button iconOnly leftIcon={<Icon name={ACTION_ICONS[s]} size="sm" />} aria-label={ACTION_LABELS[s]} key={s} variant="primary" size="sm" onClick={() => setTransitionTarget(s)} />
             ))}
           </div>
         )}
@@ -372,36 +343,24 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
               Mudar para: <Badge variant={STATUS_BADGE_VARIANT[transitionTarget]}>{STATUS_LABELS[transitionTarget]}</Badge>
             </p>
             <label htmlFor="transition-reason" className="text-sm font-medium">Justificativa</label>
-            <textarea
+            <Textarea
               id="transition-reason"
               required
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={3}
-              className="border rounded p-2 text-sm resize-none"
+              className="resize-none"
               placeholder="Descreva o motivo da mudança..."
             />
             <div className="flex gap-2">
-              <IconButton type="submit" icon="Check" label="Confirmar mudança" variant="primary" isLoading={saving} />
-              <IconButton
-                type="button"
-                icon="X"
-                label="Cancelar"
-                variant="secondary"
-                onClick={() => { setTransitionTarget(null); setReason('') }}
-              />
+              <Button iconOnly leftIcon={<Icon name="Check" size="sm" />} aria-label="Confirmar mudança" type="submit" variant="primary" isLoading={saving} />
+              <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" type="button" variant="secondary" onClick={() => { setTransitionTarget(null); setReason('') }} />
             </div>
           </form>
         )}
 
         {!isTerminal && !showRetroForm && !transitionTarget && (
-          <IconButton
-            icon="RotateCcw"
-            label="Solicitar retrocesso"
-            variant="outline"
-            size="sm"
-            onClick={() => setShowRetroForm(true)}
-          />
+          <Button iconOnly leftIcon={<Icon name="RotateCcw" size="sm" />} aria-label="Solicitar retrocesso" variant="outline" size="sm" onClick={() => setShowRetroForm(true)} />
         )}
 
         {showRetroForm && (
@@ -421,24 +380,18 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
               options={retroStates.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
             />
             <label htmlFor="retro-justification" className="text-sm font-medium">Justificativa</label>
-            <textarea
+            <Textarea
               id="retro-justification"
               required
               value={retroJustification}
               onChange={(e) => setRetroJustification(e.target.value)}
               rows={3}
-              className="border rounded p-2 text-sm resize-none"
+              className="resize-none"
               placeholder="Descreva o motivo da solicitação..."
             />
             <div className="flex gap-2">
-              <IconButton type="submit" icon="Send" label="Enviar solicitação" variant="primary" isLoading={saving} />
-              <IconButton
-                type="button"
-                icon="X"
-                label="Cancelar"
-                variant="secondary"
-                onClick={() => { setShowRetroForm(false); setRetroStatus(''); setRetroJustification('') }}
-              />
+              <Button iconOnly leftIcon={<Icon name="Send" size="sm" />} aria-label="Enviar solicitação" type="submit" variant="primary" isLoading={saving} />
+              <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" type="button" variant="secondary" onClick={() => { setShowRetroForm(false); setRetroStatus(''); setRetroJustification('') }} />
             </div>
           </form>
         )}

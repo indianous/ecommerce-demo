@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Dialog, Heading, useToast } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, Dialog, Heading, Icon, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { StockEntryForm } from '@/components/forms/StockEntryForm'
@@ -175,20 +174,8 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
                 <td className="p-2">{p.stockQuantity}</td>
                 <td className="p-2">
                   <div className="flex items-center gap-3">
-                    <IconButton
-                      icon="ArrowDownToLine"
-                      label="Entrada"
-                      variant="primary"
-                      size="sm"
-                      onClick={() => openEntryDialog(p.id)}
-                    />
-                    <IconButton
-                      icon="ArrowUpFromLine"
-                      label="Saída"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openExitDialog(p.id)}
-                    />
+                    <Button iconOnly leftIcon={<Icon name="ArrowDownToLine" size="sm" />} aria-label="Entrada" variant="primary" size="sm" onClick={() => openEntryDialog(p.id)} />
+                    <Button iconOnly leftIcon={<Icon name="ArrowUpFromLine" size="sm" />} aria-label="Saída" variant="outline" size="sm" onClick={() => openExitDialog(p.id)} />
                     <Link href={`${stockBasePath}/${p.id}`} className="text-sm underline">Histórico</Link>
                   </div>
                 </td>

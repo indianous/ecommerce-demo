@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Dialog, Skeleton, Table, type TableColumn } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, Dialog, Icon, Skeleton, Table, type TableColumn } from 'base-ds'
 import type { Employee, EmployeeFormData } from '@/types'
 import { EmployeeForm } from '@/components/forms/EmployeeForm'
 
@@ -26,14 +25,9 @@ export function EmployeeManagementTable({ employees, loading, onCreate, onDelete
       render: (row) => (
         <div className="flex gap-2">
           {onManagePermissions && (
-            <IconButton
-              icon="Shield"
-              label={`Permissões de ${row.name}`}
-              variant="secondary"
-              onClick={() => onManagePermissions(row)}
-            />
+            <Button iconOnly leftIcon={<Icon name="Shield" size="sm" />} aria-label={`Permissões de ${row.name}`} variant="secondary" onClick={() => onManagePermissions(row)} />
           )}
-          <IconButton icon="Trash2" label={`Excluir ${row.name}`} variant="danger" onClick={() => onDelete(row.id)} />
+          <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Excluir ${row.name}`} variant="danger" onClick={() => onDelete(row.id)} />
         </div>
       ),
     },
@@ -42,7 +36,7 @@ export function EmployeeManagementTable({ employees, loading, onCreate, onDelete
   return (
     <div>
       <div className="flex justify-end mb-4">
-        <IconButton icon="UserPlus" label="Novo funcionário" variant="primary" onClick={() => setDialogOpen(true)} />
+        <Button iconOnly leftIcon={<Icon name="UserPlus" size="sm" />} aria-label="Novo funcionário" variant="primary" onClick={() => setDialogOpen(true)} />
       </div>
 
       {loading ? (

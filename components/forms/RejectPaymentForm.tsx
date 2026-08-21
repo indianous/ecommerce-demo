@@ -1,7 +1,6 @@
 'use client'
 
-import { FormField } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, FormField, Icon, Textarea } from 'base-ds'
 
 interface Props {
   reason: string
@@ -23,26 +22,18 @@ export function RejectPaymentForm({ reason, onReasonChange, onSubmit, onCancel, 
       className="flex flex-col gap-4"
     >
       <FormField label="Motivo da rejeição" id="rejection-reason">
-        <textarea
+        <Textarea
           id="rejection-reason"
           value={reason}
           onChange={(e) => onReasonChange(e.target.value)}
           rows={4}
-          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
           placeholder="Explique por que o comprovante foi rejeitado"
         />
       </FormField>
 
       <div className="flex gap-3">
-        <IconButton
-          type="submit"
-          icon="Ban"
-          label="Confirmar rejeição"
-          variant="danger"
-          disabled={!isValid}
-          isLoading={submitting}
-        />
-        <IconButton type="button" icon="X" label="Cancelar" variant="secondary" onClick={onCancel} disabled={submitting} />
+        <Button iconOnly leftIcon={<Icon name="Ban" size="sm" />} aria-label="Confirmar rejeição" type="submit" variant="danger" disabled={!isValid} isLoading={submitting} />
+        <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" type="button" variant="secondary" onClick={onCancel} disabled={submitting} />
       </div>
     </form>
   )

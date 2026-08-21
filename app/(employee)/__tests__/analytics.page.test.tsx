@@ -74,9 +74,10 @@ describe('AnalyticsContent', () => {
   it('renderiza as 5 etapas do funil vindas de GET /api/admin/analytics/funnel', async () => {
     renderAnalytics()
 
-    expect(await screen.findByText(/visitantes/i)).toBeInTheDocument()
-    expect(screen.getByText('100')).toBeInTheDocument()
-    expect(screen.getByText('50')).toBeInTheDocument()
+    const funnelBody = await screen.findByTestId('funnel-body')
+    expect(funnelBody).toHaveTextContent(/visitantes/i)
+    expect(funnelBody).toHaveTextContent('100')
+    expect(funnelBody).toHaveTextContent('50')
   })
 
   it('renderiza a conversão por canal vinda de GET /api/admin/analytics/channels', async () => {
@@ -95,7 +96,7 @@ describe('AnalyticsContent', () => {
   it('trocar o intervalo de datas refaz as duas chamadas com os novos from/to', async () => {
     const user = (await import('@testing-library/user-event')).default.setup()
     renderAnalytics()
-    await screen.findByText(/visitantes/i)
+    await screen.findByTestId('funnel-body')
 
     const fromInput = screen.getByLabelText('De')
     await user.clear(fromInput)

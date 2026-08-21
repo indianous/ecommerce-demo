@@ -1,7 +1,6 @@
 'use client'
 
-import { FormField, Input, Select } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, FormField, Icon, Input, Select } from 'base-ds'
 import type { NavPlacement, SiteNavItemType } from '@/types'
 
 export type NavItemFormState = {
@@ -95,15 +94,7 @@ export function NavItemForm({ form, onFormChange, onSubmit, saving, isChild = fa
         </FormField>
       )}
 
-      <IconButton
-        type="submit"
-        icon="Save"
-        label={saveLabel}
-        variant="primary"
-        isLoading={saving}
-        disabled={!canSubmit}
-        className="self-start"
-      />
+      <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={saveLabel} type="submit" variant="primary" isLoading={saving} disabled={!canSubmit} className="self-start" />
     </form>
   )
 }

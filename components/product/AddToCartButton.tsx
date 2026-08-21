@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Badge, useToast } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Badge, Button, Icon, useToast } from 'base-ds'
 import { useCartStore } from '@/stores/cart.store'
 import type { Product } from '@/types'
 
@@ -50,12 +49,6 @@ export function AddToCartButton({ product }: Props) {
   }
 
   return (
-    <IconButton
-      icon="ShoppingCart"
-      label="Adicionar ao carrinho"
-      variant="primary"
-      isLoading={isLoading}
-      onClick={handleClick}
-    />
+    <Button iconOnly leftIcon={<Icon name="ShoppingCart" size="sm" />} aria-label="Adicionar ao carrinho" variant="primary" isLoading={isLoading} onClick={handleClick} />
   )
 }

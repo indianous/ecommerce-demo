@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Badge, Card, Dialog, Heading, Text, useToast } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Badge, Button, Card, Dialog, Heading, Icon, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { NavItemForm, EMPTY_NAV_ITEM_FORM, type NavItemFormState } from '@/components/forms/NavItemForm'
@@ -182,8 +181,8 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
         </div>
 
         <div className="mb-4 flex gap-2">
-          <IconButton icon="FolderPlus" label="Nova coleção" variant="primary" onClick={() => openNewTopLevel('COLLECTION')} />
-          <IconButton icon="Link" label="Novo link" variant="outline" onClick={() => openNewTopLevel('LINK')} />
+          <Button iconOnly leftIcon={<Icon name="FolderPlus" size="sm" />} aria-label="Nova coleção" variant="primary" onClick={() => openNewTopLevel('COLLECTION')} />
+          <Button iconOnly leftIcon={<Icon name="Link" size="sm" />} aria-label="Novo link" variant="outline" onClick={() => openNewTopLevel('LINK')} />
         </div>
 
         <div className="flex flex-col gap-3">
@@ -198,33 +197,13 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
                     {item.placement && <Badge variant="info" size="sm">{PLACEMENT_LABELS[item.placement]}</Badge>}
                   </div>
                   <div className="flex gap-1">
-                    <IconButton
-                      icon="ChevronUp"
-                      label={`Subir ${item.label}`}
-                      variant="ghost"
-                      size="sm"
-                      disabled={index === 0}
-                      onClick={() => reorderTopLevel(index, index - 1)}
-                    />
-                    <IconButton
-                      icon="ChevronDown"
-                      label={`Descer ${item.label}`}
-                      variant="ghost"
-                      size="sm"
-                      disabled={index === items.length - 1}
-                      onClick={() => reorderTopLevel(index, index + 1)}
-                    />
+                    <Button iconOnly leftIcon={<Icon name="ChevronUp" size="sm" />} aria-label={`Subir ${item.label}`} variant="ghost" size="sm" disabled={index === 0} onClick={() => reorderTopLevel(index, index - 1)} />
+                    <Button iconOnly leftIcon={<Icon name="ChevronDown" size="sm" />} aria-label={`Descer ${item.label}`} variant="ghost" size="sm" disabled={index === items.length - 1} onClick={() => reorderTopLevel(index, index + 1)} />
                     {item.type === 'COLLECTION' && (
-                      <IconButton
-                        icon={isExpanded ? 'ChevronDown' : 'ChevronRight'}
-                        label={isExpanded ? 'Recolher' : 'Expandir'}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setExpandedId(isExpanded ? null : item.id)}
-                      />
+                      <Button iconOnly leftIcon={<Icon name={isExpanded ? 'ChevronDown' : 'ChevronRight'} size="sm" />} aria-label={isExpanded ? 'Recolher' : 'Expandir'} variant="outline" size="sm" onClick={() => setExpandedId(isExpanded ? null : item.id)} />
                     )}
-                    <IconButton icon="Pencil" label={`Editar ${item.label}`} variant="outline" size="sm" onClick={() => openEdit(item)} />
-                    <IconButton icon="Trash2" label={`Remover ${item.label}`} variant="danger" size="sm" onClick={() => handleDeleteClick(item)} />
+                    <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label={`Editar ${item.label}`} variant="outline" size="sm" onClick={() => openEdit(item)} />
+                    <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Remover ${item.label}`} variant="danger" size="sm" onClick={() => handleDeleteClick(item)} />
                   </div>
                 </div>
 
@@ -234,35 +213,14 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
                       <div key={child.id} className="flex items-center justify-between gap-2 pl-4">
                         <Text size="sm">{child.label}</Text>
                         <div className="flex gap-1">
-                          <IconButton
-                            icon="ChevronUp"
-                            label={`Subir ${child.label}`}
-                            variant="ghost"
-                            size="sm"
-                            disabled={childIndex === 0}
-                            onClick={() => reorderChildren(item, childIndex, childIndex - 1)}
-                          />
-                          <IconButton
-                            icon="ChevronDown"
-                            label={`Descer ${child.label}`}
-                            variant="ghost"
-                            size="sm"
-                            disabled={childIndex === (item.children?.length ?? 0) - 1}
-                            onClick={() => reorderChildren(item, childIndex, childIndex + 1)}
-                          />
-                          <IconButton icon="Pencil" label={`Editar ${child.label}`} variant="outline" size="sm" onClick={() => openEditChild(item.id, child)} />
-                          <IconButton icon="Trash2" label={`Remover ${child.label}`} variant="danger" size="sm" onClick={() => handleDeleteClick(child)} />
+                          <Button iconOnly leftIcon={<Icon name="ChevronUp" size="sm" />} aria-label={`Subir ${child.label}`} variant="ghost" size="sm" disabled={childIndex === 0} onClick={() => reorderChildren(item, childIndex, childIndex - 1)} />
+                          <Button iconOnly leftIcon={<Icon name="ChevronDown" size="sm" />} aria-label={`Descer ${child.label}`} variant="ghost" size="sm" disabled={childIndex === (item.children?.length ?? 0) - 1} onClick={() => reorderChildren(item, childIndex, childIndex + 1)} />
+                          <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label={`Editar ${child.label}`} variant="outline" size="sm" onClick={() => openEditChild(item.id, child)} />
+                          <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Remover ${child.label}`} variant="danger" size="sm" onClick={() => handleDeleteClick(child)} />
                         </div>
                       </div>
                     ))}
-                    <IconButton
-                      icon="Plus"
-                      label={`Novo link em ${item.label}`}
-                      variant="outline"
-                      size="sm"
-                      className="self-start"
-                      onClick={() => openNewChild(item.id)}
-                    />
+                    <Button iconOnly leftIcon={<Icon name="Plus" size="sm" />} aria-label={`Novo link em ${item.label}`} variant="outline" size="sm" className="self-start" onClick={() => openNewChild(item.id)} />
                   </div>
                 )}
               </Card>
@@ -296,8 +254,8 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
           title="Remover coleção"
           footer={
             <div className="flex gap-2 justify-end">
-              <IconButton icon="X" label="Cancelar" variant="outline" onClick={() => setDeleteTarget(null)} />
-              <IconButton icon="Trash2" label="Remover" variant="danger" onClick={confirmDelete} />
+              <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" variant="outline" onClick={() => setDeleteTarget(null)} />
+              <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label="Remover" variant="danger" onClick={confirmDelete} />
             </div>
           }
         >

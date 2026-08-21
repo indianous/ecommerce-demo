@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Badge, Heading, Icon, Pagination, Text } from 'base-ds'
+import { Badge, Button, Heading, Icon, Pagination, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import type { OrderResponse, OrderStatus } from '@/types'
 
@@ -94,17 +94,7 @@ export function OrdersContent() {
                 <tr className="hover:bg-muted">
                   <td className="px-2 py-3">
                     {order.items.length > 0 && (
-                      <button
-                        type="button"
-                        aria-label={`Expandir #${order.orderNumber}`}
-                        onClick={() => toggleExpand(order.id)}
-                        className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-border"
-                      >
-                        <Icon
-                          name={expanded.has(order.id) ? 'ChevronDown' : 'ChevronRight'}
-                          size="sm"
-                        />
-                      </button>
+                      <Button iconOnly leftIcon={<Icon name={expanded.has(order.id) ? 'ChevronDown' : 'ChevronRight'} size="sm" />} aria-label={`Expandir #${order.orderNumber}`} variant="ghost" size="sm" onClick={() => toggleExpand(order.id)} />
                     )}
                   </td>
                   <td className="px-4 py-3 text-foreground">#{order.orderNumber}</td>

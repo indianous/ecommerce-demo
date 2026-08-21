@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, Heading, Skeleton } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Badge, Button, Heading, Icon, Skeleton } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import type { AdminOrderPage, AdminOrderResponse } from '@/types'
@@ -72,13 +71,7 @@ export function ShippingContent({ orderBasePath = '/dashboard/orders' }: { order
                     <Badge variant="default">Confirmado</Badge>
                   </td>
                   <td className="p-2">
-                    <IconButton
-                      icon="Truck"
-                      label={`Ver pedido ${order.orderNumber}`}
-                      size="sm"
-                      variant="outline"
-                      onClick={() => router.push(orderBasePath + '/' + order.id)}
-                    />
+                    <Button iconOnly leftIcon={<Icon name="Truck" size="sm" />} aria-label={`Ver pedido ${order.orderNumber}`} size="sm" variant="outline" onClick={() => router.push(orderBasePath + '/' + order.id)} />
                   </td>
                 </tr>
               ))}

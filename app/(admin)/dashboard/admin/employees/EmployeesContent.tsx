@@ -1,7 +1,6 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
-import { Checkbox, Dialog, Heading, useToast } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, Checkbox, Dialog, Heading, Icon, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { EmployeeManagementTable } from '@/components/admin/EmployeeManagementTable'
 import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions'
@@ -133,13 +132,8 @@ export function EmployeesContent() {
           })}
         </div>
         <div className="flex justify-end gap-2 mt-4">
-          <IconButton
-            icon="X"
-            label="Cancelar"
-            variant="secondary"
-            onClick={() => setPermDialogOpen(false)}
-          />
-          <IconButton icon="Save" label="Salvar" variant="primary" onClick={handleSavePermissions} />
+          <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" variant="secondary" onClick={() => setPermDialogOpen(false)} />
+          <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label="Salvar" variant="primary" onClick={handleSavePermissions} />
         </div>
       </Dialog>
     </div>

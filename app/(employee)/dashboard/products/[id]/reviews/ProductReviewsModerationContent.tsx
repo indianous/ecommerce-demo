@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Dialog, Heading, Text, useToast } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, Dialog, Heading, Icon, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ProductReviewCard } from '@/components/product/ProductReviewCard'
@@ -87,13 +86,7 @@ export function ProductReviewsModerationContent({ id, basePath = '/dashboard/pro
                 <div className="flex-1">
                   <ProductReviewCard review={review} />
                 </div>
-                <IconButton
-                  icon="Trash2"
-                  label={`Remover avaliação de ${review.userName}`}
-                  variant="danger"
-                  size="sm"
-                  onClick={() => setReviewToDelete(review)}
-                />
+                <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Remover avaliação de ${review.userName}`} variant="danger" size="sm" onClick={() => setReviewToDelete(review)} />
               </div>
             ))}
           </div>
@@ -106,20 +99,8 @@ export function ProductReviewsModerationContent({ id, basePath = '/dashboard/pro
           description="Essa ação não pode ser desfeita."
           footer={
             <div className="flex gap-3">
-              <IconButton
-                icon="Trash2"
-                label="Remover"
-                variant="danger"
-                onClick={handleConfirmDelete}
-                isLoading={deleting}
-              />
-              <IconButton
-                icon="X"
-                label="Cancelar"
-                variant="secondary"
-                onClick={() => setReviewToDelete(null)}
-                disabled={deleting}
-              />
+              <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label="Remover" variant="danger" onClick={handleConfirmDelete} isLoading={deleting} />
+              <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" variant="secondary" onClick={() => setReviewToDelete(null)} disabled={deleting} />
             </div>
           }
         />

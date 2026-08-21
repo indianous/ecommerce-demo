@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { FormField, Input, PasswordInput, Select, useToast } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, FormField, Icon, Input, PasswordInput, Select, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { readAttribution } from '@/lib/traffic-attribution'
 import type { Gender } from '@/types'
@@ -132,7 +131,7 @@ export function RegisterForm({ onSuccess }: Props) {
         />
       </FormField>
 
-      <IconButton type="submit" icon="UserPlus" label="Cadastrar" variant="primary" isLoading={isLoading} />
+      <Button iconOnly leftIcon={<Icon name="UserPlus" size="sm" />} aria-label="Cadastrar" type="submit" variant="primary" isLoading={isLoading} />
     </form>
   )
 }

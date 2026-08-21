@@ -1,4 +1,4 @@
-import { Carousel, Image } from 'base-ds'
+import { ImageGallery } from 'base-ds'
 
 interface Props {
   imageUrls: string[]
@@ -17,17 +17,14 @@ export function ProductImageGallery({ imageUrls, productName }: Props) {
   }
 
   return (
-    <Carousel
-      items={imageUrls.map((url, i) => (
-        <Image
-          key={url}
-          src={url}
-          alt={`${productName} — imagem ${i + 1}`}
-          aspectRatio="portrait"
-          objectFit="contain"
-          className="rounded"
-        />
-      ))}
+    <ImageGallery
+      images={imageUrls.map((url, i) => ({
+        src: url,
+        alt: `${productName} — imagem ${i + 1}`,
+      }))}
+      thumbnailPosition="side"
+      aspectRatio="portrait"
+      objectFit="contain"
     />
   )
 }

@@ -26,16 +26,16 @@ describe('ChannelChart', () => {
   it('canal "Direto/não identificado" aparece como qualquer outro, sem tratamento especial', () => {
     render(<ChannelChart data={channels} />)
 
-    const list = screen.getByRole('list')
-    const directRow = within(list).getByText('Direto/não identificado').closest('[data-channel]')
-    const googleRow = within(list).getByText('google / cpc').closest('[data-channel]')
-    expect(directRow?.tagName).toBe(googleRow?.tagName)
+    const body = screen.getByTestId('bar-chart-body')
+    const directLabel = within(body).getByText('Direto/não identificado')
+    const googleLabel = within(body).getByText('google / cpc')
+    expect(directLabel.tagName).toBe(googleLabel.tagName)
   })
 
   it('exibe uma tabela com receita e ticket médio por canal', () => {
     render(<ChannelChart data={channels} />)
 
-    const table = screen.getByRole('table')
+    const table = screen.getByRole('table', { name: /detalhamento por canal/i })
     expect(table).toHaveTextContent('R$ 400,00')
     expect(table).toHaveTextContent('R$ 200,00')
     expect(table).toHaveTextContent('20%')

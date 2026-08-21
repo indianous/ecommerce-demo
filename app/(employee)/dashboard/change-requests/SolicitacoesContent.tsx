@@ -1,8 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Badge, Button, Dialog, Heading, Input, Skeleton, useToast } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Badge, Button, Dialog, Heading, Icon, Input, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import type { OrderChangeRequest, OrderChangeRequestStatus, OrderStatus } from '@/types'
@@ -109,13 +108,7 @@ export function SolicitacoesContent() {
     return (
       <main className="mx-auto max-w-3xl px-4 py-8">
         <div className="mb-4">
-          <IconButton
-            icon="ArrowLeft"
-            label="Voltar à lista"
-            variant="outline"
-            size="sm"
-            onClick={() => setSelected(null)}
-          />
+          <Button iconOnly leftIcon={<Icon name="ArrowLeft" size="sm" />} aria-label="Voltar à lista" variant="outline" size="sm" onClick={() => setSelected(null)} />
         </div>
 
         <Heading as="h1" size="2xl" className="mb-6">
@@ -171,20 +164,8 @@ export function SolicitacoesContent() {
 
           {selected.status === 'PENDING' ? (
             <div className="flex gap-3 pt-2">
-              <IconButton
-                icon="Check"
-                label="Aceitar"
-                variant="primary"
-                onClick={handleApprove}
-                isLoading={actioning}
-              />
-              <IconButton
-                icon="Ban"
-                label="Negar"
-                variant="danger"
-                onClick={() => setDenyDialogOpen(true)}
-                disabled={actioning}
-              />
+              <Button iconOnly leftIcon={<Icon name="Check" size="sm" />} aria-label="Aceitar" variant="primary" onClick={handleApprove} isLoading={actioning} />
+              <Button iconOnly leftIcon={<Icon name="Ban" size="sm" />} aria-label="Negar" variant="danger" onClick={() => setDenyDialogOpen(true)} disabled={actioning} />
             </div>
           ) : (
             <p className="text-sm text-muted-foreground italic">
@@ -200,20 +181,8 @@ export function SolicitacoesContent() {
           description="Essa ação não pode ser desfeita."
           footer={
             <div className="flex gap-3">
-              <IconButton
-                icon="Ban"
-                label="Confirmar"
-                variant="danger"
-                onClick={handleReject}
-                isLoading={actioning}
-              />
-              <IconButton
-                icon="X"
-                label="Cancelar"
-                variant="secondary"
-                onClick={() => setDenyDialogOpen(false)}
-                disabled={actioning}
-              />
+              <Button iconOnly leftIcon={<Icon name="Ban" size="sm" />} aria-label="Confirmar" variant="danger" onClick={handleReject} isLoading={actioning} />
+              <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" variant="secondary" onClick={() => setDenyDialogOpen(false)} disabled={actioning} />
             </div>
           }
         />
@@ -300,13 +269,7 @@ export function SolicitacoesContent() {
                     </Badge>
                   </td>
                   <td className="p-2">
-                    <IconButton
-                      icon="Eye"
-                      label="Ver detalhe"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelected(req)}
-                    />
+                    <Button iconOnly leftIcon={<Icon name="Eye" size="sm" />} aria-label="Ver detalhe" variant="outline" size="sm" onClick={() => setSelected(req)} />
                   </td>
                 </tr>
               ))}

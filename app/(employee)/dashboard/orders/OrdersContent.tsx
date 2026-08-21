@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, FormField, Heading, Input, Select, Skeleton, useToast } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Badge, Button, FormField, Heading, Icon, Input, Select, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { formatBRL } from '@/lib/format'
@@ -119,13 +118,7 @@ export function OrdersContent({ orderBasePath = '/dashboard/orders' }: { orderBa
                   </td>
                   <td className="p-2">{formatBRL(order.totalAmount)}</td>
                   <td className="p-2">
-                    <IconButton
-                      icon="Eye"
-                      label={`Ver detalhe do pedido ${order.orderNumber}`}
-                      size="sm"
-                      variant="outline"
-                      onClick={() => router.push(orderBasePath + '/' + order.id)}
-                    />
+                    <Button iconOnly leftIcon={<Icon name="Eye" size="sm" />} aria-label={`Ver detalhe do pedido ${order.orderNumber}`} size="sm" variant="outline" onClick={() => router.push(orderBasePath + '/' + order.id)} />
                   </td>
                 </tr>
               ))}

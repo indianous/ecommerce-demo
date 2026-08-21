@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -43,30 +43,36 @@ function ControlledProductForm() {
 }
 
 describe('ProductForm — categorias', () => {
-  it('renderiza um checkbox por categoria disponível', () => {
+  it('renderiza um combobox de categorias com as opções disponíveis', async () => {
+    const user = userEvent.setup()
     renderForm({ categories: twoCategories })
 
-    expect(screen.getByRole('checkbox', { name: 'Eletrônicos' })).toBeInTheDocument()
-    expect(screen.getByRole('checkbox', { name: 'Casa' })).toBeInTheDocument()
+    await user.click(screen.getByRole('combobox', { name: /categorias/i }))
+    const listbox = screen.getByRole('listbox')
+
+    expect(within(listbox).getByRole('option', { name: 'Eletrônicos' })).toBeInTheDocument()
+    expect(within(listbox).getByRole('option', { name: 'Casa' })).toBeInTheDocument()
   })
 
-  it('marcar uma categoria reflete em categoryIds via onFormChange', async () => {
+  it('selecionar uma categoria reflete em categoryIds via onFormChange', async () => {
     const onFormChange = vi.fn()
     const user = userEvent.setup()
     renderForm({ categories: twoCategories, onFormChange })
 
-    await user.click(screen.getByRole('checkbox', { name: 'Eletrônicos' }))
+    await user.click(screen.getByRole('combobox', { name: /categorias/i }))
+    await user.click(within(screen.getByRole('listbox')).getByRole('option', { name: 'Eletrônicos' }))
 
     expect(onFormChange).toHaveBeenCalledWith({ categoryIds: ['cat-1'] })
   })
 
-  it('marcar uma segunda categoria adiciona à lista existente', async () => {
+  it('selecionar uma segunda categoria adiciona à lista existente', async () => {
     const onFormChange = vi.fn()
     const user = userEvent.setup()
     const form: ProductFormState = { ...EMPTY_PRODUCT_FORM, categoryIds: ['cat-1'] }
     renderForm({ categories: twoCategories, onFormChange, form })
 
-    await user.click(screen.getByRole('checkbox', { name: 'Casa' }))
+    await user.click(screen.getByRole('combobox', { name: /categorias/i }))
+    await user.click(within(screen.getByRole('listbox')).getByRole('option', { name: 'Casa' }))
 
     expect(onFormChange).toHaveBeenCalledWith({ categoryIds: ['cat-1', 'cat-2'] })
   })
@@ -77,7 +83,8 @@ describe('ProductForm — categorias', () => {
     const form: ProductFormState = { ...EMPTY_PRODUCT_FORM, categoryIds: ['cat-1', 'cat-2'] }
     renderForm({ categories: twoCategories, onFormChange, form })
 
-    await user.click(screen.getByRole('checkbox', { name: 'Eletrônicos' }))
+    await user.click(screen.getByRole('combobox', { name: /categorias/i }))
+    await user.click(within(screen.getByRole('listbox')).getByRole('option', { name: 'Eletrônicos' }))
 
     expect(onFormChange).toHaveBeenCalledWith({ categoryIds: ['cat-2'] })
   })

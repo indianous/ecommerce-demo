@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { FormField, PasswordInput, useToast } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, FormField, Icon, PasswordInput, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 
 export function ChangePasswordForm() {
@@ -93,7 +92,7 @@ export function ChangePasswordForm() {
         />
       </FormField>
 
-      <IconButton type="submit" icon="KeyRound" label="Alterar senha" variant="primary" isLoading={isLoading} />
+      <Button iconOnly leftIcon={<Icon name="KeyRound" size="sm" />} aria-label="Alterar senha" type="submit" variant="primary" isLoading={isLoading} />
     </form>
   )
 }

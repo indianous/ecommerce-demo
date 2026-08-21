@@ -1,5 +1,4 @@
-import { FileUpload, FormField, Input } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, FileUpload, FormField, Icon, Input } from 'base-ds'
 
 interface Props {
   file: File | null
@@ -44,7 +43,7 @@ export function BannerForm({ file, linkUrl, onFileChange, onLinkUrl, onSave, sav
       </FormField>
 
       <div>
-        <IconButton type="submit" icon="Save" label={saveLabel} variant="primary" disabled={!file} isLoading={saving} />
+        <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={saveLabel} type="submit" variant="primary" disabled={!file} isLoading={saving} />
       </div>
     </form>
   )

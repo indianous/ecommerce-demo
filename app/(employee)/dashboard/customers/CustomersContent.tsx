@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Heading, Input, Skeleton, useToast } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, Heading, Icon, Input, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import type { CustomerResponse } from '@/types'
@@ -61,7 +60,7 @@ export function CustomersContent({ basePath = '/dashboard/customers' }: { basePa
             onChange={(e) => setSearch(e.target.value)}
             aria-label="Buscar clientes"
           />
-          <IconButton type="submit" icon="Search" label="Buscar" variant="primary" />
+          <Button iconOnly leftIcon={<Icon name="Search" size="sm" />} aria-label="Buscar" type="submit" variant="primary" />
         </form>
 
         {loading ? (
@@ -85,13 +84,7 @@ export function CustomersContent({ basePath = '/dashboard/customers' }: { basePa
                   <td className="p-2">{c.name}</td>
                   <td className="p-2">{c.email}</td>
                   <td className="p-2">
-                    <IconButton
-                      icon="Eye"
-                      label="Ver detalhe"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => router.push(basePath + '/' + c.id)}
-                    />
+                    <Button iconOnly leftIcon={<Icon name="Eye" size="sm" />} aria-label="Ver detalhe" size="sm" variant="outline" onClick={() => router.push(basePath + '/' + c.id)} />
                   </td>
                 </tr>
               ))}

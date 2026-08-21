@@ -1,5 +1,4 @@
-import { Badge, FormField, Radio, Text } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Badge, Button, FormField, Icon, Radio, Text } from 'base-ds'
 import type { PaymentGatewayConfig, PaymentGatewayProvider } from '@/types'
 
 interface Props {
@@ -62,7 +61,7 @@ export function PaymentGatewayForm({ config, value, onChange, onSave, saving, er
       )}
 
       <div>
-        <IconButton type="submit" icon="Save" label={saveLabel} variant="primary" isLoading={saving} />
+        <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={saveLabel} type="submit" variant="primary" isLoading={saving} />
       </div>
     </form>
   )

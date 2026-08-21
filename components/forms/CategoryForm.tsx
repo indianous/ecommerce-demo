@@ -1,5 +1,4 @@
-import { FormField, Input } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, FormField, Icon, Input } from 'base-ds'
 
 interface Props {
   name: string
@@ -23,7 +22,7 @@ export function CategoryForm({ name, onChange, onSave, saving, saveLabel = 'Salv
       </FormField>
 
       <div>
-        <IconButton type="submit" icon="Save" label={saveLabel} variant="primary" disabled={!name.trim()} isLoading={saving} />
+        <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={saveLabel} type="submit" variant="primary" disabled={!name.trim()} isLoading={saving} />
       </div>
     </form>
   )

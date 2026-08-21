@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, Dialog, Heading, Image, Skeleton, useToast } from "base-ds";
-import { IconButton } from "@/components/ui/IconButton";
+import { Button, Card, Dialog, Heading, Icon, Image, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from "@/stores/auth.store";
 import { PermissionGuard } from "@/components/employee/PermissionGuard";
 import { PlaceholderImageForm } from "@/components/forms/PlaceholderImageForm";
@@ -410,7 +409,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
                 <div className="flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-2">
                     <Heading as="h2" id="logo-heading" size="base">Logo da loja</Heading>
-                    <IconButton icon="Pencil" label="Editar logo" variant="primary" size="sm" onClick={() => setOpenDialog("logo")} />
+                    <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label="Editar logo" variant="primary" size="sm" onClick={() => setOpenDialog("logo")} />
                   </div>
                   <p className="text-sm text-muted-foreground">SVG utilizado como logotipo da loja.</p>
                   {logoUrl
@@ -425,7 +424,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
                 <div className="flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-2">
                     <Heading as="h2" id="placeholder-heading" size="base">Placeholder de produto</Heading>
-                    <IconButton icon="Pencil" label="Editar placeholder de produto" variant="primary" size="sm" onClick={() => setOpenDialog("placeholder")} />
+                    <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label="Editar placeholder de produto" variant="primary" size="sm" onClick={() => setOpenDialog("placeholder")} />
                   </div>
                   <p className="text-sm text-muted-foreground">Imagem exibida quando um produto não tem foto.</p>
                   {placeholderUrl
@@ -440,7 +439,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
                 <div className="flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-2">
                     <Heading as="h2" id="favicon-heading" size="base">Favicon do site</Heading>
-                    <IconButton icon="Pencil" label="Editar favicon" variant="primary" size="sm" onClick={() => setOpenDialog("favicon")} />
+                    <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label="Editar favicon" variant="primary" size="sm" onClick={() => setOpenDialog("favicon")} />
                   </div>
                   <p className="text-sm text-muted-foreground">Ícone exibido na aba do navegador.</p>
                   {faviconUrl
@@ -455,7 +454,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
                 <div className="flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-2">
                     <Heading as="h2" id="metadata-heading" size="base">Metadados do site</Heading>
-                    <IconButton icon="Pencil" label="Editar metadados" variant="primary" size="sm" onClick={() => setOpenDialog("metadata")} />
+                    <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label="Editar metadados" variant="primary" size="sm" onClick={() => setOpenDialog("metadata")} />
                   </div>
                   <p className="text-sm text-muted-foreground">Nome da loja e descrição padrão para SEO.</p>
                   <span className="text-xs text-muted-foreground">{siteTitle || "Não configurado"}</span>
@@ -468,7 +467,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
                 <div className="flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-2">
                     <Heading as="h2" id="banners-heading" size="base">Banners</Heading>
-                    <IconButton icon="Images" label="Gerenciar banners" variant="primary" size="sm" onClick={() => setOpenDialog("banners")} />
+                    <Button iconOnly leftIcon={<Icon name="Images" size="sm" />} aria-label="Gerenciar banners" variant="primary" size="sm" onClick={() => setOpenDialog("banners")} />
                   </div>
                   <p className="text-sm text-muted-foreground">Imagens de destaque exibidas na home.</p>
                   <span className="text-xs text-muted-foreground">
@@ -483,7 +482,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
                 <div className="flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-2">
                     <Heading as="h2" id="about-heading" size="base">Sobre nós</Heading>
-                    <IconButton icon="Pencil" label="Editar sobre nós" variant="primary" size="sm" onClick={() => setOpenDialog("about")} />
+                    <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label="Editar sobre nós" variant="primary" size="sm" onClick={() => setOpenDialog("about")} />
                   </div>
                   <p className="text-sm text-muted-foreground">Conteúdo da página /about-us.</p>
                   <span className="text-xs text-muted-foreground">{configured(aboutUsContent)}</span>
@@ -496,7 +495,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
                 <div className="flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-2">
                     <Heading as="h2" id="contact-heading" size="base">Contato</Heading>
-                    <IconButton icon="Pencil" label="Editar contato" variant="primary" size="sm" onClick={() => setOpenDialog("contact")} />
+                    <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label="Editar contato" variant="primary" size="sm" onClick={() => setOpenDialog("contact")} />
                   </div>
                   <p className="text-sm text-muted-foreground">Informações exibidas na página /contact.</p>
                   <span className="text-xs text-muted-foreground">{configured(contactEmail || contactPhone)}</span>
@@ -509,7 +508,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
                 <div className="flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-2">
                     <Heading as="h2" id="social-heading" size="base">Redes sociais</Heading>
-                    <IconButton icon="Pencil" label="Editar redes sociais" variant="primary" size="sm" onClick={() => setOpenDialog("social")} />
+                    <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label="Editar redes sociais" variant="primary" size="sm" onClick={() => setOpenDialog("social")} />
                   </div>
                   <p className="text-sm text-muted-foreground">Links de Instagram, TikTok e Facebook.</p>
                   <span className="text-xs text-muted-foreground">
@@ -525,7 +524,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
                 <div className="flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-2">
                     <Heading as="h2" id="privacy-heading" size="base">Política de privacidade</Heading>
-                    <IconButton icon="Pencil" label="Editar política de privacidade" variant="primary" size="sm" onClick={() => setOpenDialog("privacy")} />
+                    <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label="Editar política de privacidade" variant="primary" size="sm" onClick={() => setOpenDialog("privacy")} />
                   </div>
                   <p className="text-sm text-muted-foreground">Conteúdo da página /privacy-policy.</p>
                   <span className="text-xs text-muted-foreground">{configured(privacyContent)}</span>
@@ -538,7 +537,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
                 <div className="flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-2">
                     <Heading as="h2" id="terms-heading" size="base">Termos e condições</Heading>
-                    <IconButton icon="Pencil" label="Editar termos e condições" variant="primary" size="sm" onClick={() => setOpenDialog("terms")} />
+                    <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label="Editar termos e condições" variant="primary" size="sm" onClick={() => setOpenDialog("terms")} />
                   </div>
                   <p className="text-sm text-muted-foreground">Conteúdo da página /terms-and-conditions.</p>
                   <span className="text-xs text-muted-foreground">{configured(termsContent)}</span>
@@ -551,7 +550,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
                 <div className="flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-2">
                     <Heading as="h2" id="payment-gateway-heading" size="base">Gateway de pagamento</Heading>
-                    <IconButton icon="Pencil" label="Editar gateway de pagamento" variant="primary" size="sm" onClick={() => setOpenDialog("payment-gateway")} />
+                    <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label="Editar gateway de pagamento" variant="primary" size="sm" onClick={() => setOpenDialog("payment-gateway")} />
                   </div>
                   <p className="text-sm text-muted-foreground">Gateway usado para processar pagamentos no checkout.</p>
                   <span className="text-xs text-muted-foreground">
@@ -566,7 +565,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
                 <div className="flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-2">
                     <Heading as="h2" id="refund-heading" size="base">Política de reembolso</Heading>
-                    <IconButton icon="Pencil" label="Editar política de reembolso" variant="primary" size="sm" onClick={() => setOpenDialog("refund")} />
+                    <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label="Editar política de reembolso" variant="primary" size="sm" onClick={() => setOpenDialog("refund")} />
                   </div>
                   <p className="text-sm text-muted-foreground">Conteúdo da página /refund-policy.</p>
                   <span className="text-xs text-muted-foreground">{configured(refundContent)}</span>
@@ -579,7 +578,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
                 <div className="flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-2">
                     <Heading as="h2" id="fiscal-company-data-heading" size="base">Dados fiscais da empresa</Heading>
-                    <IconButton icon="Pencil" label="Editar dados fiscais da empresa" variant="primary" size="sm" onClick={() => setOpenDialog("fiscal-company-data")} />
+                    <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label="Editar dados fiscais da empresa" variant="primary" size="sm" onClick={() => setOpenDialog("fiscal-company-data")} />
                   </div>
                   <p className="text-sm text-muted-foreground">CNPJ, razão social, IE, regime tributário e endereço fiscal usados na emissão de NF-e.</p>
                   <span className="text-xs text-muted-foreground">{configured(fiscalCompanyData.cnpj)}</span>
@@ -592,7 +591,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
                 <div className="flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-2">
                     <Heading as="h2" id="navigation-heading" size="base">Navegação do site</Heading>
-                    <IconButton as="a" href={`${basePath}/navigation`} icon="Menu" label="Gerenciar navegação" variant="primary" size="sm" />
+                    <Button iconOnly leftIcon={<Icon name="Menu" size="sm" />} aria-label="Gerenciar navegação" as="a" href={`${basePath}/navigation`} variant="primary" size="sm" />
                   </div>
                   <p className="text-sm text-muted-foreground">Links e coleções exibidos na navbar e no footer do site.</p>
                 </div>
@@ -632,13 +631,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
                   {banner.linkUrl && (
                     <span className="text-sm text-muted-foreground truncate flex-1">{banner.linkUrl}</span>
                   )}
-                  <IconButton
-                    icon="Trash2"
-                    label="Remover"
-                    variant="danger"
-                    size="sm"
-                    onClick={() => handleBannerRemove(banner.id)}
-                  />
+                  <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label="Remover" variant="danger" size="sm" onClick={() => handleBannerRemove(banner.id)} />
                 </li>
               ))}
             </ul>

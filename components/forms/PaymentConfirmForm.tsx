@@ -1,7 +1,6 @@
 'use client'
 
-import { FileUpload, FormField } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, FileUpload, FormField, Icon } from 'base-ds'
 
 interface Props {
   file: File | null
@@ -34,15 +33,8 @@ export function PaymentConfirmForm({ file, onFileChange, onConfirm, onCancel, co
       )}
 
       <div className="flex gap-3">
-        <IconButton
-          type="submit"
-          icon="Check"
-          label="Confirmar pagamento"
-          variant="primary"
-          disabled={!file}
-          isLoading={confirming}
-        />
-        <IconButton type="button" icon="X" label="Cancelar" variant="secondary" onClick={onCancel} disabled={confirming} />
+        <Button iconOnly leftIcon={<Icon name="Check" size="sm" />} aria-label="Confirmar pagamento" type="submit" variant="primary" disabled={!file} isLoading={confirming} />
+        <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" type="button" variant="secondary" onClick={onCancel} disabled={confirming} />
       </div>
     </form>
   )

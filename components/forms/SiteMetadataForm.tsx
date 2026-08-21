@@ -1,5 +1,4 @@
-import { FormField, Input } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, FormField, Icon, Input, Textarea } from 'base-ds'
 
 interface Props {
   siteTitle: string
@@ -33,17 +32,16 @@ export function SiteMetadataForm({
       </FormField>
 
       <FormField label="Descrição padrão" id="default-description">
-        <textarea
+        <Textarea
           id="default-description"
           value={defaultDescription}
           onChange={(e) => onDefaultDescription(e.target.value)}
           rows={3}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         />
       </FormField>
 
       <div>
-        <IconButton type="submit" icon="Save" label={saveLabel} variant="primary" isLoading={saving} />
+        <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={saveLabel} type="submit" variant="primary" isLoading={saving} />
       </div>
     </form>
   )

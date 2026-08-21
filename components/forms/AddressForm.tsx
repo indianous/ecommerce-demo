@@ -1,7 +1,6 @@
 'use client'
 
-import { FormField, Input } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, FormField, Icon, Input } from 'base-ds'
 import type { Address } from '@/types'
 
 export type NewAddress = Omit<Address, 'id' | 'isDefault'>
@@ -73,14 +72,7 @@ export function AddressForm({ address, onChange, onSubmit, saving }: Props) {
           required
         />
       </FormField>
-      <IconButton
-        type="submit"
-        icon="Plus"
-        label="Adicionar endereço"
-        variant="primary"
-        isLoading={saving}
-        className="col-span-2 self-start"
-      />
+      <Button iconOnly leftIcon={<Icon name="Plus" size="sm" />} aria-label="Adicionar endereço" type="submit" variant="primary" isLoading={saving} className="col-span-2 self-start" />
     </form>
   )
 }

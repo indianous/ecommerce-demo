@@ -1,7 +1,6 @@
 'use client'
 
-import { FileUpload, FormField, Rating, Text } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, FileUpload, FormField, Icon, Rating, Text, Textarea } from 'base-ds'
 
 interface Props {
   rating: number
@@ -45,12 +44,11 @@ export function ReviewForm({
       </FormField>
 
       <FormField label="Comentário" id="review-comment">
-        <textarea
+        <Textarea
           id="review-comment"
           value={comment}
           onChange={(e) => onCommentChange(e.target.value)}
           rows={4}
-          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
           placeholder="Conte como foi sua experiência com o produto"
         />
       </FormField>
@@ -76,23 +74,9 @@ export function ReviewForm({
       )}
 
       <div className="flex gap-3">
-        <IconButton
-          type="submit"
-          icon="Save"
-          label={submitLabel}
-          variant="primary"
-          disabled={!isValid}
-          isLoading={submitting}
-        />
+        <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={submitLabel} type="submit" variant="primary" disabled={!isValid} isLoading={submitting} />
         {onCancel && (
-          <IconButton
-            type="button"
-            icon="X"
-            label="Cancelar"
-            variant="secondary"
-            onClick={onCancel}
-            disabled={submitting}
-          />
+          <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" type="button" variant="secondary" onClick={onCancel} disabled={submitting} />
         )}
       </div>
     </form>

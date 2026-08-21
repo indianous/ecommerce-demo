@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useToast } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, Icon, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 
 interface Props {
@@ -37,14 +36,6 @@ export function WishlistButton({ productId, initialWishlisted }: Props) {
   }
 
   return (
-    <IconButton
-      icon="Heart"
-      label={isWishlisted ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-      variant={isWishlisted ? 'danger' : 'ghost'}
-      size="sm"
-      aria-pressed={isWishlisted}
-      isLoading={isLoading}
-      onClick={toggle}
-    />
+    <Button iconOnly leftIcon={<Icon name="Heart" size="sm" />} aria-label={isWishlisted ? 'Remover dos favoritos' : 'Adicionar aos favoritos'} variant={isWishlisted ? 'danger' : 'ghost'} size="sm" aria-pressed={isWishlisted} isLoading={isLoading} onClick={toggle} />
   )
 }

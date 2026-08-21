@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FormField, Input, Select } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, FormField, Icon, Input, Select } from 'base-ds'
 import type { Gender } from '@/types'
 
 const GENDER_OPTIONS: { value: Gender; label: string }[] = [
@@ -86,14 +85,7 @@ export function ProfileDataForm({
           options={GENDER_OPTIONS}
         />
       </FormField>
-      <IconButton
-        type="submit"
-        icon="Save"
-        label="Salvar"
-        variant="primary"
-        isLoading={saving}
-        className="self-start"
-      />
+      <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label="Salvar" type="submit" variant="primary" isLoading={saving} className="self-start" />
     </form>
   )
 }

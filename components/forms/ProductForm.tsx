@@ -1,8 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
-import { Button, Card, Checkbox, FileUpload, FormField, Image, Input, NumberInput, Select, Text } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Button, Card, FileUpload, FormField, Icon, Image, Input, MultiSelect, NumberInput, Select, Text } from 'base-ds'
 import type { Category, MerchandiseOrigin } from '@/types'
 
 const MAX_IMAGES = 8
@@ -79,13 +78,6 @@ export function ProductForm({
 }: ProductFormProps) {
   const uploadedFileCountRef = useRef(0)
 
-  const toggleCategory = (id: string) => {
-    const next = form.categoryIds.includes(id)
-      ? form.categoryIds.filter((c) => c !== id)
-      : [...form.categoryIds, id]
-    onFormChange({ categoryIds: next })
-  }
-
   const setPrimaryCategory = (id: string) => {
     onFormChange({ categoryIds: [id, ...form.categoryIds.filter((c) => c !== id)] })
   }
@@ -158,17 +150,12 @@ export function ProductForm({
       </FormField>
 
       <FormField label="Categorias" id="product-categories">
-        <div className="flex flex-col gap-2">
-          {categories.map((c) => (
-            <Checkbox
-              key={c.id}
-              id={`product-category-${c.id}`}
-              label={c.name}
-              checked={form.categoryIds.includes(c.id)}
-              onChange={() => toggleCategory(c.id)}
-            />
-          ))}
-        </div>
+        <MultiSelect
+          id="product-categories"
+          options={categories.map((c) => ({ value: c.id, label: c.name }))}
+          value={form.categoryIds}
+          onChange={(next) => onFormChange({ categoryIds: next })}
+        />
       </FormField>
 
       {form.categoryIds.length > 1 && (
@@ -357,15 +344,7 @@ export function ProductForm({
         </div>
       </Card>
 
-      <IconButton
-        type="submit"
-        icon="Save"
-        label={saveLabel}
-        variant="primary"
-        isLoading={saving}
-        disabled={form.categoryIds.length === 0}
-        className="self-start"
-      />
+      <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={saveLabel} type="submit" variant="primary" isLoading={saving} disabled={form.categoryIds.length === 0} className="self-start" />
     </form>
   )
 }
