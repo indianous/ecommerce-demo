@@ -1,28 +1,32 @@
 'use client'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type ComponentProps } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { SidebarAvatar } from './SidebarAvatar'
+import { Button, Icon, Sidebar } from 'base-ds'
 
-const navItems = [
-  { label: 'Pedidos', href: '/dashboard/admin/orders' },
-  { label: 'Envios', href: '/dashboard/admin/shipping' },
-  { label: 'Solicitações', href: '/dashboard/admin/change-requests' },
-  { label: 'Produtos', href: '/dashboard/admin/products' },
-  { label: 'Estoque', href: '/dashboard/admin/stock' },
-  { label: 'Excluídos', href: '/dashboard/admin/products/deleted' },
-  { label: 'Clientes', href: '/dashboard/admin/customers' },
-  { label: 'Funcionários', href: '/dashboard/admin/employees' },
-  { label: 'Pagamentos', href: '/dashboard/admin/payments' },
-  { label: 'Auditoria', href: '/dashboard/admin/audit-logs' },
-  { label: 'Site', href: '/dashboard/admin/site' },
-  { label: 'Analytics', href: '/dashboard/admin/analytics' },
-  { label: 'Ver site', href: '/', external: true },
+type IconName = ComponentProps<typeof Icon>['name']
+
+const navItems: { label: string; href: string; icon: IconName; external?: boolean }[] = [
+  { label: 'Pedidos', href: '/dashboard/admin/orders', icon: 'ClipboardList' },
+  { label: 'Envios', href: '/dashboard/admin/shipping', icon: 'Truck' },
+  { label: 'Solicitações', href: '/dashboard/admin/change-requests', icon: 'ListChecks' },
+  { label: 'Produtos', href: '/dashboard/admin/products', icon: 'Package' },
+  { label: 'Estoque', href: '/dashboard/admin/stock', icon: 'Boxes' },
+  { label: 'Excluídos', href: '/dashboard/admin/products/deleted', icon: 'Trash2' },
+  { label: 'Clientes', href: '/dashboard/admin/customers', icon: 'Users' },
+  { label: 'Funcionários', href: '/dashboard/admin/employees', icon: 'UserCog' },
+  { label: 'Pagamentos', href: '/dashboard/admin/payments', icon: 'CreditCard' },
+  { label: 'Auditoria', href: '/dashboard/admin/audit-logs', icon: 'History' },
+  { label: 'Site', href: '/dashboard/admin/site', icon: 'Globe' },
+  { label: 'Analytics', href: '/dashboard/admin/analytics', icon: 'BarChart3' },
+  { label: 'Ver site', href: '/', icon: 'ExternalLink', external: true },
 ]
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), [])
 
@@ -37,41 +41,30 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen">
-      {/* Desktop sidebar — hidden on mobile, visible from md breakpoint */}
-      <nav
-        aria-label="Sidebar navigation"
-        className="hidden md:flex flex-col w-64 border-r border-border p-4 gap-2"
-      >
-        <div className="mb-4">
-          <SidebarAvatar profileHref="/dashboard/admin/profile" />
-        </div>
-        <ul className="flex flex-col gap-1 flex-1">
-          {navItems.map((item) => (
-            <li key={item.href}>
+      {/* Desktop sidebar — hidden on mobile, visible from md breakpoint, fixo na lateral */}
+      <div className="hidden md:block sticky top-0 h-screen">
+        <Sidebar
+          items={navItems.map((item) => ({
+            label: item.label,
+            icon: <Icon name={item.icon} size="sm" />,
+            active: pathname === item.href,
+            asChild: (
               <Link
                 href={item.href}
-                aria-current={pathname === item.href ? 'page' : undefined}
-                className="block px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors aria-[current=page]:bg-primary aria-[current=page]:text-primary-foreground"
                 {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-              >
-                {item.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
+              />
+            ),
+          }))}
+          collapsed={collapsed}
+          onCollapse={setCollapsed}
+          footer={<SidebarAvatar profileHref="/dashboard/admin/profile" collapsed={collapsed} />}
+        />
+      </div>
 
       <div className="flex flex-col flex-1">
         {/* Mobile header */}
         <header className="flex items-center gap-3 p-4 border-b border-border md:hidden">
-          <button
-            type="button"
-            aria-label="Abrir menu"
-            className="md:hidden"
-            onClick={() => setDrawerOpen(true)}
-          >
-            <span aria-hidden="true">☰</span>
-          </button>
+          <Button iconOnly leftIcon={<Icon name="Menu" size="sm" />} aria-label="Abrir menu" variant="ghost" className="md:hidden" onClick={() => setDrawerOpen(true)} />
         </header>
 
         {/* Mobile drawer */}

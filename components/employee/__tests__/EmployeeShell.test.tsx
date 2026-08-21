@@ -54,12 +54,12 @@ afterEach(async () => {
 })
 
 describe('EmployeeShell — Sidebar (desktop)', () => {
-  it('renderiza nav com aria-label="Sidebar navigation" com classe hidden md:flex', () => {
+  it('renderiza nav com aria-label="Sidebar navigation", com wrapper hidden md:block', () => {
     useAuthStore.setState(makeEmployee(['MANAGE_ORDERS']))
     renderEmployeeShell()
     const nav = screen.getByRole('navigation', { name: /sidebar navigation/i })
     expect(nav).toBeInTheDocument()
-    expect(nav).toHaveClass('hidden')
+    expect(nav.parentElement).toHaveClass('hidden', 'md:block')
   })
 
   it('sem permissões, nenhum item de menu é exibido', () => {
@@ -189,6 +189,31 @@ describe('EmployeeShell — Sidebar (desktop)', () => {
     expect(link).toHaveAttribute('href', '/')
     expect(link).toHaveAttribute('target', '_blank')
     expect(link.getAttribute('rel')).toContain('noopener')
+  })
+})
+
+describe('EmployeeShell — Sidebar recolhível (desktop)', () => {
+  it('clicar no botão de recolher esconde os rótulos dos itens (ficam sr-only)', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState(makeEmployee(['MANAGE_ORDERS']))
+    renderEmployeeShell()
+
+    const pedidosLink = screen.getByRole('link', { name: /pedidos/i })
+    expect(pedidosLink.querySelector('span:not(.sr-only)')).toHaveTextContent('Pedidos')
+
+    await user.click(screen.getByRole('button', { name: /toggle sidebar/i }))
+
+    expect(pedidosLink.querySelector('span.sr-only')).toHaveTextContent('Pedidos')
+  })
+
+  it('recolher também esconde o nome no SidebarAvatar (fica sr-only)', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState(makeEmployee(['MANAGE_ORDERS']))
+    renderEmployeeShell()
+
+    await user.click(screen.getByRole('button', { name: /toggle sidebar/i }))
+
+    expect(screen.getByText('Funcionário')).toHaveClass('sr-only')
   })
 })
 

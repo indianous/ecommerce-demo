@@ -40,12 +40,12 @@ afterEach(async () => {
 })
 
 describe('AdminShell — Sidebar (desktop)', () => {
-  it('renderiza nav com aria-label="Sidebar navigation" com classe hidden md:flex', () => {
+  it('renderiza nav com aria-label="Sidebar navigation", com wrapper hidden md:block', () => {
     useAuthStore.setState(authenticatedAdmin)
     renderAdminShell()
     const nav = screen.getByRole('navigation', { name: /sidebar navigation/i })
     expect(nav).toBeInTheDocument()
-    expect(nav).toHaveClass('hidden')
+    expect(nav.parentElement).toHaveClass('hidden', 'md:block')
   })
 
   it('exibe todos os itens de menu de navegação', () => {
@@ -142,6 +142,31 @@ describe('AdminShell — Hamburger e Drawer (mobile)', () => {
 
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})
+
+describe('AdminShell — Sidebar recolhível (desktop)', () => {
+  it('clicar no botão de recolher esconde os rótulos dos itens (ficam sr-only)', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell()
+
+    const pedidosLink = screen.getByRole('link', { name: /pedidos/i })
+    expect(pedidosLink.querySelector('span:not(.sr-only)')).toHaveTextContent('Pedidos')
+
+    await user.click(screen.getByRole('button', { name: /toggle sidebar/i }))
+
+    expect(pedidosLink.querySelector('span.sr-only')).toHaveTextContent('Pedidos')
+  })
+
+  it('recolher também esconde o nome no SidebarAvatar (fica sr-only)', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell()
+
+    await user.click(screen.getByRole('button', { name: /toggle sidebar/i }))
+
+    expect(screen.getByText('Admin')).toHaveClass('sr-only')
   })
 })
 
