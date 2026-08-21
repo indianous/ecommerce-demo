@@ -98,7 +98,7 @@ describe('EmployeeFuncionarioDetailContent', () => {
     expect(img).toHaveAttribute('src', expect.stringContaining('example.com/avatar.jpg'))
   })
 
-  it('DuelingPicklist mostra permissões atribuídas à direita', async () => {
+  it('TransferList mostra permissões atribuídas à direita', async () => {
     renderDetail()
     await screen.findByText('Carlos Dias')
     const assignedList = screen.getByRole('listbox', { name: /atribuídas/i })
@@ -118,7 +118,7 @@ describe('EmployeeFuncionarioDetailContent', () => {
     await screen.findByText('Carlos Dias')
 
     await user.click(screen.getByRole('option', { name: /gerenciamento de produtos/i }))
-    await user.click(screen.getByRole('button', { name: /mover selecionado para a direita/i }))
+    await user.click(screen.getByRole('button', { name: /move to atribuídas/i }))
     await user.click(screen.getByRole('button', { name: /salvar permissões/i }))
 
     expect(await screen.findByRole('status')).toHaveTextContent(/permissões salvas/i)

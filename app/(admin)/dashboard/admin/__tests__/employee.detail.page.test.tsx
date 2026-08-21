@@ -81,7 +81,7 @@ describe('Employee Detail Page', () => {
     expect(img).toHaveAttribute('src', expect.stringContaining('example.com/avatar.jpg'))
   })
 
-  it('DuelingPicklist mostra permissões atribuídas à direita', async () => {
+  it('TransferList mostra permissões atribuídas à direita', async () => {
     renderPage()
     await screen.findByText('Carlos Dias')
     const assignedList = screen.getByRole('listbox', { name: /atribuídas/i })
@@ -89,7 +89,7 @@ describe('Employee Detail Page', () => {
     expect(assignedList).toHaveTextContent(/gerenciamento de pedidos/i)
   })
 
-  it('mover permissão via DuelingPicklist e salvar chama PUT /permissions', async () => {
+  it('mover permissão via TransferList e salvar chama PUT /permissions', async () => {
     let captured: unknown = null
     server.use(
       http.put('/api/admin/employees/:id/permissions', async ({ request }) => {
@@ -102,7 +102,7 @@ describe('Employee Detail Page', () => {
     await screen.findByText('Carlos Dias')
 
     await user.click(screen.getByRole('option', { name: /gerenciamento de produtos/i }))
-    await user.click(screen.getByRole('button', { name: /mover selecionado para a direita/i }))
+    await user.click(screen.getByRole('button', { name: /move to atribuídas/i }))
     await user.click(screen.getByRole('button', { name: /salvar permissões/i }))
 
     await screen.findByRole('status')

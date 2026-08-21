@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Avatar, Badge, Button, Heading, Skeleton, useToast } from 'base-ds'
-import { IconButton } from '@/components/ui/IconButton'
+import { Avatar, Badge, Button, Heading, Icon, Skeleton, TransferList, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
-import { DuelingPicklist } from '@/components/ui/DuelingPicklist'
 import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions'
 import type { AuditLogResponse, EmployeeDetailResponse, EmployeePermission } from '@/types'
 
@@ -88,15 +86,15 @@ export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/em
 
         <section className="mb-8">
           <Heading as="h2" size="xl" className="mb-4">Permissões</Heading>
-          <DuelingPicklist
+          <TransferList
             options={permOptions}
             value={permissions}
-            onChange={setPermissions}
+            onChange={(next) => setPermissions(next as EmployeePermission[])}
             availableLabel="Disponíveis"
             selectedLabel="Atribuídas"
           />
           <div className="flex gap-2 mt-4">
-            <IconButton icon="Save" label="Salvar permissões" variant="primary" onClick={handleSave} isLoading={saving} />
+            <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label="Salvar permissões" variant="primary" onClick={handleSave} isLoading={saving} />
             <Button variant="secondary" disabled>
               Redefinir senha
             </Button>
