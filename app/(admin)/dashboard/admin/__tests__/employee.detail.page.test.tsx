@@ -102,7 +102,7 @@ describe('Employee Detail Page', () => {
     await screen.findByText('Carlos Dias')
 
     await user.click(screen.getByRole('option', { name: /gerenciamento de produtos/i }))
-    await user.click(screen.getByRole('button', { name: /move to atribuídas/i }))
+    await user.click(screen.getByRole('button', { name: /mover para atribuídas/i }))
     await user.click(screen.getByRole('button', { name: /salvar permissões/i }))
 
     await screen.findByRole('status')

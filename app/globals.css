@@ -107,3 +107,16 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
+
+/*
+  base-ds's tooltip bubbles (Button's built-in one and the standalone Tooltip,
+  both role="tooltip") hardcode whitespace-nowrap with no way to override via
+  props — near a screen/container edge, a longer label overflows past it
+  instead of wrapping. Unlayered rule, so it wins over Tailwind's @layer
+  utilities regardless of source order/specificity.
+*/
+[role='tooltip'] {
+  white-space: normal;
+  max-width: 12rem;
+  text-align: center;
+}

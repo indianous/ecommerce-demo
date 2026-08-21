@@ -92,6 +92,10 @@ export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/em
             onChange={(next) => setPermissions(next as EmployeePermission[])}
             availableLabel="Disponíveis"
             selectedLabel="Atribuídas"
+            moveLabel="Mover para Atribuídas"
+            moveAllLabel="Mover todos para Atribuídas"
+            moveBackLabel="Mover para Disponíveis"
+            moveAllBackLabel="Mover todos para Disponíveis"
           />
           <div className="flex gap-2 mt-4">
             <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label="Salvar permissões" variant="primary" onClick={handleSave} isLoading={saving} />
