@@ -6,6 +6,7 @@ import { Footer, Image, Navbar } from 'base-ds'
 import type { FooterSocialLink } from 'base-ds'
 import { CartDrawer } from '@/components/cart/CartDrawer'
 import { NavbarSearch } from '@/components/layout/NavbarSearch'
+import { NotificationBell } from '@/components/layout/NotificationBell'
 import { UserMenu } from '@/components/layout/UserMenu'
 import { useSiteSettings } from '@/contexts/SiteSettingsContext'
 
@@ -56,7 +57,7 @@ export function AppShell({ children }: AppShellProps) {
         }
         items={navbarItems.length > 0 ? navbarItems : undefined}
         search={<NavbarSearch />}
-        actions={[<CartDrawer key="cart" />, <UserMenu key="user" />]}
+        actions={[<NotificationBell key="notifications" />, <CartDrawer key="cart" />, <UserMenu key="user" />]}
         sticky
       />
       <main className="flex-1">{children}</main>

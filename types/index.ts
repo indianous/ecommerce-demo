@@ -490,6 +490,18 @@ export interface ChannelConversionResponse {
   averageOrderValue: number
 }
 
+export type NotificationType = 'ORDER_STATUS_CHANGED'
+
+export interface AppNotification {
+  id: string
+  type: NotificationType
+  title: string
+  message: string
+  linkUrl: string | null
+  readAt: string | null
+  createdAt: string
+}
+
 export interface CustomerDetailResponse {
   id: string
   name: string
