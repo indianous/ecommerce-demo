@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Badge, Button, Heading, Skeleton, useToast } from 'base-ds'
+import { Badge, Button, Heading, Skeleton, Switch, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ProductForm, type ProductFormState } from '@/components/forms/ProductForm'
@@ -87,9 +87,9 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
     }
   }
 
-  const handleToggleStatus = async () => {
-    if (!accessToken || !status) return
-    const newStatus: ProductStatus = status === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE'
+  const handleToggleStatus = async (checked: boolean) => {
+    if (!accessToken) return
+    const newStatus: ProductStatus = checked ? 'AVAILABLE' : 'UNAVAILABLE'
     try {
       const res = await fetch(`/api/admin/products/${id}/status`, {
         method: 'PATCH',
@@ -150,9 +150,12 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
             <Badge variant={status === 'AVAILABLE' ? 'success' : 'default'}>
               {status === 'AVAILABLE' ? 'Disponível' : 'Indisponível'}
             </Badge>
-            <Button variant="outline" onClick={handleToggleStatus}>
-              {status === 'AVAILABLE' ? 'Tornar Indisponível' : 'Tornar Disponível'}
-            </Button>
+            <Switch
+              id="product-status"
+              label="Produto disponível"
+              checked={status === 'AVAILABLE'}
+              onChange={handleToggleStatus}
+            />
           </div>
           <Button variant="danger" onClick={() => setDeleteTarget(id)}>Excluir produto</Button>
         </section>

@@ -167,17 +167,25 @@ describe('ProductEditContent — seção Ações', () => {
     expect(screen.getByText('Disponível')).toBeInTheDocument()
   })
 
-  it('botão de alternar status chama PATCH com o status oposto e atualiza o badge sem sair da página', async () => {
+  it('switch de disponibilidade começa marcado para produto AVAILABLE', async () => {
+    renderEdit()
+    await screen.findByDisplayValue('Teclado Mecânico')
+    expect(screen.getByRole('switch', { name: /produto disponível/i })).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('desligar o switch chama PATCH com status UNAVAILABLE e atualiza o badge sem sair da página', async () => {
     const user = userEvent.setup()
     renderEdit()
     await screen.findByDisplayValue('Teclado Mecânico')
 
-    await user.click(screen.getByRole('button', { name: /tornar indisponível/i }))
+    const toggle = screen.getByRole('switch', { name: /produto disponível/i })
+    await user.click(toggle)
 
     await waitFor(() => {
       expect(lastPatchStatusBody).toMatchObject({ status: 'UNAVAILABLE' })
     })
     expect(await screen.findByText('Indisponível')).toBeInTheDocument()
+    expect(toggle).toHaveAttribute('aria-checked', 'false')
     expect(pushMock).not.toHaveBeenCalled()
   })
 
