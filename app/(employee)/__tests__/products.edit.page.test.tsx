@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -32,14 +32,26 @@ const mockProduct: Product = {
 }
 
 let lastPutBody: Record<string, unknown> = {}
+let lastPatchStatusBody: Record<string, unknown> = {}
+let currentProduct: Product = mockProduct
+let deleteCalled = false
 
 const server = setupServer(
   http.get('/api/categories', () => HttpResponse.json([mockCategory])),
-  http.get('/api/admin/products/:id', () => HttpResponse.json(mockProduct)),
+  http.get('/api/admin/products/:id', () => HttpResponse.json(currentProduct)),
   http.put('/api/admin/products/:id', async ({ request }) => {
     const body = await request.json()
     lastPutBody = body as Record<string, unknown>
     return HttpResponse.json({ ...(body as object), id: 'prod-1' })
+  }),
+  http.patch('/api/admin/products/:id/status', async ({ request }) => {
+    lastPatchStatusBody = (await request.json()) as Record<string, unknown>
+    currentProduct = { ...currentProduct, status: lastPatchStatusBody.status as Product['status'] }
+    return HttpResponse.json(currentProduct)
+  }),
+  http.delete('/api/admin/products/:id', () => {
+    deleteCalled = true
+    return new HttpResponse(null, { status: 204 })
   }),
   http.post('/api/upload/image', () => HttpResponse.json({ url: '/uploads/uuid-test.jpg' })),
 )
@@ -50,6 +62,9 @@ afterEach(async () => {
   replaceMock.mockClear()
   pushMock.mockClear()
   lastPutBody = {}
+  lastPatchStatusBody = {}
+  currentProduct = mockProduct
+  deleteCalled = false
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
   })
@@ -142,5 +157,56 @@ describe('ProductEditContent', () => {
     server.use(http.get('/api/admin/products/:id', () => new HttpResponse(null, { status: 404 })))
     renderEdit('nao-existe')
     expect(await screen.findByText(/não encontrado/i)).toBeInTheDocument()
+  })
+})
+
+describe('ProductEditContent — seção Ações', () => {
+  it('exibe o status atual do produto', async () => {
+    renderEdit()
+    await screen.findByDisplayValue('Teclado Mecânico')
+    expect(screen.getByText('Disponível')).toBeInTheDocument()
+  })
+
+  it('botão de alternar status chama PATCH com o status oposto e atualiza o badge sem sair da página', async () => {
+    const user = userEvent.setup()
+    renderEdit()
+    await screen.findByDisplayValue('Teclado Mecânico')
+
+    await user.click(screen.getByRole('button', { name: /tornar indisponível/i }))
+
+    await waitFor(() => {
+      expect(lastPatchStatusBody).toMatchObject({ status: 'UNAVAILABLE' })
+    })
+    expect(await screen.findByText('Indisponível')).toBeInTheDocument()
+    expect(pushMock).not.toHaveBeenCalled()
+  })
+
+  it('botão "Excluir produto" abre dialog de confirmação; cancelar não chama DELETE', async () => {
+    const user = userEvent.setup()
+    renderEdit()
+    await screen.findByDisplayValue('Teclado Mecânico')
+
+    await user.click(screen.getByRole('button', { name: /excluir produto/i }))
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /cancelar/i }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(deleteCalled).toBe(false)
+  })
+
+  it('confirmar exclusão chama DELETE /api/admin/products/:id e navega pra backPath', async () => {
+    const user = userEvent.setup()
+    renderEdit()
+    await screen.findByDisplayValue('Teclado Mecânico')
+
+    await user.click(screen.getByRole('button', { name: /excluir produto/i }))
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: /confirmar/i }))
+
+    await waitFor(() => {
+      expect(deleteCalled).toBe(true)
+      expect(pushMock).toHaveBeenCalledWith('/dashboard/products')
+    })
   })
 })

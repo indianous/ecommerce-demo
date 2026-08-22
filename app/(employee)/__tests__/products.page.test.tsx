@@ -47,9 +47,6 @@ const mockBookProduct: Product = {
 
 let products: Product[] = []
 
-let lastPatchStatusBody: Record<string, unknown> = {}
-let lastPatchStatusId = ''
-
 const makePage = (content: Product[]) => ({
   content,
   page: 0,
@@ -75,20 +72,6 @@ const server = setupServer(
     if (search) filtered = filtered.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
     return HttpResponse.json(makePage(filtered))
   }),
-  http.delete('/api/admin/products/:id', ({ params }) => {
-    products = products.filter((p) => p.id !== params.id)
-    return new HttpResponse(null, { status: 204 })
-  }),
-  http.patch('/api/admin/products/:id/status', async ({ request, params }) => {
-    lastPatchStatusId = params.id as string
-    lastPatchStatusBody = (await request.json()) as Record<string, unknown>
-    const newStatus = lastPatchStatusBody.status as string
-    const updated = products.find((p) => p.id === params.id)
-      ? { ...products.find((p) => p.id === params.id)!, status: newStatus as Product['status'] }
-      : mockProduct
-    products = products.map((p) => (p.id === params.id ? updated : p))
-    return HttpResponse.json(updated)
-  }),
 )
 
 beforeAll(() => server.listen())
@@ -105,8 +88,6 @@ afterAll(() => server.close())
 beforeEach(() => {
   products = [mockProduct]
   categories = [mockCategory]
-  lastPatchStatusBody = {}
-  lastPatchStatusId = ''
   useAuthStore.setState({
     accessToken: 'mock-token',
     isAuthenticated: true,
@@ -244,47 +225,14 @@ describe('ProductsManagementPage — navegação', () => {
 })
 
 describe('ProductsManagementPage — ações', () => {
-  it('deletes a product', async () => {
-    const user = userEvent.setup()
+  it('coluna "Ações" só tem o botão "Editar" — Tornar Indisponível/Disponível e Excluir saíram pra edição', async () => {
     renderPage()
     await screen.findByText('Teclado Mecânico')
 
-    await user.click(screen.getByRole('button', { name: /excluir teclado mecânico/i }))
-
-    await waitFor(() => {
-      expect(screen.queryByText('Teclado Mecânico')).not.toBeInTheDocument()
-    })
-  })
-
-  it('produto AVAILABLE tem botão "Tornar Indisponível" que chama PATCH /status', async () => {
-    const user = userEvent.setup()
-    renderPage()
-    await screen.findByText('Teclado Mecânico')
-
-    const toggleBtn = screen.getByRole('button', { name: /tornar indisponível/i })
-    expect(toggleBtn).toBeInTheDocument()
-    await user.click(toggleBtn)
-
-    await waitFor(() => {
-      expect(lastPatchStatusId).toBe('prod-1')
-      expect(lastPatchStatusBody).toMatchObject({ status: 'UNAVAILABLE' })
-    })
-  })
-
-  it('produto UNAVAILABLE tem botão "Tornar Disponível" que chama PATCH /status', async () => {
-    products = [mockUnavailableProduct]
-    const user = userEvent.setup()
-    renderPage()
-    await screen.findByText('Mouse Óptico')
-
-    const toggleBtn = screen.getByRole('button', { name: /tornar disponível/i })
-    expect(toggleBtn).toBeInTheDocument()
-    await user.click(toggleBtn)
-
-    await waitFor(() => {
-      expect(lastPatchStatusId).toBe('prod-unavail')
-      expect(lastPatchStatusBody).toMatchObject({ status: 'AVAILABLE' })
-    })
+    expect(screen.getByRole('button', { name: /editar teclado mecânico/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /tornar indisponível/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /tornar disponível/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /excluir teclado mecânico/i })).not.toBeInTheDocument()
   })
 })
 

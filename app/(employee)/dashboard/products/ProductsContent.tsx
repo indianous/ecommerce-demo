@@ -7,7 +7,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CategoryForm } from '@/components/forms/CategoryForm'
 import { sortTableData } from '@/lib/sortTableData'
-import type { AdminProductPage, Category, Product, ProductStatus } from '@/types'
+import type { AdminProductPage, Category, Product } from '@/types'
 
 const formatBRL = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -86,37 +86,6 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
     }
   }
 
-  const handleDelete = async (product: Product) => {
-    if (!accessToken) return
-    try {
-      const res = await fetch(`/api/admin/products/${product.id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      if (!res.ok) throw new Error()
-      setProducts((prev) => prev.filter((p) => p.id !== product.id))
-    } catch {
-      toast({ variant: 'destructive', description: 'Erro ao excluir produto.' })
-    }
-  }
-
-  const handleToggleStatus = async (product: Product) => {
-    if (!accessToken) return
-    const newStatus: ProductStatus = product.status === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE'
-    try {
-      const res = await fetch(`/api/admin/products/${product.id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ status: newStatus }),
-      })
-      if (!res.ok) throw new Error()
-      const updated: Product = await res.json()
-      setProducts((prev) => prev.map((p) => (p.id === product.id ? updated : p)))
-    } catch {
-      toast({ variant: 'destructive', description: 'Erro ao atualizar disponibilidade.' })
-    }
-  }
-
   if (loading) return <main className="px-4 py-8"><p>Carregando produtos...</p></main>
 
   const sortedProducts = sort
@@ -156,12 +125,6 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
         <div className="flex gap-2 flex-wrap">
           {canManageProducts && (
             <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label={`Editar ${p.name}`} variant="outline" size="sm" onClick={() => router.push(`${basePath}/${p.id}/edit`)} />
-          )}
-          {canManageProducts && (
-            <Button iconOnly leftIcon={<Icon name={p.status === 'AVAILABLE' ? 'EyeOff' : 'Eye'} size="sm" />} aria-label={p.status === 'AVAILABLE' ? `Tornar Indisponível ${p.name}` : `Tornar Disponível ${p.name}`} variant="outline" size="sm" onClick={() => handleToggleStatus(p)} />
-          )}
-          {canManageProducts && (
-            <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Excluir ${p.name}`} variant="danger" size="sm" onClick={() => handleDelete(p)} />
           )}
         </div>
       ),

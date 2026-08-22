@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Heading, Skeleton, useToast } from 'base-ds'
+import { Badge, Button, Heading, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ProductForm, type ProductFormState } from '@/components/forms/ProductForm'
-import type { Category } from '@/types'
+import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
+import { useConfirmDelete } from '@/lib/useConfirmDelete'
+import type { Category, Product, ProductStatus } from '@/types'
 
 export function ProductEditContent({ id, backPath = '/dashboard/products' }: { id: string; backPath?: string }) {
   const { accessToken } = useAuthStore()
@@ -15,6 +17,7 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
   const router = useRouter()
   const [categories, setCategories] = useState<Category[]>([])
   const [form, setForm] = useState<ProductFormState | null>(null)
+  const [status, setStatus] = useState<ProductStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -28,6 +31,7 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
     ]).then(([cats, product]) => {
       setCategories(cats)
       if (product) {
+        setStatus(product.status)
         setForm({
           name: product.name,
           description: product.description ?? '',
@@ -83,6 +87,38 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
     }
   }
 
+  const handleToggleStatus = async () => {
+    if (!accessToken || !status) return
+    const newStatus: ProductStatus = status === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE'
+    try {
+      const res = await fetch(`/api/admin/products/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (!res.ok) throw new Error()
+      const updated: Product = await res.json()
+      setStatus(updated.status)
+    } catch {
+      toast({ variant: 'destructive', description: 'Erro ao atualizar disponibilidade.' })
+    }
+  }
+
+  const handleDeleteProduct = async (productId: string) => {
+    const res = await fetch(`/api/admin/products/${productId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    if (!res.ok) {
+      toast({ variant: 'destructive', description: 'Erro ao excluir produto.' })
+      throw new Error()
+    }
+    router.push(backPath)
+  }
+
+  const { target: deleteTarget, setTarget: setDeleteTarget, deleting, confirm: confirmDelete, cancel: cancelDelete } =
+    useConfirmDelete(handleDeleteProduct)
+
   if (loading) return <div role="status"><Skeleton variant="line" height={40} className="mb-2" /></div>
   if (!form) return <p>Produto não encontrado.</p>
 
@@ -106,6 +142,28 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
           saving={saving}
           onSubmit={handleSubmit}
           accessToken={accessToken}
+        />
+
+        <section className="mt-8">
+          <Heading as="h2" size="xl" className="mb-4">Ações</Heading>
+          <div className="flex items-center gap-4 mb-4">
+            <Badge variant={status === 'AVAILABLE' ? 'success' : 'default'}>
+              {status === 'AVAILABLE' ? 'Disponível' : 'Indisponível'}
+            </Badge>
+            <Button variant="outline" onClick={handleToggleStatus}>
+              {status === 'AVAILABLE' ? 'Tornar Indisponível' : 'Tornar Disponível'}
+            </Button>
+          </div>
+          <Button variant="danger" onClick={() => setDeleteTarget(id)}>Excluir produto</Button>
+        </section>
+
+        <ConfirmDeleteDialog
+          open={deleteTarget !== null}
+          onClose={cancelDelete}
+          onConfirm={confirmDelete}
+          deleting={deleting}
+          title="Excluir produto"
+          description="O produto sai imediatamente da loja. É possível restaurá-lo em Produtos excluídos."
         />
       </main>
     </PermissionGuard>
