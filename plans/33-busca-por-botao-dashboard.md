@@ -6,6 +6,19 @@ Levantei todos os campos de busca por texto livre nas telas do dashboard
 (`grep` por `type="search"`/`placeholder="Buscar..."` em `app/(employee)/dashboard` e
 `app/(admin)/dashboard`) — só existem 4, todos no employee (nenhum no admin).
 
+**Atualização 2026-08-22 — bloqueado por [indianous/base-ds#31](https://github.com/indianous/base-ds/issues/31)**:
+o `base-ds` já tem um componente `SearchField`
+(`src/components/molecules/SearchField/SearchField.tsx`) que resolve exatamente o
+padrão "busca só dispara no submit" deste plano — form + input + botão embutidos.
+Mas hoje ele tem `aria-label`/texto do botão/`id` fixos em inglês (`"Search input"`,
+`"Search"`, `id="search-field"`), sem prop pra customizar — não dá pra usar num app em
+português, e duas instâncias na mesma página colidiriam no `id`. Abri a issue #31
+pedindo `label`/`buttonLabel`/`id` customizáveis. **Este plano fica bloqueado até a
+issue ser resolvida** — quando fechar, a implementação (seção 3) muda de "replicar
+Input+form+Button manual" pra "usar `SearchField` do base-ds" nas 3 telas, e
+`CustomersContent.tsx` (hoje a referência do padrão manual) também deveria trocar pro
+componente oficial, por consistência.
+
 ## 1. Problemas encontrados
 
 | Arquivo | Comportamento hoje |
