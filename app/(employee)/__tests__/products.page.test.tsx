@@ -147,7 +147,10 @@ describe('ProductsManagementPage — listagem', () => {
   it('não exibe abas "Estoque" ou "Excluídos" na página de produtos', async () => {
     renderPage()
     await screen.findByText('Teclado Mecânico')
-    expect(screen.queryByRole('button', { name: /^estoque$/i })).not.toBeInTheDocument()
+    // "Estoque" também é o header (sortable) da coluna de quantidade em estoque —
+    // só não pode existir como botão de aba fora da tabela.
+    const estoqueButtons = screen.queryAllByRole('button', { name: /^estoque$/i })
+    expect(estoqueButtons.every((btn) => btn.closest('table'))).toBe(true)
     expect(screen.queryByRole('button', { name: /^excluídos$/i })).not.toBeInTheDocument()
   })
 
@@ -168,6 +171,53 @@ describe('ProductsManagementPage — listagem', () => {
     expect(screen.getByRole('columnheader', { name: /vendidos \(30d\)/i })).toBeInTheDocument()
     expect(screen.getByText('42')).toBeInTheDocument()
     expect(screen.getByText('7')).toBeInTheDocument()
+  })
+})
+
+describe('ProductsManagementPage — estado vazio', () => {
+  it('mostra mensagem em português quando não há produtos, não "No data"', async () => {
+    products = []
+    renderPage()
+    expect(await screen.findByText(/nenhum produto encontrado/i)).toBeInTheDocument()
+    expect(screen.queryByText('No data')).not.toBeInTheDocument()
+  })
+})
+
+describe('ProductsManagementPage — ordenação', () => {
+  const productA = { ...mockProduct, id: 'prod-a', name: 'Abajur', price: 50, stockQuantity: 3, viewCount: 10, soldQuantityLast30Days: 1 }
+  const productB = { ...mockProduct, id: 'prod-b', name: 'Bicicleta', price: 900, stockQuantity: 1, viewCount: 30, soldQuantityLast30Days: 5 }
+
+  it('clicar no cabeçalho "Nome" ordena as linhas (asc, depois desc)', async () => {
+    products = [productB, productA]
+    renderPage()
+    await screen.findByRole('cell', { name: 'Bicicleta' })
+
+    const header = screen.getByRole('columnheader', { name: 'Nome' })
+    await userEvent.click(header.querySelector('button')!)
+
+    let rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Abajur')
+    expect(rows[1]).toContain('Bicicleta')
+
+    await userEvent.click(header.querySelector('button')!)
+
+    rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Bicicleta')
+    expect(rows[1]).toContain('Abajur')
+  })
+
+  it.each([
+    ['Preço', 'price'],
+    ['Estoque', 'stockQuantity'],
+    ['Visualizações', 'viewCount'],
+    ['Vendidos (30d)', 'soldQuantityLast30Days'],
+  ])('cabeçalho "%s" é ordenável', async (headerName) => {
+    products = [productB, productA]
+    renderPage()
+    await screen.findByRole('cell', { name: 'Bicicleta' })
+
+    const header = screen.getByRole('columnheader', { name: headerName })
+    expect(header.querySelector('button')).toBeInTheDocument()
   })
 })
 

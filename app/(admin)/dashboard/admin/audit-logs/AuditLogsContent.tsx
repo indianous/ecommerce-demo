@@ -1,7 +1,8 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
-import { FormField, Heading, Select, Skeleton, Table, type TableColumn } from 'base-ds'
+import { FormField, Heading, Select, Skeleton, Table, type TableColumn, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
+import { sortTableData } from '@/lib/sortTableData'
 import type { AuditAction, AuditEntityType, AuditLogPage, AuditLogResponse } from '@/types'
 
 const ENTITY_TYPE_OPTIONS = [
@@ -44,12 +45,12 @@ const formatDate = (iso: string) =>
   new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(iso))
 
 const columns: TableColumn<AuditLogResponse>[] = [
-  { key: 'entityType', header: 'Tipo', render: (log) => ENTITY_TYPE_LABELS[log.entityType] },
+  { key: 'entityType', header: 'Tipo', sortable: true, render: (log) => ENTITY_TYPE_LABELS[log.entityType] },
   { key: 'entityId', header: 'ID da Entidade', render: (log) => log.entityId },
-  { key: 'action', header: 'Ação', render: (log) => ACTION_LABELS[log.action] },
-  { key: 'actorEmail', header: 'Ator', render: (log) => log.actorEmail ?? '—' },
+  { key: 'action', header: 'Ação', sortable: true, render: (log) => ACTION_LABELS[log.action] },
+  { key: 'actorEmail', header: 'Ator', sortable: true, render: (log) => log.actorEmail ?? '—' },
   { key: 'actorRole', header: 'Perfil', render: (log) => log.actorRole ?? '—' },
-  { key: 'createdAt', header: 'Data', render: (log) => formatDate(log.createdAt) },
+  { key: 'createdAt', header: 'Data', sortable: true, render: (log) => formatDate(log.createdAt) },
 ]
 
 export function AuditLogsContent() {
@@ -58,6 +59,7 @@ export function AuditLogsContent() {
   const [loading, setLoading] = useState(true)
   const [entityType, setEntityType] = useState('')
   const [action, setAction] = useState('')
+  const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const fetchLogs = useCallback(async () => {
     if (!accessToken) return
@@ -115,9 +117,22 @@ export function AuditLogsContent() {
           ))}
         </div>
       ) : !page || page.content.length === 0 ? (
-        <p>Nenhum log encontrado.</p>
+        <Text size="sm" color="muted">Nenhum log encontrado.</Text>
       ) : (
-        <Table columns={columns} data={page.content} />
+        <Table
+          columns={columns}
+          data={
+            sort
+              ? sortTableData(
+                  page.content,
+                  sort.key as keyof AuditLogResponse,
+                  sort.direction,
+                  sort.key === 'createdAt' ? 'date' : 'string',
+                )
+              : page.content
+          }
+          onSort={(key, direction) => setSort({ key, direction })}
+        />
       )}
     </div>
   )

@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, Dialog, FormField, Heading, Icon, Input, Select, Table, type TableColumn, useToast } from 'base-ds'
+import { Badge, Button, Dialog, FormField, Heading, Icon, Input, Select, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CategoryForm } from '@/components/forms/CategoryForm'
+import { sortTableData } from '@/lib/sortTableData'
 import type { AdminProductPage, Category, Product, ProductStatus } from '@/types'
 
 const formatBRL = (value: number) =>
@@ -30,6 +31,8 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
   const [categoryName, setCategoryName] = useState('')
   const [categorySaving, setCategorySaving] = useState(false)
+
+  const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const fetchProducts = useCallback(async () => {
     if (!accessToken) return
@@ -116,13 +119,27 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
 
   if (loading) return <main className="px-4 py-8"><p>Carregando produtos...</p></main>
 
+  const sortedProducts = sort
+    ? sortTableData(
+        products,
+        sort.key as keyof Product,
+        sort.direction,
+        sort.key === 'name' ? 'string' : 'number',
+      )
+    : products
+
   const columns: TableColumn<Product>[] = [
-    { key: 'name', header: 'Nome', render: (p) => p.name },
+    { key: 'name', header: 'Nome', sortable: true, render: (p) => p.name },
     { key: 'categoryName', header: 'Categoria', render: (p) => p.categories[0]?.name ?? '—' },
-    { key: 'price', header: 'Preço', render: (p) => formatBRL(p.price) },
-    { key: 'stockQuantity', header: 'Estoque', render: (p) => p.stockQuantity },
-    { key: 'viewCount', header: 'Visualizações', render: (p) => p.viewCount ?? 0 },
-    { key: 'soldQuantityLast30Days', header: 'Vendidos (30d)', render: (p) => p.soldQuantityLast30Days ?? 0 },
+    { key: 'price', header: 'Preço', sortable: true, render: (p) => formatBRL(p.price) },
+    { key: 'stockQuantity', header: 'Estoque', sortable: true, render: (p) => p.stockQuantity },
+    { key: 'viewCount', header: 'Visualizações', sortable: true, render: (p) => p.viewCount ?? 0 },
+    {
+      key: 'soldQuantityLast30Days',
+      header: 'Vendidos (30d)',
+      sortable: true,
+      render: (p) => p.soldQuantityLast30Days ?? 0,
+    },
     {
       key: 'status',
       header: 'Disponibilidade',
@@ -199,7 +216,15 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
           </FormField>
         </div>
 
-        <Table columns={columns} data={products} />
+        {products.length === 0 ? (
+          <Text size="sm" color="muted">Nenhum produto encontrado.</Text>
+        ) : (
+          <Table
+            columns={columns}
+            data={sortedProducts}
+            onSort={(key, direction) => setSort({ key, direction })}
+          />
+        )}
 
         <Dialog open={categoryDialogOpen} onClose={() => setCategoryDialogOpen(false)} title="Nova categoria">
           <CategoryForm name={categoryName} onChange={setCategoryName} onSave={handleCategorySave} saving={categorySaving} />

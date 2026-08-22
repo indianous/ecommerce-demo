@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, Dialog, Icon, Skeleton, Table, type TableColumn } from 'base-ds'
+import { Button, Dialog, Icon, Skeleton, Table, type TableColumn, Text } from 'base-ds'
 import type { Employee, EmployeeFormData } from '@/types'
 import { EmployeeForm } from '@/components/forms/EmployeeForm'
+import { sortTableData } from '@/lib/sortTableData'
 
 interface Props {
   employees: Employee[]
@@ -15,10 +16,15 @@ interface Props {
 
 export function EmployeeManagementTable({ employees, loading, onCreate, onDelete, onManagePermissions }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
+
+  const sortedEmployees = sort
+    ? sortTableData(employees, sort.key as keyof Employee, sort.direction, 'string')
+    : employees
 
   const columns: TableColumn<Employee>[] = [
-    { key: 'name', header: 'Nome' },
-    { key: 'email', header: 'E-mail' },
+    { key: 'name', header: 'Nome', sortable: true },
+    { key: 'email', header: 'E-mail', sortable: true },
     {
       key: 'actions',
       header: 'Ações',
@@ -45,8 +51,14 @@ export function EmployeeManagementTable({ employees, loading, onCreate, onDelete
             <Skeleton key={i} variant="line" height={40} className="mb-2" />
           ))}
         </div>
+      ) : employees.length === 0 ? (
+        <Text size="sm" color="muted">Nenhum funcionário cadastrado.</Text>
       ) : (
-        <Table columns={columns} data={employees} />
+        <Table
+          columns={columns}
+          data={sortedEmployees}
+          onSort={(key, direction) => setSort({ key, direction })}
+        />
       )}
 
       <Dialog

@@ -145,4 +145,35 @@ describe('EmployeeManagementTable', () => {
     const { container } = renderTable()
     expect(await axe(container)).toHaveNoViolations()
   })
+
+  it('mostra mensagem em português quando não há funcionários, não "No data"', () => {
+    renderTable({ employees: [] })
+    expect(screen.getByText(/nenhum funcionário cadastrado/i)).toBeInTheDocument()
+    expect(screen.queryByText('No data')).not.toBeInTheDocument()
+  })
+
+  it('clicar no cabeçalho "Nome" ordena as linhas (asc, depois desc)', async () => {
+    const user = userEvent.setup()
+    renderTable()
+    await screen.findByText('Bruno Lima')
+
+    const header = screen.getByRole('columnheader', { name: 'Nome' })
+    await user.click(header.querySelector('button')!)
+
+    let rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Ana Costa')
+    expect(rows[1]).toContain('Bruno Lima')
+
+    await user.click(header.querySelector('button')!)
+
+    rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Bruno Lima')
+    expect(rows[1]).toContain('Ana Costa')
+  })
+
+  it('cabeçalho "E-mail" é ordenável', () => {
+    renderTable()
+    const header = screen.getByRole('columnheader', { name: /e-mail/i })
+    expect(header.querySelector('button')).toBeInTheDocument()
+  })
 })

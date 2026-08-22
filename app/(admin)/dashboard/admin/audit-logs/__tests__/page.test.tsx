@@ -115,4 +115,37 @@ describe('AuditLogsPage — Histórico de Auditoria', () => {
     await screen.findByText('uuid-order-1')
     expect(capturedUrl).toContain('action=CREATED')
   })
+
+  it('clicar no cabeçalho "Tipo" ordena as linhas (asc, depois desc)', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('uuid-order-1')
+
+    const header = screen.getByRole('columnheader', { name: 'Tipo' })
+    await user.click(header.querySelector('button')!)
+
+    let rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Pedido')
+    expect(rows[1]).toContain('Produto')
+
+    await user.click(header.querySelector('button')!)
+
+    rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Produto')
+    expect(rows[1]).toContain('Pedido')
+  })
+
+  it.each(['Ação', 'Ator', 'Data'])('cabeçalho "%s" é ordenável', async (headerName) => {
+    renderPage()
+    await screen.findByText('uuid-order-1')
+    const header = screen.getByRole('columnheader', { name: headerName })
+    expect(header.querySelector('button')).toBeInTheDocument()
+  })
+
+  it('cabeçalho "ID da Entidade" não é ordenável', async () => {
+    renderPage()
+    await screen.findByText('uuid-order-1')
+    const header = screen.getByRole('columnheader', { name: 'ID da Entidade' })
+    expect(header.querySelector('button')).not.toBeInTheDocument()
+  })
 })
