@@ -1,12 +1,11 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
-import { FormField, Heading, Select, Skeleton, Table, type TableColumn, Text } from 'base-ds'
+import { FilterDropdown, Heading, Skeleton, Table, type TableColumn, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { sortTableData } from '@/lib/sortTableData'
 import type { AuditAction, AuditEntityType, AuditLogPage, AuditLogResponse } from '@/types'
 
 const ENTITY_TYPE_OPTIONS = [
-  { value: '', label: 'Todos' },
   { value: 'ORDER', label: 'Pedido' },
   { value: 'PRODUCT', label: 'Produto' },
   { value: 'CATEGORY', label: 'Categoria' },
@@ -15,7 +14,6 @@ const ENTITY_TYPE_OPTIONS = [
 ]
 
 const ACTION_OPTIONS = [
-  { value: '', label: 'Todas' },
   { value: 'CREATED', label: 'Criação' },
   { value: 'UPDATED', label: 'Atualização' },
   { value: 'DELETED', label: 'Exclusão' },
@@ -57,8 +55,8 @@ export function AuditLogsContent() {
   const { accessToken } = useAuthStore()
   const [page, setPage] = useState<AuditLogPage | null>(null)
   const [loading, setLoading] = useState(true)
-  const [entityType, setEntityType] = useState('')
-  const [action, setAction] = useState('')
+  const [entityType, setEntityType] = useState<string[]>([])
+  const [action, setAction] = useState<string[]>([])
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const fetchLogs = useCallback(async () => {
@@ -66,8 +64,8 @@ export function AuditLogsContent() {
     setLoading(true)
     try {
       const params = new URLSearchParams()
-      if (entityType) params.set('entityType', entityType)
-      if (action) params.set('action', action)
+      entityType.forEach((t) => params.append('entityType', t))
+      action.forEach((a) => params.append('action', a))
       const res = await fetch(`/api/admin/audit-logs?${params.toString()}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
@@ -91,23 +89,18 @@ export function AuditLogsContent() {
       </Heading>
 
       <div className="flex gap-4 mb-6">
-        <FormField label="Tipo de entidade" id="filter-entity-type">
-          <Select
-            id="filter-entity-type"
-            value={entityType}
-            onChange={(e) => setEntityType(e.target.value)}
-            options={ENTITY_TYPE_OPTIONS}
-          />
-        </FormField>
-
-        <FormField label="Ação" id="filter-action">
-          <Select
-            id="filter-action"
-            value={action}
-            onChange={(e) => setAction(e.target.value)}
-            options={ACTION_OPTIONS}
-          />
-        </FormField>
+        <FilterDropdown
+          label="Tipo de entidade"
+          options={ENTITY_TYPE_OPTIONS}
+          value={entityType}
+          onApply={setEntityType}
+        />
+        <FilterDropdown
+          label="Ação"
+          options={ACTION_OPTIONS}
+          value={action}
+          onApply={setAction}
+        />
       </div>
 
       {loading ? (

@@ -96,14 +96,30 @@ describe('StockMovementHistoryContent', () => {
     expect(within(tr).getByText('gestor@test.com')).toBeInTheDocument()
   })
 
-  it('filtro por motivo refaz a busca com o query param correto', async () => {
+  it('filtro por motivo: marcar 2 valores e "Aplicar" refaz a busca com os dois reason', async () => {
     const user = userEvent.setup()
     renderHistory()
     await screen.findByText('PURCHASE')
 
-    await user.selectOptions(screen.getByLabelText(/motivo/i), 'PURCHASE')
+    await user.click(screen.getByRole('button', { name: /motivo/i }))
+    await user.click(screen.getByRole('checkbox', { name: 'Compra' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Venda' }))
+    await user.click(screen.getByRole('button', { name: /aplicar/i }))
 
-    expect(lastMovementsUrl).toContain('reason=PURCHASE')
+    const params = new URL(lastMovementsUrl).searchParams.getAll('reason')
+    expect(params).toEqual(['PURCHASE', 'SALE'])
+  })
+
+  it('marcar um motivo sem clicar em "Aplicar" não refaz a busca', async () => {
+    const user = userEvent.setup()
+    renderHistory()
+    await screen.findByText('PURCHASE')
+    const urlBeforeFilter = lastMovementsUrl
+
+    await user.click(screen.getByRole('button', { name: /motivo/i }))
+    await user.click(screen.getByRole('checkbox', { name: 'Compra' }))
+
+    expect(lastMovementsUrl).toBe(urlBeforeFilter)
   })
 
   it('filtro por intervalo de datas refaz a busca com os query params corretos', async () => {

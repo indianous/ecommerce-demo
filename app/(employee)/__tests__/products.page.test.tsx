@@ -66,12 +66,12 @@ const server = setupServer(
   http.post('/api/admin/categories', () => HttpResponse.json({ id: 'cat-2', name: 'Eletrodomésticos', slug: 'eletrodomesticos' }, { status: 201 })),
   http.get('/api/admin/products', ({ request }) => {
     const url = new URL(request.url)
-    const categoryId = url.searchParams.get('categoryId')
-    const status = url.searchParams.get('status')
+    const categoryIds = url.searchParams.getAll('categoryId')
+    const statuses = url.searchParams.getAll('status')
     const search = url.searchParams.get('search')
     let filtered = products
-    if (categoryId) filtered = filtered.filter((p) => p.categories.some((c) => c.id === categoryId))
-    if (status) filtered = filtered.filter((p) => p.status === status)
+    if (categoryIds.length > 0) filtered = filtered.filter((p) => p.categories.some((c) => categoryIds.includes(c.id)))
+    if (statuses.length > 0) filtered = filtered.filter((p) => statuses.includes(p.status))
     if (search) filtered = filtered.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
     return HttpResponse.json(makePage(filtered))
   }),
@@ -289,7 +289,7 @@ describe('ProductsManagementPage — ações', () => {
 })
 
 describe('ProductsManagementPage — filtros', () => {
-  it('filtro de categoria muda a lista exibida e chama a API com o categoryId esperado', async () => {
+  it('filtro de categoria: marcar opção não filtra sozinho, só "Aplicar" chama a API com o categoryId esperado', async () => {
     categories = [mockCategory, mockCategory2]
     products = [mockProduct, mockBookProduct]
     const user = userEvent.setup()
@@ -297,13 +297,32 @@ describe('ProductsManagementPage — filtros', () => {
     await screen.findByText('Teclado Mecânico')
     expect(screen.getByText('Livro de Receitas')).toBeInTheDocument()
 
-    await user.selectOptions(
-      screen.getByRole('combobox', { name: /filtrar por categoria/i }),
-      'cat-2',
-    )
+    await user.click(screen.getByRole('button', { name: /^categoria/i }))
+    await user.click(screen.getByRole('checkbox', { name: mockCategory2.name }))
+    expect(screen.getByText('Teclado Mecânico')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /aplicar/i }))
 
     await waitFor(() => {
       expect(screen.queryByText('Teclado Mecânico')).not.toBeInTheDocument()
+    })
+    expect(screen.getByText('Livro de Receitas')).toBeInTheDocument()
+  })
+
+  it('filtro de categoria com 2 valores marcados chama a API com os dois categoryId', async () => {
+    categories = [mockCategory, mockCategory2]
+    products = [mockProduct, mockBookProduct]
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Teclado Mecânico')
+
+    await user.click(screen.getByRole('button', { name: /^categoria/i }))
+    await user.click(screen.getByRole('checkbox', { name: mockCategory.name }))
+    await user.click(screen.getByRole('checkbox', { name: mockCategory2.name }))
+    await user.click(screen.getByRole('button', { name: /aplicar/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Teclado Mecânico')).toBeInTheDocument()
     })
     expect(screen.getByText('Livro de Receitas')).toBeInTheDocument()
   })
@@ -315,10 +334,9 @@ describe('ProductsManagementPage — filtros', () => {
     await screen.findByText('Teclado Mecânico')
     expect(screen.getByText('Mouse Óptico')).toBeInTheDocument()
 
-    await user.selectOptions(
-      screen.getByRole('combobox', { name: /filtrar por disponibilidade/i }),
-      'UNAVAILABLE',
-    )
+    await user.click(screen.getByRole('button', { name: /disponibilidade/i }))
+    await user.click(screen.getByRole('checkbox', { name: 'Indisponível' }))
+    await user.click(screen.getByRole('button', { name: /aplicar/i }))
 
     await waitFor(() => {
       expect(screen.queryByText('Teclado Mecânico')).not.toBeInTheDocument()
@@ -326,25 +344,23 @@ describe('ProductsManagementPage — filtros', () => {
     expect(screen.getByText('Mouse Óptico')).toBeInTheDocument()
   })
 
-  it('selecionar "Todas as categorias" depois de filtrar volta a listar tudo', async () => {
+  it('limpar o filtro de categoria e aplicar volta a listar tudo', async () => {
     categories = [mockCategory, mockCategory2]
     products = [mockProduct, mockBookProduct]
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Teclado Mecânico')
 
-    await user.selectOptions(
-      screen.getByRole('combobox', { name: /filtrar por categoria/i }),
-      'cat-2',
-    )
+    await user.click(screen.getByRole('button', { name: /^categoria/i }))
+    await user.click(screen.getByRole('checkbox', { name: mockCategory2.name }))
+    await user.click(screen.getByRole('button', { name: /aplicar/i }))
     await waitFor(() => {
       expect(screen.queryByText('Teclado Mecânico')).not.toBeInTheDocument()
     })
 
-    await user.selectOptions(
-      screen.getByRole('combobox', { name: /filtrar por categoria/i }),
-      '',
-    )
+    await user.click(screen.getByRole('button', { name: /^categoria/i }))
+    await user.click(screen.getByRole('button', { name: /limpar/i }))
+    await user.click(screen.getByRole('button', { name: /aplicar/i }))
 
     await waitFor(() => {
       expect(screen.getByText('Teclado Mecânico')).toBeInTheDocument()
@@ -395,7 +411,8 @@ describe('ProductsManagementPage — criar categoria', () => {
     await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
 
     expect(await screen.findByRole('status')).toHaveTextContent(/categoria criada/i)
-    expect(screen.getByRole('option', { name: 'Eletrodomésticos' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /^categoria/i }))
+    expect(screen.getByRole('checkbox', { name: 'Eletrodomésticos' })).toBeInTheDocument()
   })
 
   it('exibe toast de erro se o POST de categoria falhar', async () => {

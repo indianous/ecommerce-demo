@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, Dialog, FormField, Heading, Icon, Input, Select, Table, type TableColumn, Text, useToast } from 'base-ds'
+import { Badge, Button, Dialog, FilterDropdown, FormField, Heading, Icon, Input, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CategoryForm } from '@/components/forms/CategoryForm'
@@ -21,8 +21,8 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
     user?.role === 'ADMIN' || (user?.permissions?.includes('MANAGE_PRODUCTS') ?? false)
 
   const [search, setSearch] = useState('')
-  const [categoryId, setCategoryId] = useState('')
-  const [statusFilter, setStatusFilter] = useState<ProductStatus | ''>('')
+  const [categoryIds, setCategoryIds] = useState<string[]>([])
+  const [statusFilter, setStatusFilter] = useState<string[]>([])
 
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -39,8 +39,8 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
     try {
       const params = new URLSearchParams({ active: 'true' })
       if (search) params.set('search', search)
-      if (categoryId) params.set('categoryId', categoryId)
-      if (statusFilter) params.set('status', statusFilter)
+      categoryIds.forEach((id) => params.append('categoryId', id))
+      statusFilter.forEach((s) => params.append('status', s))
       const res = await fetch(`/api/admin/products?${params}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
@@ -51,7 +51,7 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
     } finally {
       setLoading(false)
     }
-  }, [accessToken, search, categoryId, statusFilter])
+  }, [accessToken, search, categoryIds, statusFilter])
 
   useEffect(() => {
     if (!accessToken) return
@@ -191,29 +191,21 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
               onChange={(e) => setSearch(e.target.value)}
             />
           </FormField>
-          <FormField label="Filtrar por categoria" id="products-category-filter">
-            <Select
-              id="products-category-filter"
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              options={[
-                { value: '', label: 'Todas as categorias' },
-                ...categories.map((c) => ({ value: c.id, label: c.name })),
-              ]}
-            />
-          </FormField>
-          <FormField label="Filtrar por disponibilidade" id="products-status-filter">
-            <Select
-              id="products-status-filter"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as ProductStatus | '')}
-              options={[
-                { value: '', label: 'Todos' },
-                { value: 'AVAILABLE', label: 'Disponível' },
-                { value: 'UNAVAILABLE', label: 'Indisponível' },
-              ]}
-            />
-          </FormField>
+          <FilterDropdown
+            label="Categoria"
+            options={categories.map((c) => ({ value: c.id, label: c.name }))}
+            value={categoryIds}
+            onApply={setCategoryIds}
+          />
+          <FilterDropdown
+            label="Disponibilidade"
+            options={[
+              { value: 'AVAILABLE', label: 'Disponível' },
+              { value: 'UNAVAILABLE', label: 'Indisponível' },
+            ]}
+            value={statusFilter}
+            onApply={setStatusFilter}
+          />
         </div>
 
         {products.length === 0 ? (

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, FormField, Heading, Icon, Input, Select, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
+import { Badge, Button, FilterDropdown, FormField, Heading, Icon, Input, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { formatBRL } from '@/lib/format'
@@ -36,14 +36,14 @@ export function OrdersContent({ orderBasePath = '/dashboard/orders' }: { orderBa
   const [orders, setOrders] = useState<AdminOrderResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<OrderStatus | ''>('')
+  const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const fetchOrders = useCallback(async () => {
     if (!accessToken) return
     const params = new URLSearchParams({ page: '0', size: '20' })
     if (search) params.set('search', search)
-    if (statusFilter) params.set('status', statusFilter)
+    statusFilter.forEach((s) => params.append('status', s))
     try {
       const res = await fetch(`/api/admin/orders?${params.toString()}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -100,17 +100,12 @@ export function OrdersContent({ orderBasePath = '/dashboard/orders' }: { orderBa
               onChange={(e) => setSearch(e.target.value)}
             />
           </FormField>
-          <FormField label="Filtrar por status" id="orders-status-filter">
-            <Select
-              id="orders-status-filter"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as OrderStatus | '')}
-              options={[
-                { value: '', label: 'Todos os status' },
-                ...ALL_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] })),
-              ]}
-            />
-          </FormField>
+          <FilterDropdown
+            label="Status"
+            options={ALL_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
+            value={statusFilter}
+            onApply={setStatusFilter}
+          />
         </div>
 
         {loading ? (

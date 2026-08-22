@@ -113,12 +113,15 @@ describe('PedidosPage — listagem', () => {
     })
   })
 
-  it('select de status filtra por ?status=', async () => {
+  it('filtro de status: marcar e "Aplicar" filtra por ?status=', async () => {
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Ana Lima')
 
-    await user.selectOptions(screen.getByRole('combobox', { name: /status/i }), 'CONFIRMED')
+    const statusFilterButton = screen.getAllByRole('button', { name: /^status/i }).find((btn) => !btn.closest('table'))!
+    await user.click(statusFilterButton)
+    await user.click(screen.getByRole('checkbox', { name: 'Confirmado' }))
+    await user.click(screen.getByRole('button', { name: /aplicar/i }))
 
     await waitFor(() => {
       expect(lastOrdersUrl).toContain('status=CONFIRMED')

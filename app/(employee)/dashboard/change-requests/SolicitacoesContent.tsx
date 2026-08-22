@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Badge, Button, Dialog, Heading, Icon, Input, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
+import { Badge, Button, Dialog, FilterDropdown, Heading, Icon, Input, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { sortTableData } from '@/lib/sortTableData'
@@ -35,7 +35,7 @@ export function SolicitacoesContent() {
   const [requests, setRequests] = useState<OrderChangeRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<OrderChangeRequestStatus | ''>('')
+  const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [selected, setSelected] = useState<OrderChangeRequest | null>(null)
   const [actioning, setActioning] = useState(false)
   const [denyDialogOpen, setDenyDialogOpen] = useState(false)
@@ -46,7 +46,7 @@ export function SolicitacoesContent() {
     setLoading(true)
     try {
       const params = new URLSearchParams()
-      if (statusFilter) params.set('status', statusFilter)
+      statusFilter.forEach((s) => params.append('status', s))
       if (search) params.set('search', search)
       const res = await fetch(`/api/admin/orders/change-requests?${params.toString()}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -231,36 +231,16 @@ export function SolicitacoesContent() {
             onChange={(e) => setSearch(e.target.value)}
             className="max-w-xs"
           />
-          <div className="flex gap-2">
-            <Button
-              variant={statusFilter === '' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setStatusFilter('')}
-            >
-              Todas
-            </Button>
-            <Button
-              variant={statusFilter === 'PENDING' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setStatusFilter('PENDING')}
-            >
-              Pendentes
-            </Button>
-            <Button
-              variant={statusFilter === 'APPROVED' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setStatusFilter('APPROVED')}
-            >
-              Aprovadas
-            </Button>
-            <Button
-              variant={statusFilter === 'REJECTED' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setStatusFilter('REJECTED')}
-            >
-              Rejeitadas
-            </Button>
-          </div>
+          <FilterDropdown
+            label="Status"
+            options={[
+              { value: 'PENDING', label: 'Pendente' },
+              { value: 'APPROVED', label: 'Aprovada' },
+              { value: 'REJECTED', label: 'Rejeitada' },
+            ]}
+            value={statusFilter}
+            onApply={setStatusFilter}
+          />
         </div>
 
         {loading ? (

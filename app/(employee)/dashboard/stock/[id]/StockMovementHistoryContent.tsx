@@ -2,19 +2,18 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { FormField, Heading, Select, Table, type TableColumn, Text } from 'base-ds'
+import { FilterDropdown, FormField, Heading, Table, type TableColumn, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { sortTableData } from '@/lib/sortTableData'
-import type { StockMovement, StockMovementPage, StockMovementReason } from '@/types'
+import type { StockMovement, StockMovementPage } from '@/types'
 
 interface Props {
   productId: string
   stockBasePath?: string
 }
 
-const REASON_OPTIONS: { value: StockMovementReason | ''; label: string }[] = [
-  { value: '', label: 'Todos' },
+const REASON_OPTIONS = [
   { value: 'PURCHASE', label: 'Compra' },
   { value: 'RETURN', label: 'Devolução' },
   { value: 'ADJUSTMENT', label: 'Ajuste' },
@@ -27,7 +26,7 @@ export function StockMovementHistoryContent({ productId, stockBasePath = '/dashb
   const { accessToken } = useAuthStore()
   const [productName, setProductName] = useState('')
   const [movements, setMovements] = useState<StockMovement[]>([])
-  const [reason, setReason] = useState<StockMovementReason | ''>('')
+  const [reason, setReason] = useState<string[]>([])
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [loading, setLoading] = useState(true)
@@ -46,7 +45,7 @@ export function StockMovementHistoryContent({ productId, stockBasePath = '/dashb
     setLoading(true)
     try {
       const params = new URLSearchParams()
-      if (reason) params.set('reason', reason)
+      reason.forEach((r) => params.append('reason', r))
       if (from) params.set('from', from)
       if (to) params.set('to', to)
       const res = await fetch(`/api/admin/products/${productId}/stock-movements?${params.toString()}`, {
@@ -95,14 +94,12 @@ export function StockMovementHistoryContent({ productId, stockBasePath = '/dashb
         </Heading>
 
         <div className="flex gap-4 mb-4">
-          <FormField label="Motivo" id="history-reason">
-            <Select
-              id="history-reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value as StockMovementReason | '')}
-              options={REASON_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
-            />
-          </FormField>
+          <FilterDropdown
+            label="Motivo"
+            options={REASON_OPTIONS}
+            value={reason}
+            onApply={setReason}
+          />
           <FormField label="De" id="history-from">
             <input
               id="history-from"

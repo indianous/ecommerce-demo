@@ -78,7 +78,7 @@ describe('AuditLogsPage — Histórico de Auditoria', () => {
     expect(await screen.findByText(/nenhum log encontrado/i)).toBeInTheDocument()
   })
 
-  it('filtro por tipo de entidade chama GET com ?entityType=ORDER', async () => {
+  it('filtro por tipo de entidade: marcar 2 valores e "Aplicar" chama GET com os dois entityType', async () => {
     let capturedUrl = ''
     server.use(
       http.get('/api/admin/audit-logs', ({ request }) => {
@@ -90,11 +90,14 @@ describe('AuditLogsPage — Histórico de Auditoria', () => {
     renderPage()
     await screen.findByText('uuid-order-1')
 
-    const select = screen.getByLabelText(/tipo de entidade/i)
-    await user.selectOptions(select, 'ORDER')
+    await user.click(screen.getByRole('button', { name: /tipo de entidade/i }))
+    await user.click(screen.getByRole('checkbox', { name: 'Pedido' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Produto' }))
+    await user.click(screen.getByRole('button', { name: /aplicar/i }))
 
     await screen.findByText('uuid-order-1')
-    expect(capturedUrl).toContain('entityType=ORDER')
+    const params = new URL(capturedUrl).searchParams.getAll('entityType')
+    expect(params).toEqual(['ORDER', 'PRODUCT'])
   })
 
   it('filtro por ação chama GET com ?action=CREATED', async () => {
@@ -109,11 +112,32 @@ describe('AuditLogsPage — Histórico de Auditoria', () => {
     renderPage()
     await screen.findByText('uuid-order-1')
 
-    const select = screen.getByLabelText(/ação/i)
-    await user.selectOptions(select, 'CREATED')
+    const actionFilterButton = screen.getAllByRole('button', { name: /^ação/i }).find((btn) => !btn.closest('table'))!
+    await user.click(actionFilterButton)
+    await user.click(screen.getByRole('checkbox', { name: 'Criação' }))
+    await user.click(screen.getByRole('button', { name: /aplicar/i }))
 
     await screen.findByText('uuid-order-1')
     expect(capturedUrl).toContain('action=CREATED')
+  })
+
+  it('marcar uma opção do filtro de tipo sem clicar "Aplicar" não dispara nova chamada', async () => {
+    let callCount = 0
+    server.use(
+      http.get('/api/admin/audit-logs', () => {
+        callCount += 1
+        return HttpResponse.json(makePage([makeLog()]))
+      }),
+    )
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('uuid-order-1')
+    const callsBeforeFilter = callCount
+
+    await user.click(screen.getByRole('button', { name: /tipo de entidade/i }))
+    await user.click(screen.getByRole('checkbox', { name: 'Pedido' }))
+
+    expect(callCount).toBe(callsBeforeFilter)
   })
 
   it('clicar no cabeçalho "Tipo" ordena as linhas (asc, depois desc)', async () => {

@@ -150,3 +150,48 @@ describe('OrdersContent — listagem', () => {
     expect(rows[0]).toContain('Confirmado')
   })
 })
+
+describe('OrdersContent — filtros', () => {
+  it('marcar 2 status e clicar "Aplicar" chama a API com os dois status no query string', async () => {
+    let capturedUrl = ''
+    server.use(
+      http.get('/api/admin/orders', ({ request }) => {
+        capturedUrl = request.url
+        return HttpResponse.json(mockPage)
+      }),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByRole('cell', { name: 'Bruno Souza' })
+
+    const statusFilterButton = screen.getAllByRole('button', { name: /^status/i }).find((btn) => !btn.closest('table'))!
+    await user.click(statusFilterButton)
+    await user.click(screen.getByRole('checkbox', { name: 'Pendente' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Confirmado' }))
+    await user.click(screen.getByRole('button', { name: /aplicar/i }))
+
+    await new Promise((r) => setTimeout(r, 0))
+    const params = new URL(capturedUrl).searchParams.getAll('status')
+    expect(params).toEqual(['PENDING', 'CONFIRMED'])
+  })
+
+  it('marcar um status sem clicar em "Aplicar" não dispara nova chamada à API', async () => {
+    let callCount = 0
+    server.use(
+      http.get('/api/admin/orders', () => {
+        callCount += 1
+        return HttpResponse.json(mockPage)
+      }),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByRole('cell', { name: 'Bruno Souza' })
+    const callsBeforeFilter = callCount
+
+    const statusFilterButton = screen.getAllByRole('button', { name: /^status/i }).find((btn) => !btn.closest('table'))!
+    await user.click(statusFilterButton)
+    await user.click(screen.getByRole('checkbox', { name: 'Pendente' }))
+
+    expect(callCount).toBe(callsBeforeFilter)
+  })
+})

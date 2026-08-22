@@ -41,10 +41,10 @@ let requests: OrderChangeRequest[] = [mockRequest]
 const server = setupServer(
   http.get('/api/admin/orders/change-requests', ({ request }) => {
     const { searchParams } = new URL(request.url)
-    const statusFilter = searchParams.get('status')
+    const statusFilter = searchParams.getAll('status')
     const search = searchParams.get('search') ?? ''
     let filtered = [...requests]
-    if (statusFilter) filtered = filtered.filter((r) => r.status === statusFilter)
+    if (statusFilter.length > 0) filtered = filtered.filter((r) => statusFilter.includes(r.status))
     if (search) filtered = filtered.filter((r) => String(r.orderNumber).includes(search))
     return HttpResponse.json({
       content: filtered,
@@ -112,13 +112,16 @@ describe('Solicitações Page', () => {
     expect(await screen.findByText('Pendente')).toBeInTheDocument()
   })
 
-  it('filtro Pendentes envia ?status=PENDING', async () => {
+  it('filtro de status Pendente: marcar e "Aplicar" envia ?status=PENDING', async () => {
     requests = [mockRequest, mockApprovedRequest]
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('#100')
 
-    await user.click(screen.getByRole('button', { name: /pendentes/i }))
+    const statusFilterButton = screen.getAllByRole('button', { name: /^status/i }).find((btn) => !btn.closest('table'))!
+    await user.click(statusFilterButton)
+    await user.click(screen.getByRole('checkbox', { name: 'Pendente' }))
+    await user.click(screen.getByRole('button', { name: /aplicar/i }))
 
     await waitFor(() => {
       expect(screen.getByText('#100')).toBeInTheDocument()
