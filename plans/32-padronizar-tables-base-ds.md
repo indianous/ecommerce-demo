@@ -14,6 +14,31 @@ Levantamento de todos os `Content.tsx` do dashboard com `<table>`: 11 arquivos u
 contado errado, ele tinha caído no grep por causa do nome "Table" no próprio arquivo,
 não porque usasse `<table>` nativa) — não faz parte deste plano.
 
+**Atualização 2026-08-22 (revisão de escopo — todos os `Content.tsx` da aplicação)**:
+depois dos 11 arquivos acima migrados e commitados, revisei os 33 `Content.tsx` de
+todo o frontend (não só o dashboard) procurando por `<table>` nativa OU `Table` do
+base-ds sem o padrão que este plano estabeleceu (sortable nas colunas que fazem
+sentido + guard de lista vazia em português). Resultado: nenhuma `<table>` nativa
+sobrou, mas **3 pontos que já usavam `Table` antes deste plano existir ficaram pra
+trás** e não seguem o padrão — entram no escopo agora:
+
+- **`app/(employee)/dashboard/products/ProductsContent.tsx`** (Gestão de Produtos) —
+  sem `sortable` em nenhuma coluna e sem guard de lista vazia (lista zerada cairia no
+  "No data" em inglês do `Table`). Era o exemplo citado na seção 3 original como
+  "padrão a seguir", mas ele mesmo não tinha o padrão completo.
+- **`components/admin/EmployeeManagementTable.tsx`** (compartilhado por
+  `app/(admin)/dashboard/admin/employees/EmployeesContent.tsx` e
+  `app/(employee)/dashboard/employees/EmployeesContent.tsx`) — mesmos dois gaps: sem
+  `sortable`, sem guard de lista vazia.
+- **`app/(admin)/dashboard/admin/audit-logs/AuditLogsContent.tsx`** — já tem guard de
+  lista vazia, mas com `<p>` nativo em vez de `Text` do base-ds (inconsistente com o
+  padrão adotado nas outras 11 telas); sem `sortable` em nenhuma coluna.
+
+**Revisado e já conforme, sem mudança**: `app/(customer)/cart/CartContent.tsx` — usa
+`Table` com guard de lista vazia via `Text` e, corretamente, sem `sortable` (ordem dos
+itens do carrinho é a ordem em que foram adicionados, mesma lógica de
+`OrderDetailContent`/pedidos do cliente).
+
 ## 1. Problemas encontrados
 
 Tabelas nativas a trocar pelo `Table` do base-ds (`columns`/`data`/`render`):
@@ -50,6 +75,19 @@ Como nenhum fetch existente manda `?sort=` pro backend, a ordenação entra como
 client-side (reordenar o array já carregado em `state`, ver seção 3) nas colunas onde
 faz sentido comparar (texto/data/número) — não em colunas com só ação/ícone.
 
+**Os 3 pontos da revisão de escopo (ver Atualização 2026-08-22)**:
+
+| Arquivo | Colunas | Gap | Teste hoje |
+|---|---|---|---|
+| `ProductsContent.tsx` | Nome, Categoria, Preço, Estoque, Visualizações, Vendidos (30d), Disponibilidade, Ações | sem `sortable`, sem guard de lista vazia | `app/(employee)/__tests__/products.page.test.tsx` |
+| `EmployeeManagementTable.tsx` | Nome, E-mail, Ações | sem `sortable`, sem guard de lista vazia | `components/admin/__tests__/EmployeeManagementTable.test.tsx` |
+| `AuditLogsContent.tsx` | Tipo, ID da Entidade, Ação, Ator, Perfil, Data | sem `sortable`; guard de lista vazia existe mas usa `<p>` em vez de `Text` do base-ds | `app/(admin)/dashboard/admin/audit-logs/__tests__/page.test.tsx` |
+
+`EmployeeManagementTable` é usado por dois `EmployeesContent.tsx` (admin e employee) —
+nenhum dos dois tem teste de página hoje (confirmado também no plano #36); o teste do
+componente compartilhado (`EmployeeManagementTable.test.tsx`) é quem cobre o
+comportamento da tabela em si.
+
 ## 2. Testes a incluir/alterar
 
 - **Novos arquivos de teste** (4): `CustomersContent`, `SolicitacoesContent`,
@@ -70,6 +108,16 @@ faz sentido comparar (texto/data/número) — não em colunas com só ação/íc
 - Colunas que ganharem `sortable: true` (seção 3) precisam de um teste novo por
   tabela: clicar no cabeçalho reordena as linhas (asc na primeira vez, desc na
   segunda).
+- **Testes existentes dos 3 pontos da revisão de escopo** (`products.page.test.tsx`,
+  `EmployeeManagementTable.test.tsx`, `audit-logs/__tests__/page.test.tsx`) — mesma
+  regra de regressão acima (roles ARIA preservados), mais teste novo de `sortable` por
+  coluna que ganhar a prop, e teste do guard de lista vazia
+  (`ProductsContent`/`EmployeeManagementTable`, que hoje não têm nenhum) mostrando a
+  mensagem em português em vez do "No data" do `Table`.
+- `AuditLogsContent`: ajustar a asserção existente de `/nenhum log encontrado/i` (linha
+  78 do teste) só se a troca de `<p>` por `Text` mudar o role/estrutura do elemento —
+  `Text` do base-ds renderiza `<p>` por padrão, então é esperado que a query por texto
+  continue passando sem mudança.
 
 ## 3. O que entra no projeto
 
@@ -102,3 +150,27 @@ nas que não tinham nenhuma).
 `app/(customer)/orders/OrdersContent.tsx` entra no escopo (ver Atualização no topo):
 `Table` com `renderExpandedRow` no lugar da segunda `<tr>` manual; sem `sortable`
 (ordem de exibição é a ordem de compra).
+
+**Os 3 pontos da revisão de escopo** (ver Atualização 2026-08-22), pra ficarem no
+mesmo padrão das outras 12 telas:
+
+- **`ProductsContent.tsx`**: `sortable: true` em Nome, Preço, Estoque, Visualizações e
+  Vendidos (30d) — colunas de texto/número onde ordenar é útil pro time de produto
+  (ex.: achar o mais vendido/mais visto rápido). Categoria fica sem `sortable` (é um
+  lookup derivado, `categories[0]?.name`, mesmo critério usado pra não tornar
+  `Categoria` sortable em `StockContent`). Disponibilidade (Badge) também sem
+  `sortable` — já é filtrável pelo `Select` ao lado. Ganha o guard
+  `products.length === 0 ? <Text>Nenhum produto encontrado.</Text> : <Table .../>`.
+- **`EmployeeManagementTable.tsx`**: `sortable: true` em Nome e E-mail (as duas únicas
+  colunas de dado, ambas string). Ganha o guard
+  `employees.length === 0 ? <Text>Nenhum funcionário cadastrado.</Text> : <Table
+  .../>` (mensagem igual nos dois `EmployeesContent.tsx` que consomem o componente,
+  já que o guard fica dentro do componente compartilhado).
+- **`AuditLogsContent.tsx`**: `sortable: true` em Tipo, Ação, Ator e Data (as 4 colunas
+  onde ordenar ajuda a auditar — ID da Entidade é UUID, sem sortable; Perfil fica de
+  fora por ser um valor quase sempre igual ao filtro de Ação já aplicado). Troca o
+  `<p>Nenhum log encontrado.</p>` por `<Text size="sm" color="muted">Nenhum log
+  encontrado.</Text>`, igual ao padrão das outras telas.
+
+Colunas de ação/ícone continuam nunca ganhando `sortable`, valendo também pros 3
+pontos acima.
