@@ -2,10 +2,10 @@
 
 ## Contexto
 
-Issue [indianous/base-ds#30](https://github.com/indianous/base-ds/issues/30) aberta —
-`Dialog` não tem stacking: dois abertos ao mesmo tempo fecham juntos no Escape. Afeta
-só um dos casos deste plano (banner, ver seção 1); aceitável por enquanto (só o atalho
-de teclado tem esse efeito colateral, os botões continuam certos).
+**Atualização 2026-08-22**: [indianous/base-ds#30](https://github.com/indianous/base-ds/issues/30)
+foi fechada — `Dialog` passou a usar `useStackedEscape` internamente, então com dois
+`Dialog` abertos ao mesmo tempo (banner, ver seção 1) o Escape fecha só o de cima,
+não os dois. Não há mais ressalva a aceitar nesse caso.
 
 `app/(employee)/dashboard/products/ProductsContent.tsx`/`ProductEditContent.tsx` já
 ficaram de fora daqui — o plano #35 já cobre exclusão de produto com dialog de
@@ -78,8 +78,8 @@ nunca foi testada.
   `fetch DELETE` que já existe dentro da função passada pro hook.
 - **`SiteContent.tsx`**: `handleBannerRemove` vira a função passada pro
   `useConfirmDelete`; botão de remover banner chama `setTarget(banner)`;
-  `ConfirmDeleteDialog` empilhado (ver issue #30 — aceitar o Escape fechando os dois
-  por enquanto).
+  `ConfirmDeleteDialog` empilhado sobre o dialog "Gerenciar banners" — Escape fecha só
+  o de cima (issue #30 resolvida, `Dialog` já tem stacking).
 - **`NavigationContent.tsx`**: unificar — todo item (folha ou coleção) passa a abrir
   confirmação (`performDelete` vira a função do hook); a mensagem da coleção com
   filhos continua avisando sobre a cascata, item folha ganha uma mensagem simples

@@ -10,11 +10,15 @@ popover com checklist + botão "Aplicar" (não filtra sozinho ao marcar, só ao
 confirmar — mesmo princípio do plano #33 de não disparar busca sem confirmação
 explícita).
 
-Issue aberta pedindo esse componente no `base-ds`:
-[indianous/base-ds#29](https://github.com/indianous/base-ds/issues/29). `MultiSelect`
-já existe mas não serve bem pra filtro compacto (mostra os selecionados como badges
-que crescem dentro do próprio campo, sem passo de "Aplicar" separado). Enquanto a
-issue não é resolvida, o componente é local.
+**Atualização 2026-08-22**: [indianous/base-ds#29](https://github.com/indianous/base-ds/issues/29)
+foi fechada — `base-ds` ganhou um componente `FilterDropdown` nativo
+(`src/components/molecules/FilterDropdown/FilterDropdown.tsx`), com assinatura
+idêntica à pedida na issue: `label`, `options: { value, label }[]`, `value: string[]`,
+`onApply(next: string[])`, mais `align?`, `disabled?`, `className?` de bônus. Não há
+mais motivo pra construir um componente local — todo o plano abaixo passa a ser
+"importar `FilterDropdown` de `base-ds`" em vez de "criar `components/ui/FilterDropdown.tsx`".
+`MultiSelect` continua não servindo pro caso (badges crescendo no campo, sem passo de
+"Aplicar"), mas isso não importa mais: o componente certo já existe pronto.
 
 ## 1. Problemas encontrados
 
@@ -28,18 +32,15 @@ Os mesmos 5 arquivos/7 filtros do plano de backend, do lado do componente usado:
 | `app/(admin)/dashboard/admin/audit-logs/AuditLogsContent.tsx` | tipo de entidade, ação | `Select` (2x) |
 | `app/(employee)/dashboard/stock/[id]/StockMovementHistoryContent.tsx` | motivo | `Select` |
 
-Nenhum componente novo existe ainda em `components/ui/` pra isso — precisa ser
-criado do zero (`FilterDropdown.tsx`).
+Nenhum componente local precisa ser criado — `FilterDropdown` já existe em `base-ds`
+(ver atualização acima) e cobre exatamente esses 5 arquivos/7 filtros.
 
 ## 2. Testes a incluir/alterar
 
-- **`components/ui/__tests__/FilterDropdown.test.tsx`** (novo, componente isolado):
-  abre o popover ao clicar no trigger; marcar opções não chama `onApply` até clicar
-  em "Aplicar"; "Aplicar" chama `onApply` com os valores marcados e fecha o popover;
-  "Selecionar todos"/"Limpar" marcam/desmarcam tudo; clicar fora ou Escape fecha sem
-  aplicar (descarta marcação pendente, reabrir mostra o valor já aplicado, não o
-  descartado); trigger mostra contador (`Badge` ou texto "(N)") quando `value.length
-  > 0`.
+Sem teste de componente isolado — `FilterDropdown` é do `base-ds`, já testado lá
+(comportamento de popover, "Aplicar"/"Selecionar todos"/"Limpar", Escape/clique fora
+descartando rascunho fazem parte do próprio pacote).
+
 - Nos 5 `Content.tsx`: teste novo (ou ajuste do existente, ver plano #32 pra quem já
   ganhou teste na padronização de tabela) cobrindo: selecionar 2 valores + Aplicar
   dispara 1 chamada à API com os 2 valores no query string (`?status=PENDING&status=CONFIRMED`);
@@ -49,25 +50,10 @@ criado do zero (`FilterDropdown.tsx`).
 
 ## 3. O que entra no projeto
 
-**`components/ui/FilterDropdown.tsx`** (novo), inspirado no dropdown interno do
-`MultiSelect` do base-ds (mesmo padrão de `useEffect` com `mousedown` fora do
-container fecha o popover, sem portal — `position: relative`/`absolute`, igual o
-`MultiSelect` já faz):
-
-```tsx
-interface FilterDropdownProps {
-  label: string
-  options: { value: string; label: string }[]
-  value: string[]
-  onApply: (next: string[]) => void
-}
-```
-
-Trigger: `Button variant="outline"` com `label` + `Badge` com a contagem quando
-`value.length > 0` + `Icon="ChevronDown"`. Popover: `Checkbox` por opção (estado
-local de rascunho, inicializado a partir de `value` toda vez que abre), checkbox
-"Selecionar todos" (com `indeterminate` quando parcialmente marcado), botões
-"Limpar" e "Aplicar" (`Aplicar` chama `onApply(rascunho)` e fecha).
+Importar `FilterDropdown` de `base-ds` (`import { FilterDropdown } from 'base-ds'`) —
+nada a implementar, a prop shape já é exatamente a planejada
+(`label`, `options: { value, label }[]`, `value: string[]`, `onApply(next)`, mais
+`align`/`disabled`/`className` opcionais que o componente do pacote já oferece).
 
 **Nos 5 `Content.tsx`**: troca de `Select`/botões-toggle por `FilterDropdown`,
 estado do filtro vira `string[]` (`useState<string[]>([])`), construção da URL passa
