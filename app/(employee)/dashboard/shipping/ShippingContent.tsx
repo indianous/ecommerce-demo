@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, Heading, Icon, Skeleton } from 'base-ds'
+import { Badge, Button, Heading, Icon, Skeleton, Table, type TableColumn, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { sortTableData } from '@/lib/sortTableData'
 import type { AdminOrderPage, AdminOrderResponse } from '@/types'
 
 const formatBRL = (v: number) =>
@@ -15,6 +16,7 @@ export function ShippingContent({ orderBasePath = '/dashboard/orders' }: { order
   const router = useRouter()
   const [orders, setOrders] = useState<AdminOrderResponse[]>([])
   const [loading, setLoading] = useState(true)
+  const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const fetchOrders = useCallback(async () => {
     if (!accessToken) return
@@ -31,6 +33,24 @@ export function ShippingContent({ orderBasePath = '/dashboard/orders' }: { order
   }, [accessToken])
 
   useEffect(() => { fetchOrders() }, [fetchOrders])
+
+  const sortedOrders = sort
+    ? sortTableData(orders, sort.key as keyof AdminOrderResponse, sort.direction, sort.key === 'orderNumber' || sort.key === 'totalAmount' ? 'number' : 'string')
+    : orders
+
+  const columns: TableColumn<AdminOrderResponse>[] = [
+    { key: 'orderNumber', header: 'Nº', sortable: true, render: (o) => o.orderNumber },
+    { key: 'customerName', header: 'Cliente', render: (o) => o.customerName },
+    { key: 'totalAmount', header: 'Total', sortable: true, render: (o) => formatBRL(o.totalAmount) },
+    { key: 'status', header: 'Status', render: () => <Badge variant="default">Confirmado</Badge> },
+    {
+      key: 'actions',
+      header: 'Ações',
+      render: (o) => (
+        <Button iconOnly leftIcon={<Icon name="Truck" size="sm" />} aria-label={`Ver pedido ${o.orderNumber}`} size="sm" variant="outline" onClick={() => router.push(`${orderBasePath}/${o.id}`)} />
+      ),
+    },
+  ]
 
   return (
     <PermissionGuard permissions={['MANAGE_SHIPPING']}>
@@ -49,34 +69,9 @@ export function ShippingContent({ orderBasePath = '/dashboard/orders' }: { order
             ))}
           </div>
         ) : orders.length === 0 ? (
-          <p className="text-muted-foreground">Nenhum pedido aguardando envio.</p>
+          <Text size="sm" color="muted">Nenhum pedido aguardando envio.</Text>
         ) : (
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr>
-                <th className="text-left p-2 border-b">Nº</th>
-                <th className="text-left p-2 border-b">Cliente</th>
-                <th className="text-left p-2 border-b">Total</th>
-                <th className="text-left p-2 border-b">Status</th>
-                <th className="text-left p-2 border-b">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((order) => (
-                <tr key={order.id} className="border-b">
-                  <td className="p-2">{order.orderNumber}</td>
-                  <td className="p-2">{order.customerName}</td>
-                  <td className="p-2">{formatBRL(order.totalAmount)}</td>
-                  <td className="p-2">
-                    <Badge variant="default">Confirmado</Badge>
-                  </td>
-                  <td className="p-2">
-                    <Button iconOnly leftIcon={<Icon name="Truck" size="sm" />} aria-label={`Ver pedido ${order.orderNumber}`} size="sm" variant="outline" onClick={() => router.push(orderBasePath + '/' + order.id)} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Table columns={columns} data={sortedOrders} onSort={(key, direction) => setSort({ key, direction })} />
         )}
       </main>
     </PermissionGuard>

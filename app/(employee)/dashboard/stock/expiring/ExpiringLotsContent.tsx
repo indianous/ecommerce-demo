@@ -1,9 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { FormField, Heading } from 'base-ds'
+import { FormField, Heading, Table, type TableColumn, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { sortTableData } from '@/lib/sortTableData'
 import type { StockLot } from '@/types'
 
 export function ExpiringLotsContent() {
@@ -11,6 +12,7 @@ export function ExpiringLotsContent() {
   const [lots, setLots] = useState<StockLot[]>([])
   const [days, setDays] = useState(30)
   const [loading, setLoading] = useState(true)
+  const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const fetchLots = useCallback(async () => {
     if (!accessToken) return
@@ -26,6 +28,17 @@ export function ExpiringLotsContent() {
   }, [accessToken, days])
 
   useEffect(() => { fetchLots() }, [fetchLots])
+
+  const sortedLots = sort
+    ? sortTableData(lots, sort.key as keyof StockLot, sort.direction, sort.key === 'quantity' ? 'number' : sort.key === 'expiryDate' ? 'date' : 'string')
+    : lots
+
+  const columns: TableColumn<StockLot>[] = [
+    { key: 'productName', header: 'Produto', sortable: true, render: (lot) => lot.productName },
+    { key: 'lotNumber', header: 'Lote', render: (lot) => lot.lotNumber ?? lot.id.slice(0, 8) },
+    { key: 'quantity', header: 'Saldo', sortable: true, render: (lot) => lot.quantity },
+    { key: 'expiryDate', header: 'Validade', sortable: true, render: (lot) => lot.expiryDate },
+  ]
 
   return (
     <PermissionGuard permissions={['MANAGE_STOCK']}>
@@ -45,27 +58,15 @@ export function ExpiringLotsContent() {
 
         {loading ? (
           <p className="mt-4">Carregando...</p>
+        ) : lots.length === 0 ? (
+          <Text size="sm" color="muted" className="mt-4">Nenhum lote vencendo nesse período.</Text>
         ) : (
-          <table className="w-full text-sm border-collapse mt-4">
-            <thead>
-              <tr>
-                <th className="text-left p-2 border-b">Produto</th>
-                <th className="text-left p-2 border-b">Lote</th>
-                <th className="text-left p-2 border-b">Saldo</th>
-                <th className="text-left p-2 border-b">Validade</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lots.map((lot) => (
-                <tr key={lot.id} className="border-b">
-                  <td className="p-2">{lot.productName}</td>
-                  <td className="p-2">{lot.lotNumber ?? lot.id.slice(0, 8)}</td>
-                  <td className="p-2">{lot.quantity}</td>
-                  <td className="p-2">{lot.expiryDate}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Table
+            columns={columns}
+            data={sortedLots}
+            onSort={(key, direction) => setSort({ key, direction })}
+            className="mt-4"
+          />
         )}
       </main>
     </PermissionGuard>

@@ -27,10 +27,22 @@ const mockPage: AdminOrderPage = {
       itemCount: 1,
       createdAt: '2026-01-01T00:00:00Z',
     },
+    {
+      id: 'order-2',
+      orderNumber: 10,
+      customerName: 'Bruno Souza',
+      customerEmail: 'bruno@test.com',
+      status: 'PENDING',
+      totalAmount: 50,
+      paymentMethod: 'BOLETO',
+      paymentStatus: 'PENDING',
+      itemCount: 1,
+      createdAt: '2026-01-02T00:00:00Z',
+    },
   ],
   page: 0,
   size: 50,
-  totalElements: 1,
+  totalElements: 2,
   totalPages: 1,
   last: true,
 }
@@ -95,6 +107,36 @@ describe('PaymentsContent — listagem', () => {
     await screen.findByText('Ana Lima')
     await userEvent.click(screen.getByRole('button', { name: /confirmar pagamento do pedido 42/i }))
     expect(pushMock).toHaveBeenCalledWith('/dashboard/admin/payments/order-1/confirm')
+  })
+})
+
+describe('PaymentsContent — ordenação', () => {
+  it('clicar no cabeçalho "Nº" ordena as linhas (asc, depois desc)', async () => {
+    renderContent()
+    await screen.findByText('Ana Lima')
+
+    const header = screen.getByRole('columnheader', { name: 'Nº' })
+    await userEvent.click(within(header).getByRole('button'))
+    let rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Bruno Souza')
+
+    await userEvent.click(within(header).getByRole('button'))
+    rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Ana Lima')
+  })
+
+  it('clicar no cabeçalho "Total" ordena as linhas (asc, depois desc)', async () => {
+    renderContent()
+    await screen.findByText('Ana Lima')
+
+    const header = screen.getByRole('columnheader', { name: 'Total' })
+    await userEvent.click(within(header).getByRole('button'))
+    let rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Bruno Souza')
+
+    await userEvent.click(within(header).getByRole('button'))
+    rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Ana Lima')
   })
 })
 

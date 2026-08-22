@@ -1,9 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Heading, Icon, useToast } from 'base-ds'
+import { Button, Heading, Icon, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { sortTableData } from '@/lib/sortTableData'
 import type { AdminProductPage, Product } from '@/types'
 
 const formatDate = (iso: string) =>
@@ -15,6 +16,7 @@ export function DeletedProductsContent() {
 
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(() => Boolean(accessToken))
+  const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const fetchProducts = useCallback(async () => {
     if (!accessToken) return
@@ -51,36 +53,30 @@ export function DeletedProductsContent() {
 
   if (loading) return <main className="px-4 py-8"><p>Carregando produtos excluídos...</p></main>
 
+  const sortedProducts = sort ? sortTableData(products, sort.key as keyof Product, sort.direction, sort.key === 'updatedAt' ? 'date' : 'string') : products
+
+  const columns: TableColumn<Product>[] = [
+    { key: 'name', header: 'Nome', sortable: true, render: (p) => p.name },
+    { key: 'categoryName', header: 'Categoria', render: (p) => p.categories[0]?.name },
+    { key: 'updatedAt', header: 'Excluído em', sortable: true, render: (p) => formatDate(p.updatedAt) },
+    {
+      key: 'actions',
+      header: 'Ações',
+      render: (p) => (
+        <Button iconOnly leftIcon={<Icon name="Undo2" size="sm" />} aria-label={`Restaurar ${p.name}`} variant="outline" size="sm" onClick={() => handleRestore(p)} />
+      ),
+    },
+  ]
+
   return (
     <PermissionGuard permissions={['RESTORE_PRODUCTS']}>
       <main className="mx-auto max-w-3xl px-4 py-8">
         <Heading as="h1" size="2xl" className="mb-6">Produtos Excluídos</Heading>
 
         {products.length === 0 ? (
-          <p className="text-muted-foreground text-sm">Nenhum produto excluído.</p>
+          <Text size="sm" color="muted">Nenhum produto excluído.</Text>
         ) : (
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr>
-                <th className="text-left p-2 border-b">Nome</th>
-                <th className="text-left p-2 border-b">Categoria</th>
-                <th className="text-left p-2 border-b">Excluído em</th>
-                <th className="text-left p-2 border-b"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((p) => (
-                <tr key={p.id} className="border-b">
-                  <td className="p-2">{p.name}</td>
-                  <td className="p-2">{p.categories[0]?.name}</td>
-                  <td className="p-2">{formatDate(p.updatedAt)}</td>
-                  <td className="p-2">
-                    <Button iconOnly leftIcon={<Icon name="Undo2" size="sm" />} aria-label={`Restaurar ${p.name}`} variant="outline" size="sm" onClick={() => handleRestore(p)} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Table columns={columns} data={sortedProducts} onSort={(key, direction) => setSort({ key, direction })} />
         )}
       </main>
     </PermissionGuard>

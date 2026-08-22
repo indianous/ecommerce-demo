@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Badge, Button, Heading, Icon, Pagination, Text } from 'base-ds'
+import { Badge, Heading, Pagination, Table, type TableColumn, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
-import type { OrderResponse, OrderStatus } from '@/types'
+import type { OrderItemResponse, OrderResponse, OrderStatus } from '@/types'
 
 const PAGE_SIZE = 5
 
@@ -26,7 +26,6 @@ export function OrdersContent() {
   const [orders, setOrders] = useState<OrderResponse[]>([])
   const [loading, setLoading] = useState(() => Boolean(accessToken))
   const [page, setPage] = useState(1)
-  const [expanded, setExpanded] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (!accessToken) return
@@ -35,18 +34,6 @@ export function OrdersContent() {
       .then(setOrders)
       .finally(() => setLoading(false))
   }, [accessToken])
-
-  function toggleExpand(orderId: string) {
-    setExpanded((prev) => {
-      const next = new Set(prev)
-      if (next.has(orderId)) {
-        next.delete(orderId)
-      } else {
-        next.add(orderId)
-      }
-      return next
-    })
-  }
 
   if (loading) {
     return (
@@ -70,79 +57,44 @@ export function OrdersContent() {
   const totalPages = Math.ceil(orders.length / PAGE_SIZE)
   const pageOrders = orders.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
+  const columns: TableColumn<OrderResponse>[] = [
+    { key: 'orderNumber', header: 'Pedido', render: (order) => `#${order.orderNumber}` },
+    { key: 'createdAt', header: 'Data', render: (order) => formatDate(order.createdAt) },
+    { key: 'totalAmount', header: 'Total', render: (order) => formatBRL(order.totalAmount) },
+    { key: 'paymentMethod', header: 'Pagamento', render: (order) => order.paymentMethod },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (order) => <Badge variant={STATUS_BADGE_VARIANT[order.status]}>{order.status}</Badge>,
+    },
+  ]
+
+  const itemColumns: TableColumn<OrderItemResponse>[] = [
+    {
+      key: 'productName',
+      header: 'Produto',
+      render: (item) => (
+        <Link href={`/catalog/${item.productId}`} className="hover:underline">
+          {item.productName}
+        </Link>
+      ),
+    },
+    { key: 'quantity', header: 'Qtd', render: (item) => item.quantity },
+    { key: 'unitPrice', header: 'Preço unit.', render: (item) => formatBRL(item.unitPrice) },
+    { key: 'subtotal', header: 'Subtotal', render: (item) => formatBRL(item.subtotal) },
+  ]
+
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
       <Heading as="h1" size="2xl" className="mb-6">
         Meus Pedidos
       </Heading>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
-          <thead className="bg-muted">
-            <tr>
-              <th className="w-8 px-2 py-3" />
-              <th className="px-4 py-3 text-left font-semibold text-foreground">Pedido</th>
-              <th className="px-4 py-3 text-left font-semibold text-foreground">Data</th>
-              <th className="px-4 py-3 text-left font-semibold text-foreground">Total</th>
-              <th className="px-4 py-3 text-left font-semibold text-foreground">Pagamento</th>
-              <th className="px-4 py-3 text-left font-semibold text-foreground">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {pageOrders.map((order) => (
-              <React.Fragment key={order.id}>
-                <tr className="hover:bg-muted">
-                  <td className="px-2 py-3">
-                    {order.items.length > 0 && (
-                      <Button iconOnly leftIcon={<Icon name={expanded.has(order.id) ? 'ChevronDown' : 'ChevronRight'} size="sm" />} aria-label={`Expandir #${order.orderNumber}`} variant="ghost" size="sm" onClick={() => toggleExpand(order.id)} />
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-foreground">#{order.orderNumber}</td>
-                  <td className="px-4 py-3 text-foreground">{formatDate(order.createdAt)}</td>
-                  <td className="px-4 py-3 text-foreground">{formatBRL(order.totalAmount)}</td>
-                  <td className="px-4 py-3 text-foreground">{order.paymentMethod}</td>
-                  <td className="px-4 py-3 text-foreground">
-                    <Badge variant={STATUS_BADGE_VARIANT[order.status]}>{order.status}</Badge>
-                  </td>
-                </tr>
-                {expanded.has(order.id) && (
-                  <tr>
-                    <td colSpan={6} className="bg-muted/50 px-8 py-3">
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className="text-muted-foreground">
-                            <th className="pb-1 text-left font-medium">Produto</th>
-                            <th className="pb-1 text-left font-medium">Qtd</th>
-                            <th className="pb-1 text-left font-medium">Preço unit.</th>
-                            <th className="pb-1 text-left font-medium">Subtotal</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border">
-                          {order.items.map((item) => (
-                            <tr key={item.productId}>
-                              <td className="py-1.5 text-foreground">
-                                <Link
-                                  href={`/catalog/${item.productId}`}
-                                  className="hover:underline"
-                                >
-                                  {item.productName}
-                                </Link>
-                              </td>
-                              <td className="py-1.5 text-foreground">{item.quantity}</td>
-                              <td className="py-1.5 text-foreground">{formatBRL(item.unitPrice)}</td>
-                              <td className="py-1.5 text-foreground">{formatBRL(item.subtotal)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Table
+        columns={columns}
+        data={pageOrders}
+        renderExpandedRow={(order) => <Table columns={itemColumns} data={order.items} className="text-xs" />}
+      />
 
       {totalPages > 1 && (
         <div className="mt-6 flex justify-center">

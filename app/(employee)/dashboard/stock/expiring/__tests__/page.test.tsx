@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -23,12 +23,22 @@ const mockLot: StockLot = {
   createdAt: '2026-01-01T00:00:00',
 }
 
+const mockLot2: StockLot = {
+  ...mockLot,
+  id: 'lot-2',
+  productName: 'Abajur de Mesa',
+  lotNumber: 'L2',
+  quantity: 2,
+  expiryDate: '2026-06-01',
+}
+
 let lastUrl = ''
+let lotsResponse: StockLot[] = [mockLot]
 
 const server = setupServer(
   http.get('/api/admin/stock-lots/expiring', ({ request }) => {
     lastUrl = request.url
-    return HttpResponse.json([mockLot])
+    return HttpResponse.json(lotsResponse)
   }),
 )
 
@@ -36,6 +46,7 @@ beforeAll(() => server.listen())
 afterEach(() => {
   server.resetHandlers()
   lastUrl = ''
+  lotsResponse = [mockLot]
 })
 afterAll(() => server.close())
 
@@ -83,5 +94,52 @@ describe('ExpiringLotsContent', () => {
     await user.type(input, '7')
 
     expect(lastUrl).toContain('days=7')
+  })
+
+  it('estado vazio mostra mensagem em português, não "No data"', async () => {
+    lotsResponse = []
+    renderExpiring()
+    expect(await screen.findByText(/nenhum lote vencendo/i)).toBeInTheDocument()
+    expect(screen.queryByText('No data')).not.toBeInTheDocument()
+  })
+
+  it('clicar no cabeçalho "Produto" ordena as linhas (asc, depois desc)', async () => {
+    lotsResponse = [mockLot, mockLot2]
+    const user = userEvent.setup()
+    renderExpiring()
+    await screen.findByText('Teclado Mecânico')
+
+    const header = screen.getByRole('columnheader', { name: 'Produto' })
+    await user.click(within(header).getByRole('button'))
+    let rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Abajur de Mesa')
+
+    await user.click(within(header).getByRole('button'))
+    rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Teclado Mecânico')
+  })
+
+  it('clicar no cabeçalho "Saldo" ordena as linhas', async () => {
+    lotsResponse = [mockLot, mockLot2]
+    const user = userEvent.setup()
+    renderExpiring()
+    await screen.findByText('Teclado Mecânico')
+
+    const header = screen.getByRole('columnheader', { name: 'Saldo' })
+    await user.click(within(header).getByRole('button'))
+    const rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Abajur de Mesa')
+  })
+
+  it('clicar no cabeçalho "Validade" ordena as linhas por data', async () => {
+    lotsResponse = [mockLot, mockLot2]
+    const user = userEvent.setup()
+    renderExpiring()
+    await screen.findByText('Teclado Mecânico')
+
+    const header = screen.getByRole('columnheader', { name: 'Validade' })
+    await user.click(within(header).getByRole('button'))
+    const rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Abajur de Mesa')
   })
 })

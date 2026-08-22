@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button, Heading, Icon, Input, Skeleton, useToast } from 'base-ds'
+import { Button, Heading, Icon, Input, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { sortTableData } from '@/lib/sortTableData'
 import type { CustomerResponse } from '@/types'
 
 export function CustomersContent({ basePath = '/dashboard/customers' }: { basePath?: string }) {
@@ -14,6 +15,7 @@ export function CustomersContent({ basePath = '/dashboard/customers' }: { basePa
   const [customers, setCustomers] = useState<CustomerResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const fetchCustomers = useCallback(
     async (q: string) => {
@@ -46,6 +48,27 @@ export function CustomersContent({ basePath = '/dashboard/customers' }: { basePa
     fetchCustomers(search)
   }
 
+  const sortedCustomers = sort ? sortTableData(customers, sort.key as keyof CustomerResponse, sort.direction, 'string') : customers
+
+  const columns: TableColumn<CustomerResponse>[] = [
+    { key: 'name', header: 'Nome', sortable: true, render: (c) => c.name },
+    { key: 'email', header: 'E-mail', render: (c) => c.email },
+    {
+      key: 'actions',
+      header: 'Ações',
+      render: (c) => (
+        <Button
+          iconOnly
+          leftIcon={<Icon name="Eye" size="sm" />}
+          aria-label="Ver detalhe"
+          size="sm"
+          variant="outline"
+          onClick={() => router.push(`${basePath}/${c.id}`)}
+        />
+      ),
+    },
+  ]
+
   return (
     <PermissionGuard permissions={['MANAGE_CUSTOMERS']}>
       <main className="mx-auto max-w-5xl px-4 py-8">
@@ -69,27 +92,14 @@ export function CustomersContent({ basePath = '/dashboard/customers' }: { basePa
               <Skeleton key={i} variant="line" height={40} className="mb-2" />
             ))}
           </div>
+        ) : customers.length === 0 ? (
+          <Text size="sm" color="muted">Nenhum cliente encontrado.</Text>
         ) : (
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr>
-                <th className="text-left p-2 border-b">Nome</th>
-                <th className="text-left p-2 border-b">E-mail</th>
-                <th className="text-left p-2 border-b">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {customers.map((c) => (
-                <tr key={c.id} className="border-b hover:bg-muted/50">
-                  <td className="p-2">{c.name}</td>
-                  <td className="p-2">{c.email}</td>
-                  <td className="p-2">
-                    <Button iconOnly leftIcon={<Icon name="Eye" size="sm" />} aria-label="Ver detalhe" size="sm" variant="outline" onClick={() => router.push(basePath + '/' + c.id)} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Table
+            columns={columns}
+            data={sortedCustomers}
+            onSort={(key, direction) => setSort({ key, direction })}
+          />
         )}
       </main>
     </PermissionGuard>

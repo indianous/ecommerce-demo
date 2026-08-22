@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button, Dialog, Heading, Icon, Skeleton, useToast } from 'base-ds'
+import { Button, Dialog, Heading, Icon, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { RejectPaymentForm } from '@/components/forms/RejectPaymentForm'
+import { sortTableData } from '@/lib/sortTableData'
 import type { AdminOrderPage, AdminOrderResponse } from '@/types'
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
@@ -27,6 +28,7 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
   const [rejectTarget, setRejectTarget] = useState<AdminOrderResponse | null>(null)
   const [rejectReason, setRejectReason] = useState('')
   const [rejecting, setRejecting] = useState(false)
+  const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const fetchOrders = useCallback(async () => {
     if (!accessToken) return
@@ -71,6 +73,28 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
     }
   }
 
+  const sortedOrders = sort
+    ? sortTableData(orders, sort.key as keyof AdminOrderResponse, sort.direction, sort.key === 'orderNumber' || sort.key === 'totalAmount' ? 'number' : 'string')
+    : orders
+
+  const columns: TableColumn<AdminOrderResponse>[] = [
+    { key: 'orderNumber', header: 'Nº', sortable: true, render: (o) => o.orderNumber },
+    { key: 'customerName', header: 'Cliente', render: (o) => o.customerName },
+    { key: 'customerEmail', header: 'E-mail', render: (o) => o.customerEmail },
+    { key: 'paymentMethod', header: 'Método', render: (o) => PAYMENT_METHOD_LABELS[o.paymentMethod] ?? o.paymentMethod },
+    { key: 'totalAmount', header: 'Total', sortable: true, render: (o) => formatBRL(o.totalAmount) },
+    {
+      key: 'actions',
+      header: 'Ações',
+      render: (o) => (
+        <div className="flex gap-2">
+          <Button iconOnly leftIcon={<Icon name="Check" size="sm" />} aria-label={`Confirmar pagamento do pedido ${o.orderNumber}`} size="sm" variant="outline" onClick={() => router.push(`${basePath}/${o.id}/confirm`)} />
+          <Button iconOnly leftIcon={<Icon name="Ban" size="sm" />} aria-label={`Rejeitar pagamento do pedido ${o.orderNumber}`} size="sm" variant="danger" onClick={() => setRejectTarget(o)} />
+        </div>
+      ),
+    },
+  ]
+
   return (
     <PermissionGuard permissions={['MANAGE_PAYMENTS']}>
       <main className="mx-auto max-w-5xl px-4 py-8">
@@ -85,37 +109,9 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
             ))}
           </div>
         ) : orders.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhum pagamento pendente.</p>
+          <Text size="sm" color="muted">Nenhum pagamento pendente.</Text>
         ) : (
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr>
-                <th className="text-left p-2 border-b">Nº</th>
-                <th className="text-left p-2 border-b">Cliente</th>
-                <th className="text-left p-2 border-b">E-mail</th>
-                <th className="text-left p-2 border-b">Método</th>
-                <th className="text-left p-2 border-b">Total</th>
-                <th className="text-left p-2 border-b">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((order) => (
-                <tr key={order.id} className="border-b">
-                  <td className="p-2">{order.orderNumber}</td>
-                  <td className="p-2">{order.customerName}</td>
-                  <td className="p-2">{order.customerEmail}</td>
-                  <td className="p-2">{PAYMENT_METHOD_LABELS[order.paymentMethod] ?? order.paymentMethod}</td>
-                  <td className="p-2">{formatBRL(order.totalAmount)}</td>
-                  <td className="p-2">
-                    <div className="flex gap-2">
-                      <Button iconOnly leftIcon={<Icon name="Check" size="sm" />} aria-label={`Confirmar pagamento do pedido ${order.orderNumber}`} size="sm" variant="outline" onClick={() => router.push(`${basePath}/${order.id}/confirm`)} />
-                      <Button iconOnly leftIcon={<Icon name="Ban" size="sm" />} aria-label={`Rejeitar pagamento do pedido ${order.orderNumber}`} size="sm" variant="danger" onClick={() => setRejectTarget(order)} />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Table columns={columns} data={sortedOrders} onSort={(key, direction) => setSort({ key, direction })} />
         )}
       </main>
 

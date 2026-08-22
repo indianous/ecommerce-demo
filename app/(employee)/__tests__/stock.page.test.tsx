@@ -28,6 +28,13 @@ const mockProduct: Product = {
   updatedAt: '2024-01-01T00:00:00Z',
 }
 
+const mockProduct2: Product = {
+  ...mockProduct,
+  id: 'prod-2',
+  name: 'Abajur de Mesa',
+  stockQuantity: 3,
+}
+
 const mockLots: StockLot[] = [
   { id: 'lot-1', productId: 'prod-1', productName: 'Teclado Mecânico', lotNumber: 'L1', quantity: 10, initialQuantity: 10, createdAt: '2024-01-01T00:00:00Z' },
 ]
@@ -150,6 +157,40 @@ describe('StockContent', () => {
     await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
 
     expect(await screen.findByText(/estoque insuficiente/i)).toBeInTheDocument()
+  })
+
+  it('clicar no cabeçalho "Produto" ordena as linhas (asc, depois desc)', async () => {
+    products = [mockProduct, mockProduct2]
+    const user = userEvent.setup()
+    renderStock()
+    await screen.findByText('Teclado Mecânico')
+
+    const header = screen.getByRole('columnheader', { name: 'Produto' })
+    await user.click(within(header).getByRole('button'))
+    let rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Abajur de Mesa')
+    expect(rows[1]).toContain('Teclado Mecânico')
+
+    await user.click(within(header).getByRole('button'))
+    rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Teclado Mecânico')
+    expect(rows[1]).toContain('Abajur de Mesa')
+  })
+
+  it('clicar no cabeçalho "Quantidade" ordena as linhas (asc, depois desc)', async () => {
+    products = [mockProduct, mockProduct2]
+    const user = userEvent.setup()
+    renderStock()
+    await screen.findByText('Teclado Mecânico')
+
+    const header = screen.getByRole('columnheader', { name: 'Quantidade' })
+    await user.click(within(header).getByRole('button'))
+    let rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Abajur de Mesa')
+
+    await user.click(within(header).getByRole('button'))
+    rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Teclado Mecânico')
   })
 
   it('redireciona para /dashboard quando usuário não tem MANAGE_STOCK', async () => {

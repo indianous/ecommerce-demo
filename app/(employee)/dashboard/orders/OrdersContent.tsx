@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, FormField, Heading, Icon, Input, Select, Skeleton, useToast } from 'base-ds'
+import { Badge, Button, FormField, Heading, Icon, Input, Select, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { formatBRL } from '@/lib/format'
+import { sortTableData } from '@/lib/sortTableData'
 import type { AdminOrderResponse, AdminOrderPage, OrderStatus } from '@/types'
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -36,6 +37,7 @@ export function OrdersContent({ orderBasePath = '/dashboard/orders' }: { orderBa
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<OrderStatus | ''>('')
+  const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const fetchOrders = useCallback(async () => {
     if (!accessToken) return
@@ -57,6 +59,30 @@ export function OrdersContent({ orderBasePath = '/dashboard/orders' }: { orderBa
   }, [accessToken, search, statusFilter, toast])
 
   useEffect(() => { fetchOrders() }, [fetchOrders])
+
+  const sortedOrders = sort
+    ? sortTableData(orders, sort.key as keyof AdminOrderResponse, sort.direction, sort.key === 'totalAmount' ? 'number' : sort.key === 'orderNumber' ? 'number' : 'string')
+    : orders
+
+  const columns: TableColumn<AdminOrderResponse>[] = [
+    { key: 'orderNumber', header: 'Nº', sortable: true, render: (o) => o.orderNumber },
+    { key: 'customerName', header: 'Cliente', render: (o) => o.customerName },
+    { key: 'customerEmail', header: 'Email', render: (o) => o.customerEmail },
+    {
+      key: 'status',
+      header: 'Status',
+      sortable: true,
+      render: (o) => <Badge variant={STATUS_BADGE_VARIANT[o.status]}>{STATUS_LABELS[o.status]}</Badge>,
+    },
+    { key: 'totalAmount', header: 'Total', sortable: true, render: (o) => formatBRL(o.totalAmount) },
+    {
+      key: 'actions',
+      header: 'Ações',
+      render: (o) => (
+        <Button iconOnly leftIcon={<Icon name="Eye" size="sm" />} aria-label={`Ver detalhe do pedido ${o.orderNumber}`} size="sm" variant="outline" onClick={() => router.push(`${orderBasePath}/${o.id}`)} />
+      ),
+    },
+  ]
 
   return (
     <PermissionGuard permissions={['MANAGE_ORDERS', 'MANAGE_SHIPPING', 'MANAGE_ORDER_STATUS_REQUESTS']}>
@@ -93,37 +119,15 @@ export function OrdersContent({ orderBasePath = '/dashboard/orders' }: { orderBa
               <Skeleton key={i} variant="line" height={40} className="mb-2" />
             ))}
           </div>
+        ) : orders.length === 0 ? (
+          <Text size="sm" color="muted">Nenhum pedido encontrado.</Text>
         ) : (
-          <table className="w-full text-sm border-collapse mb-6">
-            <thead>
-              <tr>
-                <th className="text-left p-2 border-b">Nº</th>
-                <th className="text-left p-2 border-b">Cliente</th>
-                <th className="text-left p-2 border-b">Email</th>
-                <th className="text-left p-2 border-b">Status</th>
-                <th className="text-left p-2 border-b">Total</th>
-                <th className="text-left p-2 border-b">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((order) => (
-                <tr key={order.id} className="border-b">
-                  <td className="p-2">{order.orderNumber}</td>
-                  <td className="p-2">{order.customerName}</td>
-                  <td className="p-2">{order.customerEmail}</td>
-                  <td className="p-2">
-                    <Badge variant={STATUS_BADGE_VARIANT[order.status]}>
-                      {STATUS_LABELS[order.status]}
-                    </Badge>
-                  </td>
-                  <td className="p-2">{formatBRL(order.totalAmount)}</td>
-                  <td className="p-2">
-                    <Button iconOnly leftIcon={<Icon name="Eye" size="sm" />} aria-label={`Ver detalhe do pedido ${order.orderNumber}`} size="sm" variant="outline" onClick={() => router.push(orderBasePath + '/' + order.id)} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Table
+            columns={columns}
+            data={sortedOrders}
+            onSort={(key, direction) => setSort({ key, direction })}
+            className="mb-6"
+          />
         )}
       </main>
     </PermissionGuard>

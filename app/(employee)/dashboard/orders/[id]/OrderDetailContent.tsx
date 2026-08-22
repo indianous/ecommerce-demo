@@ -2,10 +2,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { ComponentProps } from 'react'
 import Link from 'next/link'
-import { Badge, Button, Heading, Icon, Select, Skeleton, Textarea, useToast } from 'base-ds'
+import { Badge, Button, Heading, Icon, Select, Skeleton, Table, type TableColumn, Text, Textarea, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
-import type { AdminOrderDetailResponse, Invoice, InvoiceStatus, OrderStatus, PaymentStatus } from '@/types'
+import type { AdminOrderDetailResponse, Invoice, InvoiceStatus, OrderItemResponse, OrderStatus, PaymentStatus } from '@/types'
 
 type IconName = ComponentProps<typeof Icon>['name']
 
@@ -196,6 +196,13 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
   const isTerminal = TERMINAL_STATES.includes(order.status)
   const retroStates = ALL_STATUSES.filter((s) => s !== order.status && !nextStates.includes(s))
 
+  const itemColumns: TableColumn<OrderItemResponse>[] = [
+    { key: 'productName', header: 'Produto', render: (item) => item.productName },
+    { key: 'quantity', header: 'Qtd', render: (item) => item.quantity },
+    { key: 'unitPrice', header: 'Preço unit.', render: (item) => formatBRL(item.unitPrice) },
+    { key: 'subtotal', header: 'Subtotal', render: (item) => formatBRL(item.subtotal) },
+  ]
+
   return (
     <PermissionGuard permissions={['MANAGE_ORDERS', 'MANAGE_SHIPPING', 'MANAGE_ORDER_STATUS_REQUESTS']}>
       <div className="max-w-3xl mx-auto px-4 py-8">
@@ -241,26 +248,11 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
 
         <div className="mb-6">
           <h2 className="text-sm font-semibold mb-2">Itens</h2>
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr>
-                <th className="text-left p-2 border-b">Produto</th>
-                <th className="text-left p-2 border-b">Qtd</th>
-                <th className="text-left p-2 border-b">Preço unit.</th>
-                <th className="text-left p-2 border-b">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {order.items.map((item) => (
-                <tr key={item.productId} className="border-b">
-                  <td className="p-2">{item.productName}</td>
-                  <td className="p-2">{item.quantity}</td>
-                  <td className="p-2">{formatBRL(item.unitPrice)}</td>
-                  <td className="p-2">{formatBRL(item.subtotal)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {order.items.length === 0 ? (
+            <Text size="sm" color="muted">Nenhum item neste pedido.</Text>
+          ) : (
+            <Table columns={itemColumns} data={order.items} />
+          )}
         </div>
 
         <div className="mb-6">

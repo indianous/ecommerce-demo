@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Button, Dialog, Heading, Icon, useToast } from 'base-ds'
+import { Button, Dialog, Heading, Icon, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { StockEntryForm } from '@/components/forms/StockEntryForm'
 import { StockExitForm } from '@/components/forms/StockExitForm'
+import { sortTableData } from '@/lib/sortTableData'
 import type { AdminProductPage, Product, StockLot, StockLotPage, StockMovementReason } from '@/types'
 
 interface Props {
@@ -19,6 +20,7 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
 
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(() => Boolean(accessToken))
+  const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const [entryProductId, setEntryProductId] = useState<string | null>(null)
   const [entryReason, setEntryReason] = useState<StockMovementReason>('PURCHASE')
@@ -147,6 +149,25 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
 
   if (loading) return <main className="px-4 py-8"><p>Carregando produtos...</p></main>
 
+  const sortedProducts = sort ? sortTableData(products, sort.key as keyof Product, sort.direction, sort.key === 'stockQuantity' ? 'number' : 'string') : products
+
+  const columns: TableColumn<Product>[] = [
+    { key: 'name', header: 'Produto', sortable: true, render: (p) => p.name },
+    { key: 'categoryName', header: 'Categoria', render: (p) => p.categories[0]?.name },
+    { key: 'stockQuantity', header: 'Quantidade', sortable: true, render: (p) => p.stockQuantity },
+    {
+      key: 'actions',
+      header: 'Ações',
+      render: (p) => (
+        <div className="flex items-center gap-3">
+          <Button iconOnly leftIcon={<Icon name="ArrowDownToLine" size="sm" />} aria-label="Entrada" variant="primary" size="sm" onClick={() => openEntryDialog(p.id)} />
+          <Button iconOnly leftIcon={<Icon name="ArrowUpFromLine" size="sm" />} aria-label="Saída" variant="outline" size="sm" onClick={() => openExitDialog(p.id)} />
+          <Link href={`${stockBasePath}/${p.id}`} className="text-sm underline">Histórico</Link>
+        </div>
+      ),
+    },
+  ]
+
   return (
     <PermissionGuard permissions={['MANAGE_STOCK']}>
       <main className="mx-auto max-w-4xl px-4 py-8">
@@ -157,32 +178,15 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
           </Link>
         </div>
 
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr>
-              <th className="text-left p-2 border-b">Produto</th>
-              <th className="text-left p-2 border-b">Categoria</th>
-              <th className="text-left p-2 border-b">Quantidade</th>
-              <th className="text-left p-2 border-b"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((p) => (
-              <tr key={p.id} className="border-b">
-                <td className="p-2">{p.name}</td>
-                <td className="p-2">{p.categories[0]?.name}</td>
-                <td className="p-2">{p.stockQuantity}</td>
-                <td className="p-2">
-                  <div className="flex items-center gap-3">
-                    <Button iconOnly leftIcon={<Icon name="ArrowDownToLine" size="sm" />} aria-label="Entrada" variant="primary" size="sm" onClick={() => openEntryDialog(p.id)} />
-                    <Button iconOnly leftIcon={<Icon name="ArrowUpFromLine" size="sm" />} aria-label="Saída" variant="outline" size="sm" onClick={() => openExitDialog(p.id)} />
-                    <Link href={`${stockBasePath}/${p.id}`} className="text-sm underline">Histórico</Link>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {products.length === 0 ? (
+          <Text size="sm" color="muted">Nenhum produto encontrado.</Text>
+        ) : (
+          <Table
+            columns={columns}
+            data={sortedProducts}
+            onSort={(key, direction) => setSort({ key, direction })}
+          />
+        )}
       </main>
 
       <Dialog open={entryProductId !== null} onClose={closeEntryDialog} title="Registrar entrada">

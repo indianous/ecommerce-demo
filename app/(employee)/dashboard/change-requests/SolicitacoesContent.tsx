@@ -1,9 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Badge, Button, Dialog, Heading, Icon, Input, Skeleton, useToast } from 'base-ds'
+import { Badge, Button, Dialog, Heading, Icon, Input, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { sortTableData } from '@/lib/sortTableData'
 import type { OrderChangeRequest, OrderChangeRequestStatus, OrderStatus } from '@/types'
 
 const STATUS_LABELS: Record<OrderChangeRequestStatus, string> = {
@@ -38,6 +39,7 @@ export function SolicitacoesContent() {
   const [selected, setSelected] = useState<OrderChangeRequest | null>(null)
   const [actioning, setActioning] = useState(false)
   const [denyDialogOpen, setDenyDialogOpen] = useState(false)
+  const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const fetchRequests = useCallback(async () => {
     if (!accessToken) return
@@ -190,6 +192,31 @@ export function SolicitacoesContent() {
     )
   }
 
+  const sortedRequests = sort ? sortTableData(requests, sort.key as keyof OrderChangeRequest, sort.direction, sort.key === 'orderNumber' ? 'number' : 'string') : requests
+
+  const changeRequestColumns: TableColumn<OrderChangeRequest>[] = [
+    { key: 'orderNumber', header: 'Pedido', sortable: true, render: (req) => `#${req.orderNumber}` },
+    {
+      key: 'transition',
+      header: 'Transição',
+      render: (req) => `${ORDER_STATUS_LABELS[req.fromStatus]} → ${ORDER_STATUS_LABELS[req.toStatus]}`,
+    },
+    { key: 'requestedByEmail', header: 'Solicitado por', render: (req) => req.requestedByEmail },
+    {
+      key: 'status',
+      header: 'Status',
+      sortable: true,
+      render: (req) => <Badge variant={STATUS_BADGE_VARIANT[req.status]}>{STATUS_LABELS[req.status]}</Badge>,
+    },
+    {
+      key: 'actions',
+      header: 'Ações',
+      render: (req) => (
+        <Button iconOnly leftIcon={<Icon name="Eye" size="sm" />} aria-label="Ver detalhe" variant="outline" size="sm" onClick={() => setSelected(req)} />
+      ),
+    },
+  ]
+
   return (
     <PermissionGuard permissions={['MANAGE_ORDER_STATUS_REQUESTS']}>
       <main className="mx-auto max-w-5xl px-4 py-8">
@@ -243,38 +270,13 @@ export function SolicitacoesContent() {
             ))}
           </div>
         ) : requests.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhuma solicitação encontrada.</p>
+          <Text size="sm" color="muted">Nenhuma solicitação encontrada.</Text>
         ) : (
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr>
-                <th className="text-left p-2 border-b">Pedido</th>
-                <th className="text-left p-2 border-b">Transição</th>
-                <th className="text-left p-2 border-b">Solicitado por</th>
-                <th className="text-left p-2 border-b">Status</th>
-                <th className="text-left p-2 border-b">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.map((req) => (
-                <tr key={req.id} className="border-b hover:bg-muted/50">
-                  <td className="p-2">#{req.orderNumber}</td>
-                  <td className="p-2">
-                    {ORDER_STATUS_LABELS[req.fromStatus]} → {ORDER_STATUS_LABELS[req.toStatus]}
-                  </td>
-                  <td className="p-2">{req.requestedByEmail}</td>
-                  <td className="p-2">
-                    <Badge variant={STATUS_BADGE_VARIANT[req.status]}>
-                      {STATUS_LABELS[req.status]}
-                    </Badge>
-                  </td>
-                  <td className="p-2">
-                    <Button iconOnly leftIcon={<Icon name="Eye" size="sm" />} aria-label="Ver detalhe" variant="outline" size="sm" onClick={() => setSelected(req)} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Table
+            columns={changeRequestColumns}
+            data={sortedRequests}
+            onSort={(key, direction) => setSort({ key, direction })}
+          />
         )}
       </main>
     </PermissionGuard>

@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -26,6 +26,13 @@ const mockDeletedProduct: Product = {
   status: 'UNAVAILABLE',
   createdAt: '2023-06-01T00:00:00Z',
   updatedAt: '2024-03-15T10:00:00Z',
+}
+
+const mockDeletedProduct2: Product = {
+  ...mockDeletedProduct,
+  id: 'prod-deleted-2',
+  name: 'Abajur Quebrado',
+  updatedAt: '2023-01-10T10:00:00Z',
 }
 
 let deletedProducts: Product[] = []
@@ -101,6 +108,34 @@ describe('DeletedProductsContent', () => {
       expect(lastRestoreId).toBe('prod-deleted')
       expect(screen.queryByText('Headset Antigo')).not.toBeInTheDocument()
     })
+  })
+
+  it('clicar no cabeçalho "Nome" ordena as linhas (asc, depois desc)', async () => {
+    deletedProducts = [mockDeletedProduct, mockDeletedProduct2]
+    const user = userEvent.setup()
+    renderDeleted()
+    await screen.findByText('Headset Antigo')
+
+    const header = screen.getByRole('columnheader', { name: 'Nome' })
+    await user.click(within(header).getByRole('button'))
+    let rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Abajur Quebrado')
+
+    await user.click(within(header).getByRole('button'))
+    rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Headset Antigo')
+  })
+
+  it('clicar no cabeçalho "Excluído em" ordena as linhas por data', async () => {
+    deletedProducts = [mockDeletedProduct, mockDeletedProduct2]
+    const user = userEvent.setup()
+    renderDeleted()
+    await screen.findByText('Headset Antigo')
+
+    const header = screen.getByRole('columnheader', { name: 'Excluído em' })
+    await user.click(within(header).getByRole('button'))
+    const rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('Abajur Quebrado')
   })
 
   it('redireciona para /dashboard quando usuário não tem RESTORE_PRODUCTS', async () => {

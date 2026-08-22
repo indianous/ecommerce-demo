@@ -115,7 +115,7 @@ describe('OrdersPage', () => {
     render(<OrdersPage />)
     await screen.findByText('#1')
 
-    await user.click(screen.getByRole('button', { name: /expandir #1/i }))
+    await user.click(screen.getByRole('button', { name: /expand row/i }))
 
     expect(screen.getByText('Notebook')).toBeInTheDocument()
     expect(screen.getByText('2')).toBeInTheDocument()
@@ -143,7 +143,7 @@ describe('OrdersPage', () => {
     render(<OrdersPage />)
     await screen.findByText('#1')
 
-    await user.click(screen.getByRole('button', { name: /expandir #1/i }))
+    await user.click(screen.getByRole('button', { name: /expand row/i }))
 
     expect(screen.getByRole('link', { name: 'Notebook' })).toHaveAttribute('href', '/catalog/p1')
   })
@@ -169,10 +169,10 @@ describe('OrdersPage', () => {
     render(<OrdersPage />)
     await screen.findByText('#1')
 
-    await user.click(screen.getByRole('button', { name: /expandir #1/i }))
+    await user.click(screen.getByRole('button', { name: /expand row/i }))
     expect(screen.getByText('Notebook')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: /expandir #1/i }))
+    await user.click(screen.getByRole('button', { name: /collapse row/i }))
     expect(screen.queryByText('Notebook')).not.toBeInTheDocument()
   })
 })

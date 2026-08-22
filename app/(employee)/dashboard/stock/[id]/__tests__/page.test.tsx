@@ -27,7 +27,18 @@ const mockMovement: StockMovement = {
   createdAt: '2026-06-01T10:00:00',
 }
 
+const mockMovement2: StockMovement = {
+  ...mockMovement,
+  id: 'mv-2',
+  reason: 'SALE',
+  quantity: 5,
+  quantityBefore: 30,
+  quantityAfter: 25,
+  createdAt: '2026-01-01T10:00:00',
+}
+
 let lastMovementsUrl = ''
+let movementsResponse: StockMovement[] = [mockMovement]
 
 const server = setupServer(
   http.get('/api/admin/products/:id', () =>
@@ -36,7 +47,7 @@ const server = setupServer(
   http.get('/api/admin/products/:id/stock-movements', ({ request }) => {
     lastMovementsUrl = request.url
     return HttpResponse.json({
-      content: [mockMovement], page: 0, size: 20, totalElements: 1, totalPages: 1, last: true,
+      content: movementsResponse, page: 0, size: 20, totalElements: movementsResponse.length, totalPages: 1, last: true,
     })
   }),
 )
@@ -45,6 +56,7 @@ beforeAll(() => server.listen())
 afterEach(() => {
   server.resetHandlers()
   lastMovementsUrl = ''
+  movementsResponse = [mockMovement]
 })
 afterAll(() => server.close())
 
@@ -104,5 +116,33 @@ describe('StockMovementHistoryContent', () => {
 
     expect(lastMovementsUrl).toContain('from=2026-01-01')
     expect(lastMovementsUrl).toContain('to=2026-12-31')
+  })
+
+  it('clicar no cabeçalho "Quantidade" ordena as linhas (asc, depois desc)', async () => {
+    movementsResponse = [mockMovement, mockMovement2]
+    const user = userEvent.setup()
+    renderHistory()
+    await screen.findByText('PURCHASE')
+
+    const header = screen.getByRole('columnheader', { name: 'Quantidade' })
+    await user.click(within(header).getByRole('button'))
+    let rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('SALE')
+
+    await user.click(within(header).getByRole('button'))
+    rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('PURCHASE')
+  })
+
+  it('clicar no cabeçalho "Quando" ordena as linhas por data', async () => {
+    movementsResponse = [mockMovement, mockMovement2]
+    const user = userEvent.setup()
+    renderHistory()
+    await screen.findByText('PURCHASE')
+
+    const header = screen.getByRole('columnheader', { name: 'Quando' })
+    await user.click(within(header).getByRole('button'))
+    const rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
+    expect(rows[0]).toContain('SALE')
   })
 })

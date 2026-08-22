@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { FormField, Heading, Select } from 'base-ds'
+import { FormField, Heading, Select, Table, type TableColumn, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { sortTableData } from '@/lib/sortTableData'
 import type { StockMovement, StockMovementPage, StockMovementReason } from '@/types'
 
 interface Props {
@@ -30,6 +31,7 @@ export function StockMovementHistoryContent({ productId, stockBasePath = '/dashb
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [loading, setLoading] = useState(true)
+  const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   useEffect(() => {
     if (!accessToken) return
@@ -60,6 +62,29 @@ export function StockMovementHistoryContent({ productId, stockBasePath = '/dashb
   }, [accessToken, productId, reason, from, to])
 
   useEffect(() => { fetchMovements() }, [fetchMovements])
+
+  const sortedMovements = sort
+    ? sortTableData(movements, sort.key as keyof StockMovement, sort.direction, sort.key === 'quantity' ? 'number' : sort.key === 'createdAt' ? 'date' : 'string')
+    : movements
+
+  const columns: TableColumn<StockMovement>[] = [
+    { key: 'type', header: 'Tipo', render: (m) => m.type },
+    { key: 'reason', header: 'Motivo', render: (m) => m.reason },
+    { key: 'quantity', header: 'Quantidade', sortable: true, render: (m) => m.quantity },
+    { key: 'beforeAfter', header: 'Antes → Depois', render: (m) => `${m.quantityBefore} → ${m.quantityAfter}` },
+    {
+      key: 'lot',
+      header: 'Lote',
+      render: (m) => (
+        <>
+          {m.lotNumber ?? m.lotId.slice(0, 8)}
+          {m.lotExpiryDate ? ` (vence ${m.lotExpiryDate})` : ''}
+        </>
+      ),
+    },
+    { key: 'actorEmail', header: 'Quem', render: (m) => m.actorEmail ?? '—' },
+    { key: 'createdAt', header: 'Quando', sortable: true, render: (m) => new Date(m.createdAt).toLocaleString('pt-BR') },
+  ]
 
   return (
     <PermissionGuard permissions={['MANAGE_STOCK']}>
@@ -100,36 +125,14 @@ export function StockMovementHistoryContent({ productId, stockBasePath = '/dashb
 
         {loading ? (
           <p>Carregando...</p>
+        ) : movements.length === 0 ? (
+          <Text size="sm" color="muted">Nenhuma movimentação encontrada.</Text>
         ) : (
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr>
-                <th className="text-left p-2 border-b">Tipo</th>
-                <th className="text-left p-2 border-b">Motivo</th>
-                <th className="text-left p-2 border-b">Quantidade</th>
-                <th className="text-left p-2 border-b">Antes → Depois</th>
-                <th className="text-left p-2 border-b">Lote</th>
-                <th className="text-left p-2 border-b">Quem</th>
-                <th className="text-left p-2 border-b">Quando</th>
-              </tr>
-            </thead>
-            <tbody>
-              {movements.map((m) => (
-                <tr key={m.id} className="border-b">
-                  <td className="p-2">{m.type}</td>
-                  <td className="p-2">{m.reason}</td>
-                  <td className="p-2">{m.quantity}</td>
-                  <td className="p-2">{m.quantityBefore} → {m.quantityAfter}</td>
-                  <td className="p-2">
-                    {m.lotNumber ?? m.lotId.slice(0, 8)}
-                    {m.lotExpiryDate ? ` (vence ${m.lotExpiryDate})` : ''}
-                  </td>
-                  <td className="p-2">{m.actorEmail ?? '—'}</td>
-                  <td className="p-2">{new Date(m.createdAt).toLocaleString('pt-BR')}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Table
+            columns={columns}
+            data={sortedMovements}
+            onSort={(key, direction) => setSort({ key, direction })}
+          />
         )}
       </main>
     </PermissionGuard>
