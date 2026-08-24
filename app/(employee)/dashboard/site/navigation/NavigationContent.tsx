@@ -6,6 +6,8 @@ import { Badge, Button, Card, Dialog, Heading, Icon, Text, useToast } from 'base
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { NavItemForm, EMPTY_NAV_ITEM_FORM, type NavItemFormState } from '@/components/forms/NavItemForm'
+import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
+import { useConfirmDelete } from '@/lib/useConfirmDelete'
 import type { NavPlacement, SiteNavItem } from '@/types'
 
 const PLACEMENT_LABELS: Record<NavPlacement, string> = {
@@ -31,7 +33,6 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
   const [dialog, setDialog] = useState<DialogState>(null)
   const [form, setForm] = useState<NavItemFormState>(EMPTY_NAV_ITEM_FORM)
   const [saving, setSaving] = useState(false)
-  const [deleteTarget, setDeleteTarget] = useState<SiteNavItem | null>(null)
 
   const fetchTree = useCallback(async () => {
     if (!accessToken) return
@@ -112,32 +113,28 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
 
   const performDelete = async (item: SiteNavItem) => {
     if (!accessToken) return
-    try {
-      const res = await fetch(`/api/admin/site/nav-items/${item.id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      if (!res.ok && res.status !== 204) throw new Error()
-      await fetchTree()
-      toast({ variant: 'success', description: 'Item removido com sucesso.' })
-    } catch {
+    const res = await fetch(`/api/admin/site/nav-items/${item.id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    if (!res.ok && res.status !== 204) {
       toast({ variant: 'destructive', description: 'Erro ao remover item.' })
+      throw new Error()
     }
+    await fetchTree()
+    toast({ variant: 'success', description: 'Item removido com sucesso.' })
   }
 
-  const handleDeleteClick = (item: SiteNavItem) => {
-    if (item.type === 'COLLECTION' && (item.children?.length ?? 0) > 0) {
-      setDeleteTarget(item)
-      return
-    }
-    performDelete(item)
-  }
+  const {
+    target: deleteTarget,
+    setTarget: setDeleteTarget,
+    deleting: deletingItem,
+    confirm: confirmDelete,
+    cancel: cancelDelete,
+  } = useConfirmDelete(performDelete)
 
-  const confirmDelete = async () => {
-    if (!deleteTarget) return
-    await performDelete(deleteTarget)
-    setDeleteTarget(null)
-  }
+  const deleteTargetIsCascadingCollection =
+    deleteTarget?.type === 'COLLECTION' && (deleteTarget.children?.length ?? 0) > 0
 
   const reorderTopLevel = async (fromIndex: number, toIndex: number) => {
     if (!accessToken || toIndex < 0 || toIndex >= items.length) return
@@ -203,7 +200,7 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
                       <Button iconOnly leftIcon={<Icon name={isExpanded ? 'ChevronDown' : 'ChevronRight'} size="sm" />} aria-label={isExpanded ? 'Recolher' : 'Expandir'} variant="outline" size="sm" onClick={() => setExpandedId(isExpanded ? null : item.id)} />
                     )}
                     <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label={`Editar ${item.label}`} variant="outline" size="sm" onClick={() => openEdit(item)} />
-                    <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Remover ${item.label}`} variant="danger" size="sm" onClick={() => handleDeleteClick(item)} />
+                    <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Remover ${item.label}`} variant="danger" size="sm" onClick={() => setDeleteTarget(item)} />
                   </div>
                 </div>
 
@@ -216,7 +213,7 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
                           <Button iconOnly leftIcon={<Icon name="ChevronUp" size="sm" />} aria-label={`Subir ${child.label}`} variant="ghost" size="sm" disabled={childIndex === 0} onClick={() => reorderChildren(item, childIndex, childIndex - 1)} />
                           <Button iconOnly leftIcon={<Icon name="ChevronDown" size="sm" />} aria-label={`Descer ${child.label}`} variant="ghost" size="sm" disabled={childIndex === (item.children?.length ?? 0) - 1} onClick={() => reorderChildren(item, childIndex, childIndex + 1)} />
                           <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label={`Editar ${child.label}`} variant="outline" size="sm" onClick={() => openEditChild(item.id, child)} />
-                          <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Remover ${child.label}`} variant="danger" size="sm" onClick={() => handleDeleteClick(child)} />
+                          <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Remover ${child.label}`} variant="danger" size="sm" onClick={() => setDeleteTarget(child)} />
                         </div>
                       </div>
                     ))}
@@ -248,22 +245,18 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
           />
         </Dialog>
 
-        <Dialog
+        <ConfirmDeleteDialog
           open={deleteTarget !== null}
-          onClose={() => setDeleteTarget(null)}
-          title="Remover coleção"
-          footer={
-            <div className="flex gap-2 justify-end">
-              <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" variant="outline" onClick={() => setDeleteTarget(null)} />
-              <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label="Remover" variant="danger" onClick={confirmDelete} />
-            </div>
+          onClose={cancelDelete}
+          onConfirm={confirmDelete}
+          deleting={deletingItem}
+          title={deleteTargetIsCascadingCollection ? 'Remover coleção' : 'Remover item'}
+          description={
+            deleteTargetIsCascadingCollection
+              ? `A coleção "${deleteTarget?.label}" tem ${deleteTarget?.children?.length ?? 0} link(s) dentro. Removê-la também remove todos os links dentro dela.`
+              : `Remover "${deleteTarget?.label}"?`
           }
-        >
-          <Text>
-            A coleção &quot;{deleteTarget?.label}&quot; tem {deleteTarget?.children?.length ?? 0} link(s) dentro.
-            Removê-la também remove todos os links dentro dela. Deseja continuar?
-          </Text>
-        </Dialog>
+        />
       </main>
     </PermissionGuard>
   )

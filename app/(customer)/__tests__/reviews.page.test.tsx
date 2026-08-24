@@ -163,7 +163,7 @@ describe('ReviewsPage', () => {
 
     await screen.findByText('Razoável')
     await user.click(screen.getByRole('button', { name: /excluir/i }))
-    await user.click(screen.getByRole('button', { name: /^excluir$/i }))
+    await user.click(screen.getByRole('button', { name: /^confirmar$/i }))
 
     await waitFor(() => expect(deleteCalled).toBe(true))
     await waitFor(() => expect(screen.getByRole('button', { name: /avaliar/i })).toBeInTheDocument())

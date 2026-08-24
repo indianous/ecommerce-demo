@@ -31,9 +31,16 @@ const gatewayConfig = {
   ],
 }
 
+let banners: { id: string; imageUrl: string; linkUrl: string | null }[] = []
+let lastDeletedBannerId = ''
+
 const server = setupServer(
   http.get('/api/site/settings', () => HttpResponse.json(emptySettings)),
-  http.get('/api/site/banners', () => HttpResponse.json([])),
+  http.get('/api/site/banners', () => HttpResponse.json(banners)),
+  http.delete('/api/site/banners/:id', ({ params }) => {
+    lastDeletedBannerId = params.id as string
+    return new HttpResponse(null, { status: 204 })
+  }),
   http.get('/api/site/payment-gateway', () => HttpResponse.json(gatewayConfig)),
   http.put('/api/site/payment-gateway', async ({ request }) => {
     const body = (await request.json()) as { provider: string }
@@ -51,6 +58,8 @@ const server = setupServer(
 beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
+  banners = []
+  lastDeletedBannerId = ''
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
   })
@@ -244,5 +253,46 @@ describe('SiteContent — Favicon', () => {
     await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
 
     expect(await screen.findByText(/tipo inválido/i)).toBeInTheDocument()
+  })
+})
+
+describe('SiteContent — Banners', () => {
+  it('remover banner mostra confirmação antes de excluir', async () => {
+    banners = [{ id: 'banner-1', imageUrl: 'https://cdn.test/banner.jpg', linkUrl: null }]
+    const user = userEvent.setup()
+    await act(async () => {
+      useAuthStore.setState(authenticatedWithSite)
+    })
+    renderContent()
+
+    await user.click(await screen.findByRole('button', { name: /gerenciar banners/i }))
+    const bannersDialog = await screen.findByRole('dialog', { name: /^banners$/i })
+    await user.click(within(bannersDialog).getByRole('button', { name: /remover/i }))
+
+    expect(screen.getByRole('dialog', { name: /remover banner/i })).toBeInTheDocument()
+    expect(lastDeletedBannerId).toBe('')
+
+    await user.click(screen.getByRole('button', { name: /^confirmar$/i }))
+
+    expect(await screen.findByText(/banner removido/i)).toBeInTheDocument()
+    expect(lastDeletedBannerId).toBe('banner-1')
+  })
+
+  it('cancelar a confirmação não remove o banner', async () => {
+    banners = [{ id: 'banner-1', imageUrl: 'https://cdn.test/banner.jpg', linkUrl: null }]
+    const user = userEvent.setup()
+    await act(async () => {
+      useAuthStore.setState(authenticatedWithSite)
+    })
+    renderContent()
+
+    await user.click(await screen.findByRole('button', { name: /gerenciar banners/i }))
+    const bannersDialog = await screen.findByRole('dialog', { name: /^banners$/i })
+    await user.click(within(bannersDialog).getByRole('button', { name: /remover/i }))
+
+    await user.click(screen.getByRole('button', { name: /^cancelar$/i }))
+
+    expect(screen.queryByRole('dialog', { name: /remover banner/i })).not.toBeInTheDocument()
+    expect(lastDeletedBannerId).toBe('')
   })
 })

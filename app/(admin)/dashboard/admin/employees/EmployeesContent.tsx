@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { Button, Checkbox, Dialog, Heading, Icon, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { EmployeeManagementTable } from '@/components/admin/EmployeeManagementTable'
+import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
+import { useConfirmDelete } from '@/lib/useConfirmDelete'
 import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions'
 import type { Employee, EmployeeFormData, EmployeePermission } from '@/types'
 
@@ -58,10 +60,22 @@ export function EmployeesContent() {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${accessToken}` },
     })
-    if (res.ok || res.status === 204) {
-      setEmployees((prev) => prev.filter((e) => e.id !== id))
+    if (!res.ok && res.status !== 204) {
+      toast({ variant: 'destructive', description: 'Erro ao excluir funcionário.' })
+      throw new Error()
     }
+    setEmployees((prev) => prev.filter((e) => e.id !== id))
   }
+
+  const {
+    target: deleteTarget,
+    setTarget: setDeleteTarget,
+    deleting,
+    confirm: confirmDelete,
+    cancel: cancelDelete,
+  } = useConfirmDelete(handleDelete)
+
+  const deleteTargetEmployee = employees.find((e) => e.id === deleteTarget)
 
   const openPermissionsDialog = (employee: Employee) => {
     setSelectedEmployee(employee)
@@ -108,7 +122,7 @@ export function EmployeesContent() {
         employees={employees}
         loading={loading}
         onCreate={handleCreate}
-        onDelete={handleDelete}
+        onDelete={setDeleteTarget}
         onManagePermissions={openPermissionsDialog}
       />
 
@@ -136,6 +150,15 @@ export function EmployeesContent() {
           <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label="Salvar" variant="primary" onClick={handleSavePermissions} />
         </div>
       </Dialog>
+
+      <ConfirmDeleteDialog
+        open={deleteTarget !== null}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        deleting={deleting}
+        title="Excluir funcionário"
+        description={deleteTargetEmployee ? `Remover "${deleteTargetEmployee.name}"? Essa ação não pode ser desfeita.` : undefined}
+      />
     </div>
   )
 }

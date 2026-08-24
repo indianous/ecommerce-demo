@@ -85,12 +85,15 @@ describe('EmployeesPage — Gestão de Funcionários', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('botão Excluir chama DELETE e remove o funcionário da lista', async () => {
+  it('botão Excluir abre confirmação; confirmar chama DELETE e remove o funcionário da lista', async () => {
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Ana Costa')
 
     await user.click(screen.getByRole('button', { name: /excluir ana costa/i }))
+    expect(screen.getByRole('dialog', { name: /excluir funcionário/i })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /^confirmar$/i }))
 
     expect(screen.queryByText('Ana Costa')).not.toBeInTheDocument()
   })

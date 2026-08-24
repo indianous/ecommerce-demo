@@ -124,14 +124,29 @@ describe('Employee Funcionários Page — criação', () => {
 })
 
 describe('Employee Funcionários Page — exclusão', () => {
-  it('botão Excluir chama DELETE e remove o funcionário da lista', async () => {
+  it('botão Excluir abre confirmação; confirmar chama DELETE e remove o funcionário da lista', async () => {
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Carlos Dias')
 
     await user.click(screen.getByRole('button', { name: /excluir carlos dias/i }))
+    expect(screen.getByRole('dialog', { name: /excluir funcionário/i })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /^confirmar$/i }))
 
     expect(screen.queryByText('Carlos Dias')).not.toBeInTheDocument()
+  })
+
+  it('cancelar a confirmação não exclui o funcionário', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Carlos Dias')
+
+    await user.click(screen.getByRole('button', { name: /excluir carlos dias/i }))
+    await user.click(screen.getByRole('button', { name: /^cancelar$/i }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByText('Carlos Dias')).toBeInTheDocument()
   })
 })
 

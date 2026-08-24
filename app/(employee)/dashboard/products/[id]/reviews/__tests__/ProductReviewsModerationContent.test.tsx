@@ -106,7 +106,7 @@ describe('ProductReviewsModerationContent', () => {
     await user.click(screen.getByRole('button', { name: /remover avaliação de maria/i }))
 
     const dialog = await screen.findByRole('dialog')
-    await user.click(within(dialog).getByRole('button', { name: /remover/i }))
+    await user.click(within(dialog).getByRole('button', { name: /^confirmar$/i }))
 
     await waitFor(() => expect(deleteHeaders?.get('Authorization')).toBe('Bearer mock-token'))
     await waitFor(() => expect(screen.queryByText('Maria')).not.toBeInTheDocument())

@@ -177,24 +177,40 @@ describe('NavigationContent — remoção', () => {
     expect(screen.getByRole('dialog', { name: /remover coleção/i })).toBeInTheDocument()
     expect(lastDeletedId).toBe('')
 
-    await user.click(screen.getByRole('button', { name: /^remover$/i }))
+    await user.click(screen.getByRole('button', { name: /^confirmar$/i }))
 
     await waitFor(() => {
       expect(lastDeletedId).toBe('col-1')
     })
   })
 
-  it('remover um link direto (sem filhos) exclui sem confirmação', async () => {
+  it('remover um link direto (sem filhos) também mostra confirmação antes de excluir', async () => {
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Contato')
 
     await user.click(screen.getByRole('button', { name: /remover contato/i }))
 
-    expect(screen.queryByRole('dialog', { name: /remover coleção/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: /remover item/i })).toBeInTheDocument()
+    expect(lastDeletedId).toBe('')
+
+    await user.click(screen.getByRole('button', { name: /^confirmar$/i }))
+
     await waitFor(() => {
       expect(lastDeletedId).toBe('link-1')
     })
+  })
+
+  it('cancelar a confirmação não exclui o item', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Contato')
+
+    await user.click(screen.getByRole('button', { name: /remover contato/i }))
+    await user.click(screen.getByRole('button', { name: /^cancelar$/i }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(lastDeletedId).toBe('')
   })
 })
 

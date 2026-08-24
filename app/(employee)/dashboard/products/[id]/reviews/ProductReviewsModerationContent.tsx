@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Button, Dialog, Heading, Icon, Text, useToast } from 'base-ds'
+import { Button, Heading, Icon, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ProductReviewCard } from '@/components/product/ProductReviewCard'
+import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
+import { useConfirmDelete } from '@/lib/useConfirmDelete'
 import type { ProductReview, ProductReviewPage } from '@/types'
 
 interface Props {
@@ -19,8 +21,6 @@ export function ProductReviewsModerationContent({ id, basePath = '/dashboard/pro
 
   const [reviews, setReviews] = useState<ProductReview[]>([])
   const [loading, setLoading] = useState(true)
-  const [reviewToDelete, setReviewToDelete] = useState<ProductReview | null>(null)
-  const [deleting, setDeleting] = useState(false)
 
   const fetchReviews = async () => {
     setLoading(true)
@@ -40,24 +40,27 @@ export function ProductReviewsModerationContent({ id, basePath = '/dashboard/pro
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
-  const handleConfirmDelete = async () => {
-    if (!accessToken || !reviewToDelete) return
-    setDeleting(true)
-    try {
-      const res = await fetch(`/api/admin/products/${id}/reviews/${reviewToDelete.id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      if (!res.ok) throw new Error()
-      setReviews((prev) => prev.filter((r) => r.id !== reviewToDelete.id))
-      toast({ variant: 'success', description: 'Avaliação removida.' })
-    } catch {
+  const handleDeleteReview = async (review: ProductReview) => {
+    if (!accessToken) return
+    const res = await fetch(`/api/admin/products/${id}/reviews/${review.id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    if (!res.ok) {
       toast({ variant: 'destructive', description: 'Erro ao remover avaliação.' })
-    } finally {
-      setDeleting(false)
-      setReviewToDelete(null)
+      throw new Error()
     }
+    setReviews((prev) => prev.filter((r) => r.id !== review.id))
+    toast({ variant: 'success', description: 'Avaliação removida.' })
   }
+
+  const {
+    target: reviewToDelete,
+    setTarget: setReviewToDelete,
+    deleting,
+    confirm: confirmDelete,
+    cancel: cancelDelete,
+  } = useConfirmDelete(handleDeleteReview)
 
   return (
     <PermissionGuard permissions={['MANAGE_PRODUCTS']}>
@@ -92,17 +95,13 @@ export function ProductReviewsModerationContent({ id, basePath = '/dashboard/pro
           </div>
         )}
 
-        <Dialog
-          open={Boolean(reviewToDelete)}
-          onClose={() => setReviewToDelete(null)}
+        <ConfirmDeleteDialog
+          open={reviewToDelete !== null}
+          onClose={cancelDelete}
+          onConfirm={confirmDelete}
+          deleting={deleting}
           title="Remover avaliação"
           description="Essa ação não pode ser desfeita."
-          footer={
-            <div className="flex gap-3">
-              <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label="Remover" variant="danger" onClick={handleConfirmDelete} isLoading={deleting} />
-              <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" variant="secondary" onClick={() => setReviewToDelete(null)} disabled={deleting} />
-            </div>
-          }
         />
       </main>
     </PermissionGuard>

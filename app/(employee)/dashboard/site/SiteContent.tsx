@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Button, Card, Dialog, Heading, Icon, Image, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from "@/stores/auth.store";
 import { PermissionGuard } from "@/components/employee/PermissionGuard";
+import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog";
+import { useConfirmDelete } from "@/lib/useConfirmDelete";
 import { PlaceholderImageForm } from "@/components/forms/PlaceholderImageForm";
 import { FaviconForm } from "@/components/forms/FaviconForm";
 import { LogoForm } from "@/components/forms/LogoForm";
@@ -232,15 +234,22 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
 
   const handleBannerRemove = async (id: string) => {
     if (!accessToken) return;
-    try {
-      const res = await fetch(`/api/site/banners/${id}`, { method: "DELETE", headers: authHeader() });
-      if (!res.ok && res.status !== 204) throw new Error();
-      setBanners((prev) => prev.filter((b) => b.id !== id));
-      toast({ variant: "success", description: "Banner removido." });
-    } catch {
+    const res = await fetch(`/api/site/banners/${id}`, { method: "DELETE", headers: authHeader() });
+    if (!res.ok && res.status !== 204) {
       toast({ variant: "destructive", description: "Erro ao remover banner." });
+      throw new Error();
     }
+    setBanners((prev) => prev.filter((b) => b.id !== id));
+    toast({ variant: "success", description: "Banner removido." });
   };
+
+  const {
+    target: bannerDeleteTarget,
+    setTarget: setBannerDeleteTarget,
+    deleting: bannerDeleting,
+    confirm: confirmBannerDelete,
+    cancel: cancelBannerDelete,
+  } = useConfirmDelete(handleBannerRemove);
 
   const handleAboutUsSave = async () => {
     if (!accessToken) return;
@@ -631,7 +640,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
                   {banner.linkUrl && (
                     <span className="text-sm text-muted-foreground truncate flex-1">{banner.linkUrl}</span>
                   )}
-                  <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label="Remover" variant="danger" size="sm" onClick={() => handleBannerRemove(banner.id)} />
+                  <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label="Remover" variant="danger" size="sm" onClick={() => setBannerDeleteTarget(banner.id)} />
                 </li>
               ))}
             </ul>
@@ -643,6 +652,15 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
             saveLabel="Adicionar banner"
           />
         </Dialog>
+
+        <ConfirmDeleteDialog
+          open={bannerDeleteTarget !== null}
+          onClose={cancelBannerDelete}
+          onConfirm={confirmBannerDelete}
+          deleting={bannerDeleting}
+          title="Remover banner"
+          description="Essa ação não pode ser desfeita."
+        />
 
         <Dialog open={openDialog === "about"} onClose={close} title="Sobre nós" className="max-w-2xl">
           <MarkdownContentForm label="Conteúdo" value={aboutUsContent} onChange={setAboutUsContent} onSave={handleAboutUsSave} saving={aboutUsSaving} saveLabel="Salvar sobre nós" />

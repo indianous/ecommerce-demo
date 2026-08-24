@@ -5,6 +5,8 @@ import { Button, Dialog, Heading, Icon, Image, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { ReviewForm } from '@/components/forms/ReviewForm'
 import { ProductReviewCard } from '@/components/product/ProductReviewCard'
+import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
+import { useConfirmDelete } from '@/lib/useConfirmDelete'
 import type { MyReviewableProduct } from '@/types'
 
 async function uploadImages(files: File[], accessToken: string): Promise<string[]> {
@@ -37,9 +39,6 @@ export function ReviewsContent() {
   const [images, setImages] = useState<File[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  const [deleteTarget, setDeleteTarget] = useState<MyReviewableProduct | null>(null)
-  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     if (!accessToken) return
@@ -105,25 +104,28 @@ export function ReviewsContent() {
     }
   }
 
-  const handleConfirmDelete = async () => {
-    if (!accessToken || !deleteTarget?.review) return
-    setDeleting(true)
-    try {
-      const res = await fetch(`/api/products/${deleteTarget.productId}/reviews/${deleteTarget.review.id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      if (!res.ok) throw new Error()
-      const deletedProductId = deleteTarget.productId
-      setItems((prev) => prev.map((i) => (i.productId === deletedProductId ? { ...i, review: null } : i)))
-      toast({ variant: 'success', description: 'Avaliação excluída.' })
-    } catch {
+  const handleDeleteReview = async (item: MyReviewableProduct) => {
+    if (!accessToken || !item.review) return
+    const res = await fetch(`/api/products/${item.productId}/reviews/${item.review.id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    if (!res.ok) {
       toast({ variant: 'destructive', description: 'Erro ao excluir avaliação.' })
-    } finally {
-      setDeleting(false)
-      setDeleteTarget(null)
+      throw new Error()
     }
+    const deletedProductId = item.productId
+    setItems((prev) => prev.map((i) => (i.productId === deletedProductId ? { ...i, review: null } : i)))
+    toast({ variant: 'success', description: 'Avaliação excluída.' })
   }
+
+  const {
+    target: deleteTarget,
+    setTarget: setDeleteTarget,
+    deleting,
+    confirm: confirmDelete,
+    cancel: cancelDelete,
+  } = useConfirmDelete(handleDeleteReview)
 
   if (loading) {
     return (
@@ -200,17 +202,13 @@ export function ReviewsContent() {
         />
       </Dialog>
 
-      <Dialog
+      <ConfirmDeleteDialog
         open={deleteTarget !== null}
-        onClose={() => setDeleteTarget(null)}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        deleting={deleting}
         title="Excluir avaliação"
         description="Essa ação não pode ser desfeita."
-        footer={
-          <div className="flex gap-3">
-            <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label="Excluir" variant="danger" onClick={handleConfirmDelete} isLoading={deleting} />
-            <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" variant="secondary" onClick={() => setDeleteTarget(null)} disabled={deleting} />
-          </div>
-        }
       />
     </main>
   )
