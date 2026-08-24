@@ -18,9 +18,13 @@ const mockEmployees: Employee[] = [
 ]
 
 let lastDeletedId = ''
+let lastListUrl = ''
 
 const server = setupServer(
-  http.get('/api/admin/employees', () => HttpResponse.json(mockEmployees)),
+  http.get('/api/admin/employees', ({ request }) => {
+    lastListUrl = request.url
+    return HttpResponse.json(mockEmployees)
+  }),
   http.delete('/api/admin/employees/:id', ({ params }) => {
     lastDeletedId = params.id as string
     return new HttpResponse(null, { status: 204 })
@@ -31,6 +35,7 @@ beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
   lastDeletedId = ''
+  lastListUrl = ''
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
   })
@@ -96,5 +101,82 @@ describe('EmployeesContent — exclusão', () => {
 
     expect(lastDeletedId).toBe('emp-1')
     expect(screen.queryByText('Ana Costa')).not.toBeInTheDocument()
+  })
+})
+
+describe('EmployeesContent — listagem', () => {
+  it('fetch inicial manda ?role=EMPLOYEE', async () => {
+    renderContent()
+    await screen.findByText('Ana Costa')
+
+    expect(new URL(lastListUrl).searchParams.get('role')).toBe('EMPLOYEE')
+  })
+
+  it('exibe botão "Editar" (não mais "Permissões") ao lado de cada funcionário', async () => {
+    renderContent()
+    await screen.findByText('Ana Costa')
+
+    expect(screen.getByRole('button', { name: 'Editar Ana Costa' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /permissões de/i })).not.toBeInTheDocument()
+  })
+})
+
+describe('EmployeesContent — busca', () => {
+  it('digitar no campo de busca não dispara nova chamada à API', async () => {
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByText('Ana Costa')
+    const urlBeforeTyping = lastListUrl
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar funcionários' }), 'Ana')
+
+    expect(lastListUrl).toBe(urlBeforeTyping)
+  })
+
+  it('clicar no botão de busca dispara a chamada com ?search= e mantém ?role=EMPLOYEE', async () => {
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByText('Ana Costa')
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar funcionários' }), 'Ana')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+
+    await new Promise((r) => setTimeout(r, 0))
+    const params = new URL(lastListUrl).searchParams
+    expect(params.get('search')).toBe('Ana')
+    expect(params.get('role')).toBe('EMPLOYEE')
+  })
+})
+
+describe('EmployeesContent — filtro de permissão', () => {
+  it('marcar uma permissão e clicar "Aplicar" chama a API com ?permission=', async () => {
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByText('Ana Costa')
+
+    const permissionFilterButton = screen
+      .getAllByRole('button', { name: /^permiss/i })
+      .find((btn) => !btn.closest('table'))!
+    await user.click(permissionFilterButton)
+    await user.click(screen.getByRole('checkbox', { name: 'Gerenciamento de Pedidos' }))
+    await user.click(screen.getByRole('button', { name: /aplicar/i }))
+
+    await new Promise((r) => setTimeout(r, 0))
+    expect(new URL(lastListUrl).searchParams.getAll('permission')).toEqual(['MANAGE_ORDERS'])
+  })
+
+  it('marcar uma permissão sem clicar em "Aplicar" não dispara nova chamada à API', async () => {
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByText('Ana Costa')
+    const urlBeforeFilter = lastListUrl
+
+    const permissionFilterButton = screen
+      .getAllByRole('button', { name: /^permiss/i })
+      .find((btn) => !btn.closest('table'))!
+    await user.click(permissionFilterButton)
+    await user.click(screen.getByRole('checkbox', { name: 'Gerenciamento de Pedidos' }))
+
+    expect(lastListUrl).toBe(urlBeforeFilter)
   })
 })

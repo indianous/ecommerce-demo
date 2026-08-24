@@ -2,7 +2,12 @@ import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+}))
+
 import { ToastProvider, ToastViewport } from 'base-ds'
 import EmployeesPage from '../employees/page'
 import { useAuthStore } from '@/stores/auth.store'
@@ -42,7 +47,12 @@ afterEach(async () => {
 afterAll(() => server.close())
 
 beforeEach(() => {
-  useAuthStore.setState({ accessToken: 'mock-token', isAuthenticated: true })
+  useAuthStore.setState({
+    accessToken: 'mock-token',
+    isAuthenticated: true,
+    role: 'ADMIN' as const,
+    user: { id: '1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN' as const },
+  })
 })
 
 function renderPage() {
@@ -54,21 +64,21 @@ function renderPage() {
   )
 }
 
-describe('EmployeesPage — Gestão de Permissões', () => {
-  it('exibe botão "Permissões" para cada funcionário na tabela', async () => {
+describe('EmployeesPage — Editar (permissões)', () => {
+  it('exibe botão "Editar" para cada funcionário na tabela', async () => {
     renderPage()
     await screen.findByText('Ana Costa')
 
-    expect(screen.getByRole('button', { name: /permissões de ana costa/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /permissões de bruno lima/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /editar ana costa/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /editar bruno lima/i })).toBeInTheDocument()
   })
 
-  it('clicar em "Permissões" abre Dialog com título do funcionário', async () => {
+  it('clicar em "Editar" abre Dialog com título do funcionário', async () => {
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Ana Costa')
 
-    await user.click(screen.getByRole('button', { name: /permissões de ana costa/i }))
+    await user.click(screen.getByRole('button', { name: /editar ana costa/i }))
 
     const dialog = screen.getByRole('dialog')
     expect(dialog).toBeInTheDocument()
@@ -80,7 +90,7 @@ describe('EmployeesPage — Gestão de Permissões', () => {
     renderPage()
     await screen.findByText('Ana Costa')
 
-    await user.click(screen.getByRole('button', { name: /permissões de ana costa/i }))
+    await user.click(screen.getByRole('button', { name: /editar ana costa/i }))
     const dialog = screen.getByRole('dialog')
 
     expect(within(dialog).getByLabelText(/gerenciamento de produtos/i)).toBeInTheDocument()
@@ -99,7 +109,7 @@ describe('EmployeesPage — Gestão de Permissões', () => {
     renderPage()
     await screen.findByText('Ana Costa')
 
-    await user.click(screen.getByRole('button', { name: /permissões de ana costa/i }))
+    await user.click(screen.getByRole('button', { name: /editar ana costa/i }))
     const dialog = screen.getByRole('dialog')
 
     expect(within(dialog).getByLabelText(/gerenciamento de produtos/i)).toBeChecked()
@@ -120,7 +130,7 @@ describe('EmployeesPage — Gestão de Permissões', () => {
     renderPage()
     await screen.findByText('Bruno Lima')
 
-    await user.click(screen.getByRole('button', { name: /permissões de bruno lima/i }))
+    await user.click(screen.getByRole('button', { name: /editar bruno lima/i }))
     const dialog = screen.getByRole('dialog')
 
     await user.click(within(dialog).getByLabelText(/gerenciamento de pedidos/i))
@@ -135,7 +145,7 @@ describe('EmployeesPage — Gestão de Permissões', () => {
     renderPage()
     await screen.findByText('Ana Costa')
 
-    await user.click(screen.getByRole('button', { name: /permissões de ana costa/i }))
+    await user.click(screen.getByRole('button', { name: /editar ana costa/i }))
     await user.click(screen.getByRole('button', { name: /salvar/i }))
 
     expect(await screen.findByRole('status')).toHaveTextContent(/permissões.*salvas/i)
@@ -146,7 +156,7 @@ describe('EmployeesPage — Gestão de Permissões', () => {
     renderPage()
     await screen.findByText('Ana Costa')
 
-    await user.click(screen.getByRole('button', { name: /permissões de ana costa/i }))
+    await user.click(screen.getByRole('button', { name: /editar ana costa/i }))
     expect(screen.getByRole('dialog')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /cancelar/i }))

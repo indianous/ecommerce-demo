@@ -59,6 +59,7 @@ describe('AdminShell — Sidebar (desktop)', () => {
     expect(screen.getByRole('link', { name: /excluídos/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /clientes/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /funcionários/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /administradores/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /pagamentos/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /auditoria/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /analytics/i })).toBeInTheDocument()

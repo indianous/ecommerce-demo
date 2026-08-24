@@ -378,7 +378,7 @@ export interface Employee {
   id: string
   name: string
   email: string
-  role: 'EMPLOYEE'
+  role: 'EMPLOYEE' | 'ADMIN'
   permissions: EmployeePermission[]
   photoUrl?: string
 }

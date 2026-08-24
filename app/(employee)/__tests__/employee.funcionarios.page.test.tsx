@@ -150,21 +150,21 @@ describe('Employee Funcionários Page — exclusão', () => {
   })
 })
 
-describe('Employee Funcionários Page — permissões', () => {
-  it('exibe botão "Permissões" para cada funcionário', async () => {
+describe('Employee Funcionários Page — editar (permissões)', () => {
+  it('exibe botão "Editar" para cada funcionário', async () => {
     renderPage()
     await screen.findByText('Carlos Dias')
 
-    expect(screen.getByRole('button', { name: /permissões de carlos dias/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /permissões de fernanda melo/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /editar carlos dias/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /editar fernanda melo/i })).toBeInTheDocument()
   })
 
-  it('clicar em "Permissões" abre Dialog com nome do funcionário', async () => {
+  it('clicar em "Editar" abre Dialog com nome do funcionário', async () => {
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Carlos Dias')
 
-    await user.click(screen.getByRole('button', { name: /permissões de carlos dias/i }))
+    await user.click(screen.getByRole('button', { name: /editar carlos dias/i }))
 
     const dialog = screen.getByRole('dialog')
     expect(dialog).toBeInTheDocument()
@@ -176,7 +176,7 @@ describe('Employee Funcionários Page — permissões', () => {
     renderPage()
     await screen.findByText('Carlos Dias')
 
-    await user.click(screen.getByRole('button', { name: /permissões de carlos dias/i }))
+    await user.click(screen.getByRole('button', { name: /editar carlos dias/i }))
     const dialog = screen.getByRole('dialog')
 
     expect(within(dialog).getByLabelText(/gerenciamento de pedidos/i)).toBeInTheDocument()
@@ -195,7 +195,7 @@ describe('Employee Funcionários Page — permissões', () => {
     renderPage()
     await screen.findByText('Carlos Dias')
 
-    await user.click(screen.getByRole('button', { name: /permissões de carlos dias/i }))
+    await user.click(screen.getByRole('button', { name: /editar carlos dias/i }))
     const dialog = screen.getByRole('dialog')
 
     expect(within(dialog).getByLabelText(/gerenciamento de pedidos/i)).toBeChecked()
@@ -216,7 +216,7 @@ describe('Employee Funcionários Page — permissões', () => {
     renderPage()
     await screen.findByText('Fernanda Melo')
 
-    await user.click(screen.getByRole('button', { name: /permissões de fernanda melo/i }))
+    await user.click(screen.getByRole('button', { name: /editar fernanda melo/i }))
     const dialog = screen.getByRole('dialog')
 
     await user.click(within(dialog).getByLabelText(/gerenciamento de pedidos/i))
@@ -231,7 +231,7 @@ describe('Employee Funcionários Page — permissões', () => {
     renderPage()
     await screen.findByText('Carlos Dias')
 
-    await user.click(screen.getByRole('button', { name: /permissões de carlos dias/i }))
+    await user.click(screen.getByRole('button', { name: /editar carlos dias/i }))
     expect(screen.getByRole('dialog')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /cancelar/i }))

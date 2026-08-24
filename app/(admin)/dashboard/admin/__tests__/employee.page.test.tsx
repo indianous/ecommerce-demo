@@ -2,7 +2,12 @@ import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+}))
+
 import { ToastProvider, ToastViewport } from 'base-ds'
 import EmployeesPage from '../employees/page'
 import { useAuthStore } from '@/stores/auth.store'
@@ -35,7 +40,12 @@ afterEach(async () => {
 afterAll(() => server.close())
 
 beforeEach(() => {
-  useAuthStore.setState({ accessToken: 'mock-token', isAuthenticated: true })
+  useAuthStore.setState({
+    accessToken: 'mock-token',
+    isAuthenticated: true,
+    role: 'ADMIN' as const,
+    user: { id: '1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN' as const },
+  })
 })
 
 function renderPage() {

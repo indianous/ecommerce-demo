@@ -13,9 +13,17 @@ interface Props {
   onCreate: (data: EmployeeFormData) => void
   onDelete: (id: string) => void
   onManagePermissions?: (employee: Employee) => void
+  createLabel?: string
 }
 
-export function EmployeeManagementTable({ employees, loading, onCreate, onDelete, onManagePermissions }: Props) {
+export function EmployeeManagementTable({
+  employees,
+  loading,
+  onCreate,
+  onDelete,
+  onManagePermissions,
+  createLabel = 'Novo funcionário',
+}: Props) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
@@ -52,7 +60,7 @@ export function EmployeeManagementTable({ employees, loading, onCreate, onDelete
       render: (row) => (
         <div className="flex gap-2">
           {onManagePermissions && (
-            <Button iconOnly leftIcon={<Icon name="Shield" size="sm" />} aria-label={`Permissões de ${row.name}`} variant="secondary" onClick={() => onManagePermissions(row)} />
+            <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label={`Editar ${row.name}`} variant="secondary" onClick={() => onManagePermissions(row)} />
           )}
           <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Excluir ${row.name}`} variant="danger" onClick={() => onDelete(row.id)} />
         </div>
@@ -63,7 +71,7 @@ export function EmployeeManagementTable({ employees, loading, onCreate, onDelete
   return (
     <div>
       <div className="flex justify-end mb-4">
-        <Button iconOnly leftIcon={<Icon name="UserPlus" size="sm" />} aria-label="Novo funcionário" variant="primary" onClick={() => setDialogOpen(true)} />
+        <Button iconOnly leftIcon={<Icon name="UserPlus" size="sm" />} aria-label={createLabel} variant="primary" onClick={() => setDialogOpen(true)} />
       </div>
 
       {loading ? (
@@ -85,7 +93,7 @@ export function EmployeeManagementTable({ employees, loading, onCreate, onDelete
       <Dialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        title="Novo funcionário"
+        title={createLabel}
       >
         <EmployeeForm
           onSave={(data) => {

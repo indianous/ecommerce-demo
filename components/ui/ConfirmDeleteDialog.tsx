@@ -29,7 +29,7 @@ export function ConfirmDeleteDialog({
       footer={
         <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={onClose} disabled={deleting}>Cancelar</Button>
-          <Button variant="danger" onClick={onConfirm} isLoading={deleting}>Confirmar</Button>
+          <Button variant="danger" onClick={() => { Promise.resolve(onConfirm()).catch(() => {}) }} isLoading={deleting}>Confirmar</Button>
         </div>
       }
     >

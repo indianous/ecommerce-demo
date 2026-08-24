@@ -1,6 +1,6 @@
 'use client'
-import { useCallback, useEffect, useState } from 'react'
-import { Button, Checkbox, Dialog, Heading, Icon, useToast } from 'base-ds'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Button, Checkbox, Dialog, FilterDropdown, Heading, Icon, SearchField, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { EmployeeManagementTable } from '@/components/admin/EmployeeManagementTable'
@@ -14,15 +14,21 @@ export function EmployeesContent() {
   const { toast } = useToast()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
+  const searchRef = useRef('')
+  const [permissionFilter, setPermissionFilter] = useState<string[]>([])
 
   const [permDialogOpen, setPermDialogOpen] = useState(false)
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const [editedPerms, setEditedPerms] = useState<EmployeePermission[]>([])
 
-  const fetchEmployees = useCallback(async () => {
+  const fetchEmployees = useCallback(async (searchTerm?: string) => {
     if (!accessToken) return
     try {
-      const res = await fetch('/api/admin/employees', {
+      const term = searchTerm ?? searchRef.current
+      const params = new URLSearchParams({ role: 'EMPLOYEE' })
+      if (term) params.set('search', term)
+      permissionFilter.forEach((p) => params.append('permission', p))
+      const res = await fetch(`/api/admin/employees?${params}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       if (!res.ok) throw new Error()
@@ -33,7 +39,12 @@ export function EmployeesContent() {
     } finally {
       setLoading(false)
     }
-  }, [accessToken, toast])
+  }, [accessToken, permissionFilter, toast])
+
+  const handleSearch = (value: string) => {
+    searchRef.current = value
+    fetchEmployees(value)
+  }
 
   useEffect(() => {
     fetchEmployees()
@@ -119,6 +130,24 @@ export function EmployeesContent() {
         <Heading as="h1" size="2xl" className="mb-6">
           Gestão de Funcionários
         </Heading>
+
+        <div className="flex gap-4 mb-4 flex-wrap items-start">
+          <SearchField
+            id="employees-search"
+            label="Buscar funcionários"
+            placeholder="Buscar por nome ou e-mail..."
+            buttonLabel="Buscar"
+            buttonIconOnly
+            onSearch={handleSearch}
+            className="flex-1 min-w-40"
+          />
+          <FilterDropdown
+            label="Permissão"
+            options={ALL_PERMISSIONS.map((p) => ({ value: p, label: PERMISSION_LABELS[p] }))}
+            value={permissionFilter}
+            onApply={setPermissionFilter}
+          />
+        </div>
 
         <EmployeeManagementTable
           employees={employees}

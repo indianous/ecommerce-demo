@@ -16,6 +16,7 @@ const navItems: { label: string; href: string; icon: IconName; external?: boolea
   { label: 'Excluídos', href: '/dashboard/admin/products/deleted', icon: 'Trash2' },
   { label: 'Clientes', href: '/dashboard/admin/customers', icon: 'Users' },
   { label: 'Funcionários', href: '/dashboard/admin/employees', icon: 'UserCog' },
+  { label: 'Administradores', href: '/dashboard/admin/admins', icon: 'ShieldCheck' },
   { label: 'Pagamentos', href: '/dashboard/admin/payments', icon: 'CreditCard' },
   { label: 'Auditoria', href: '/dashboard/admin/audit-logs', icon: 'History' },
   { label: 'Site', href: '/dashboard/admin/site', icon: 'Globe' },
