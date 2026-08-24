@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, FilterDropdown, FormField, Heading, Icon, Input, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
+import { Badge, Button, FilterDropdown, Heading, Icon, SearchField, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { formatBRL } from '@/lib/format'
@@ -35,14 +35,15 @@ export function OrdersContent({ orderBasePath = '/dashboard/orders' }: { orderBa
   const router = useRouter()
   const [orders, setOrders] = useState<AdminOrderResponse[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+  const searchRef = useRef('')
   const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = useCallback(async (searchTerm?: string) => {
     if (!accessToken) return
+    const term = searchTerm ?? searchRef.current
     const params = new URLSearchParams({ page: '0', size: '20' })
-    if (search) params.set('search', search)
+    if (term) params.set('search', term)
     statusFilter.forEach((s) => params.append('status', s))
     try {
       const res = await fetch(`/api/admin/orders?${params.toString()}`, {
@@ -56,7 +57,12 @@ export function OrdersContent({ orderBasePath = '/dashboard/orders' }: { orderBa
     } finally {
       setLoading(false)
     }
-  }, [accessToken, search, statusFilter, toast])
+  }, [accessToken, statusFilter, toast])
+
+  const handleSearch = (value: string) => {
+    searchRef.current = value
+    fetchOrders(value)
+  }
 
   useEffect(() => { fetchOrders() }, [fetchOrders])
 
@@ -92,14 +98,15 @@ export function OrdersContent({ orderBasePath = '/dashboard/orders' }: { orderBa
         </Heading>
 
         <div className="mb-4 flex flex-wrap gap-3 items-start">
-          <FormField label="Buscar pedidos" id="orders-search" className="w-64">
-            <Input
-              id="orders-search"
-              placeholder="Buscar por nº do pedido, cliente ou e-mail..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </FormField>
+          <SearchField
+            id="orders-search"
+            label="Buscar pedidos"
+            placeholder="Buscar por nº do pedido, cliente ou e-mail..."
+            buttonLabel="Buscar"
+            buttonIconOnly
+            onSearch={handleSearch}
+            className="w-64"
+          />
           <FilterDropdown
             label="Status"
             options={ALL_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}

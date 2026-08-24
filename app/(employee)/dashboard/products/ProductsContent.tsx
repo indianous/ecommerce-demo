@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, Dialog, FilterDropdown, FormField, Heading, Icon, Input, Table, type TableColumn, Text, useToast } from 'base-ds'
+import { Badge, Button, Dialog, FilterDropdown, Heading, Icon, SearchField, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CategoryForm } from '@/components/forms/CategoryForm'
@@ -20,7 +20,7 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
   const canManageProducts =
     user?.role === 'ADMIN' || (user?.permissions?.includes('MANAGE_PRODUCTS') ?? false)
 
-  const [search, setSearch] = useState('')
+  const searchRef = useRef('')
   const [categoryIds, setCategoryIds] = useState<string[]>([])
   const [statusFilter, setStatusFilter] = useState<string[]>([])
 
@@ -34,11 +34,12 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
 
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (searchTerm?: string) => {
     if (!accessToken) return
     try {
+      const term = searchTerm ?? searchRef.current
       const params = new URLSearchParams({ active: 'true' })
-      if (search) params.set('search', search)
+      if (term) params.set('search', term)
       categoryIds.forEach((id) => params.append('categoryId', id))
       statusFilter.forEach((s) => params.append('status', s))
       const res = await fetch(`/api/admin/products?${params}`, {
@@ -51,7 +52,12 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
     } finally {
       setLoading(false)
     }
-  }, [accessToken, search, categoryIds, statusFilter])
+  }, [accessToken, categoryIds, statusFilter])
+
+  const handleSearch = (value: string) => {
+    searchRef.current = value
+    fetchProducts(value)
+  }
 
   useEffect(() => {
     if (!accessToken) return
@@ -145,15 +151,15 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
         </div>
 
         <div className="flex gap-4 mb-4 flex-wrap items-start">
-          <FormField label="Buscar produtos" id="products-search" className="flex-1 min-w-40">
-            <Input
-              id="products-search"
-              type="search"
-              placeholder="Buscar por nome..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </FormField>
+          <SearchField
+            id="products-search"
+            label="Buscar produtos"
+            placeholder="Buscar por nome..."
+            buttonLabel="Buscar"
+            buttonIconOnly
+            onSearch={handleSearch}
+            className="flex-1 min-w-40"
+          />
           <FilterDropdown
             label="Categoria"
             options={categories.map((c) => ({ value: c.id, label: c.name }))}

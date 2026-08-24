@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-import { Badge, Button, Dialog, FilterDropdown, Heading, Icon, Input, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Badge, Button, Dialog, FilterDropdown, Heading, Icon, SearchField, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { sortTableData } from '@/lib/sortTableData'
@@ -34,20 +34,21 @@ export function SolicitacoesContent() {
 
   const [requests, setRequests] = useState<OrderChangeRequest[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+  const searchRef = useRef('')
   const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [selected, setSelected] = useState<OrderChangeRequest | null>(null)
   const [actioning, setActioning] = useState(false)
   const [denyDialogOpen, setDenyDialogOpen] = useState(false)
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
-  const fetchRequests = useCallback(async () => {
+  const fetchRequests = useCallback(async (searchTerm?: string) => {
     if (!accessToken) return
     setLoading(true)
     try {
+      const term = searchTerm ?? searchRef.current
       const params = new URLSearchParams()
       statusFilter.forEach((s) => params.append('status', s))
-      if (search) params.set('search', search)
+      if (term) params.set('search', term)
       const res = await fetch(`/api/admin/orders/change-requests?${params.toString()}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
@@ -59,7 +60,12 @@ export function SolicitacoesContent() {
     } finally {
       setLoading(false)
     }
-  }, [accessToken, search, statusFilter, toast])
+  }, [accessToken, statusFilter, toast])
+
+  const handleSearch = (value: string) => {
+    searchRef.current = value
+    fetchRequests(value)
+  }
 
   useEffect(() => {
     fetchRequests()
@@ -225,10 +231,13 @@ export function SolicitacoesContent() {
         </Heading>
 
         <div className="flex gap-3 mb-4 flex-wrap">
-          <Input
+          <SearchField
+            id="change-requests-search"
+            label="Buscar solicitações"
             placeholder="Buscar por número do pedido..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            buttonLabel="Buscar"
+            buttonIconOnly
+            onSearch={handleSearch}
             className="max-w-xs"
           />
           <FilterDropdown

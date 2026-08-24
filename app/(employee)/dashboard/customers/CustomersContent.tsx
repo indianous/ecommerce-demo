@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button, Heading, Icon, Input, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
+import { Button, Heading, Icon, SearchField, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { sortTableData } from '@/lib/sortTableData'
@@ -14,7 +14,6 @@ export function CustomersContent({ basePath = '/dashboard/customers' }: { basePa
   const router = useRouter()
   const [customers, setCustomers] = useState<CustomerResponse[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const fetchCustomers = useCallback(
@@ -42,11 +41,6 @@ export function CustomersContent({ basePath = '/dashboard/customers' }: { basePa
   useEffect(() => {
     fetchCustomers('')
   }, [fetchCustomers])
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    fetchCustomers(search)
-  }
 
   const sortedCustomers = sort ? sortTableData(customers, sort.key as keyof CustomerResponse, sort.direction, 'string') : customers
 
@@ -76,15 +70,15 @@ export function CustomersContent({ basePath = '/dashboard/customers' }: { basePa
           Gestão de Clientes
         </Heading>
 
-        <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-          <Input
-            placeholder="Buscar por nome ou email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Buscar clientes"
-          />
-          <Button iconOnly leftIcon={<Icon name="Search" size="sm" />} aria-label="Buscar" type="submit" variant="primary" />
-        </form>
+        <SearchField
+          id="customers-search"
+          label="Buscar clientes"
+          placeholder="Buscar por nome ou email..."
+          buttonLabel="Buscar"
+          buttonIconOnly
+          onSearch={fetchCustomers}
+          className="mb-4"
+        />
 
         {loading ? (
           <div role="status">

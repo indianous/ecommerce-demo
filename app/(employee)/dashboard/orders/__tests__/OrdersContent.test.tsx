@@ -195,3 +195,42 @@ describe('OrdersContent — filtros', () => {
     expect(callCount).toBe(callsBeforeFilter)
   })
 })
+
+describe('OrdersContent — busca', () => {
+  it('digitar no campo de busca não dispara nova chamada à API', async () => {
+    let callCount = 0
+    server.use(
+      http.get('/api/admin/orders', () => {
+        callCount += 1
+        return HttpResponse.json(mockPage)
+      }),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByRole('cell', { name: 'Bruno Souza' })
+    const callsBeforeTyping = callCount
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar pedidos' }), '42')
+
+    expect(callCount).toBe(callsBeforeTyping)
+  })
+
+  it('clicar no botão de busca dispara a chamada com o termo no query param', async () => {
+    let capturedUrl = ''
+    server.use(
+      http.get('/api/admin/orders', ({ request }) => {
+        capturedUrl = request.url
+        return HttpResponse.json(mockPage)
+      }),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByRole('cell', { name: 'Bruno Souza' })
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar pedidos' }), 'Bruno')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+
+    await new Promise((r) => setTimeout(r, 0))
+    expect(new URL(capturedUrl).searchParams.get('search')).toBe('Bruno')
+  })
+})

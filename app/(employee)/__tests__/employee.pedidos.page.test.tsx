@@ -101,16 +101,27 @@ describe('PedidosPage — listagem', () => {
     expect(screen.getAllByText(/pendente/i).length).toBeGreaterThan(0)
   })
 
-  it('campo de busca envia ?search= ao BFF', async () => {
+  it('campo de busca envia ?search= ao BFF ao clicar no botão de busca', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Ana Lima')
+
+    await user.type(screen.getByRole('textbox', { name: /buscar/i }), 'Ana')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+
+    await waitFor(() => {
+      expect(lastOrdersUrl).toContain('search=Ana')
+    })
+  })
+
+  it('digitar no campo de busca sem clicar no botão não envia ?search= ao BFF', async () => {
     const user = userEvent.setup()
     renderPage()
     await screen.findByText('Ana Lima')
 
     await user.type(screen.getByRole('textbox', { name: /buscar/i }), 'Ana')
 
-    await waitFor(() => {
-      expect(lastOrdersUrl).toContain('search=Ana')
-    })
+    expect(lastOrdersUrl).not.toContain('search=Ana')
   })
 
   it('filtro de status: marcar e "Aplicar" filtra por ?status=', async () => {

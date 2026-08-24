@@ -129,7 +129,23 @@ describe('Solicitações Page', () => {
     })
   })
 
-  it('campo de busca por número do pedido envia ?search=', async () => {
+  it('campo de busca por número do pedido envia ?search= ao clicar no botão de busca', async () => {
+    requests = [mockRequest, mockApprovedRequest]
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('#100')
+
+    const input = screen.getByPlaceholderText(/buscar/i)
+    await user.type(input, '200')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+
+    await waitFor(() => {
+      expect(screen.queryByText('#100')).not.toBeInTheDocument()
+      expect(screen.getByText('#200')).toBeInTheDocument()
+    })
+  })
+
+  it('digitar no campo de busca sem clicar no botão não filtra a lista', async () => {
     requests = [mockRequest, mockApprovedRequest]
     const user = userEvent.setup()
     renderPage()
@@ -138,10 +154,7 @@ describe('Solicitações Page', () => {
     const input = screen.getByPlaceholderText(/buscar/i)
     await user.type(input, '200')
 
-    await waitFor(() => {
-      expect(screen.queryByText('#100')).not.toBeInTheDocument()
-      expect(screen.getByText('#200')).toBeInTheDocument()
-    })
+    expect(screen.getByText('#100')).toBeInTheDocument()
   })
 
   it('clicar em "Ver detalhe" abre detalhe com justificativa', async () => {

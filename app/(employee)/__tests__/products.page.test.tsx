@@ -321,7 +321,7 @@ describe('ProductsManagementPage — filtros', () => {
     renderPage()
     await screen.findByText('Teclado Mecânico')
 
-    const searchInput = screen.getByRole('searchbox', { name: /buscar produtos/i })
+    const searchInput = screen.getByRole('textbox', { name: /buscar produtos/i })
     await user.click(searchInput)
     await user.type(searchInput, 'tec')
 

@@ -19,6 +19,11 @@ Input+form+Button manual" pra "usar `SearchField` do base-ds" nas 3 telas, e
 `CustomersContent.tsx` (hoje a referência do padrão manual) também deveria trocar pro
 componente oficial, por consistência.
 
+**Atualização 2026-08-24 — desbloqueado, implementado**: issue #31 fechada
+(commit `37fcbf1` no `base-ds`, props `id`/`label`/`buttonLabel`/`buttonIconOnly`
+adicionadas ao `SearchField`). Implementação concluída usando `SearchField` nas 4
+telas (as 3 com o bug + `CustomersContent.tsx`, por consistência), conforme seção 3.
+
 ## 1. Problemas encontrados
 
 | Arquivo | Comportamento hoje |
@@ -52,14 +57,28 @@ Um arquivo de teste novo por página (`ProductsContent.test.tsx`,
 
 ## 3. O que entra no projeto
 
-Nas 3 páginas, replicar o padrão já usado em `CustomersContent.tsx`:
+Nas 4 páginas (as 3 do bug + `CustomersContent.tsx`, por consistência), trocar o
+`Input`/`FormField`/`Button` de busca montados à mão pelo `SearchField` do `base-ds`
+(`id`, `label`, `buttonLabel="Buscar"`, `buttonIconOnly`, `onSearch`).
 
-- `fetchX` passa a receber o termo de busca como parâmetro explícito
-  (`fetchProducts(searchTerm: string)` etc.) em vez de ler `search` do closure —
-  remove `search` do array de dependências do `useCallback` (mantém `categoryId`/
-  `statusFilter`, que devem continuar reativos).
-- `<Input>` de busca entra num `<form onSubmit={handleSearch}>` com um
-  `Button iconOnly` (`Icon="Search"`, `type="submit"`) ao lado — igual ao
-  `CustomersContent.tsx` — chamando `fetchX(search)`.
-- `useEffect` de carga inicial passa a chamar `fetchX(search)` (valor inicial vazio),
-  com deps `[fetchX]` apenas — segue sem reagir a mudança de `search` em si.
+- `fetchX` passa a receber o termo de busca como parâmetro opcional
+  (`fetchProducts(searchTerm?: string)` etc.), lendo de um `useRef<string>` quando
+  omitido — remove `search` do array de dependências do `useCallback` (mantém
+  `categoryIds`/`statusFilter`, que devem continuar reativos). O `ref` guarda o
+  último termo *submetido* (não o que está sendo digitado, que vive só dentro do
+  `SearchField`), pra que trocar um filtro dispare `fetchX()` reaproveitando a busca
+  já aplicada.
+- `handleSearch(value)` atualiza o `ref` e chama `fetchX(value)` — vira o `onSearch`
+  do `SearchField`.
+- `useEffect` de carga inicial passa a chamar `fetchX()` (sem argumento → usa o `ref`,
+  vazio no mount), com deps `[fetchX]` apenas — segue sem reagir a digitação.
+- `CustomersContent.tsx` perde o `useState('search')`/`handleSearch` manual — como não
+  tem outros filtros reativos, `fetchCustomers` (que já recebia `q: string` explícito)
+  vira diretamente o `onSearch` do `SearchField`.
+
+Testes: `ProductsContent.test.tsx` (novo), `OrdersContent.test.tsx` e
+`SolicitacoesContent.test.tsx` (describe `— busca` adicionado aos existentes) cobrindo
+não-fetch ao digitar e fetch com `?search=` ao clicar em "Buscar". Testes de página
+(`employee.pedidos.page.test.tsx`, `employee.solicitacoes.page.test.tsx`,
+`products.page.test.tsx`) que assumiam busca a cada tecla foram atualizados para
+clicar no botão antes de checar o `search=` no BFF.
