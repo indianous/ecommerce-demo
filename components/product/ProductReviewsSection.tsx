@@ -1,28 +1,24 @@
 'use client'
 
-import { useState } from 'react'
-import { Heading, Pagination, Text } from 'base-ds'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { Heading, Text } from 'base-ds'
 import { ProductReviewCard } from '@/components/product/ProductReviewCard'
-import type { ProductReview, ProductReviewPage } from '@/types'
+import { PaginationBar } from '@/components/ui/PaginationBar'
+import type { ProductReviewPage } from '@/types'
 
 interface Props {
-  productId: string
   reviews: ProductReviewPage
 }
 
-export function ProductReviewsSection({ productId, reviews }: Props) {
-  const [reviewList, setReviewList] = useState<ProductReview[]>(reviews.content)
-  const [reviewsPage, setReviewsPage] = useState(reviews.page)
-  const [totalPages, setTotalPages] = useState(reviews.totalPages)
+export function ProductReviewsSection({ reviews }: Props) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
 
-  const refreshReviews = async (page = 0) => {
-    const res = await fetch(`/api/products/${productId}/reviews?page=${page}`)
-    if (res.ok) {
-      const data: ProductReviewPage = await res.json()
-      setReviewList(data.content)
-      setReviewsPage(data.page)
-      setTotalPages(data.totalPages)
-    }
+  const goToPage = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('reviewsPage', String(page))
+    router.push(`${pathname}?${params.toString()}`)
   }
 
   return (
@@ -32,22 +28,16 @@ export function ProductReviewsSection({ productId, reviews }: Props) {
       </Heading>
 
       <div className="flex flex-col">
-        {reviewList.length === 0 ? (
+        {reviews.content.length === 0 ? (
           <Text size="sm" color="muted">
             Ainda não há avaliações para este produto.
           </Text>
         ) : (
-          reviewList.map((review) => <ProductReviewCard key={review.id} review={review} />)
+          reviews.content.map((review) => <ProductReviewCard key={review.id} review={review} />)
         )}
       </div>
 
-      {totalPages > 1 && (
-        <Pagination
-          currentPage={reviewsPage + 1}
-          totalPages={totalPages}
-          onPageChange={(page) => refreshReviews(page - 1)}
-        />
-      )}
+      <PaginationBar page={reviews.page + 1} totalPages={reviews.totalPages} onPageChange={goToPage} />
     </section>
   )
 }

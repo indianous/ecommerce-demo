@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import { ProfileContent } from './ProfileContent'
+import { AdminProfileContent } from '@/components/content/AdminProfileContent'
 
 export const metadata: Metadata = { title: 'Meu perfil' }
 
 export default function AdminProfilePage() {
-  return <ProfileContent />
+  return <AdminProfileContent />
 }

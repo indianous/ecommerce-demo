@@ -1,33 +1,30 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { FormField, Heading, Table, type TableColumn, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { PaginationBar } from '@/components/ui/PaginationBar'
 import { sortTableData } from '@/lib/sortTableData'
+import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { StockLot } from '@/types'
 
 export function ExpiringLotsContent() {
   const { accessToken } = useAuthStore()
-  const [lots, setLots] = useState<StockLot[]>([])
   const [days, setDays] = useState(30)
-  const [loading, setLoading] = useState(true)
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
-  const fetchLots = useCallback(async () => {
-    if (!accessToken) return
-    setLoading(true)
-    try {
-      const res = await fetch(`/api/admin/stock-lots/expiring?days=${days}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      if (res.ok) setLots(await res.json())
-    } finally {
-      setLoading(false)
-    }
+  const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<StockLot> | null> => {
+    if (!accessToken) return null
+    params.set('days', String(days))
+    const res = await fetch(`/api/admin/stock-lots/expiring?${params}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    if (!res.ok) return null
+    return await res.json()
   }, [accessToken, days])
 
-  useEffect(() => { fetchLots() }, [fetchLots])
+  const { page, items: lots, totalPages, loading, goToPage } = usePaginatedFetch(fetchPage)
 
   const sortedLots = sort
     ? sortTableData(lots, sort.key as keyof StockLot, sort.direction, sort.key === 'quantity' ? 'number' : sort.key === 'expiryDate' ? 'date' : 'string')
@@ -61,12 +58,15 @@ export function ExpiringLotsContent() {
         ) : lots.length === 0 ? (
           <Text size="sm" color="muted" className="mt-4">Nenhum lote vencendo nesse período.</Text>
         ) : (
-          <Table
-            columns={columns}
-            data={sortedLots}
-            onSort={(key, direction) => setSort({ key, direction })}
-            className="mt-4"
-          />
+          <>
+            <Table
+              columns={columns}
+              data={sortedLots}
+              onSort={(key, direction) => setSort({ key, direction })}
+              className="mt-4"
+            />
+            <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mt-4" />
+          </>
         )}
       </main>
     </PermissionGuard>

@@ -4,12 +4,16 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
+const pushMock = vi.fn()
+let mockSearch = ''
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  useRouter: () => ({ replace: vi.fn(), push: pushMock }),
+  usePathname: () => '/dashboard/employees',
+  useSearchParams: () => new URLSearchParams(mockSearch),
 }))
 
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { EmployeesContent } from '../EmployeesContent'
+import { EmployeesContent } from '@/components/content/EmployeesContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Employee } from '@/types'
 
@@ -19,11 +23,12 @@ const mockEmployees: Employee[] = [
 
 let lastDeletedId = ''
 let lastListUrl = ''
+const mockPage = { content: mockEmployees, page: 0, size: 20, totalElements: mockEmployees.length, totalPages: 1, last: true }
 
 const server = setupServer(
   http.get('/api/admin/employees', ({ request }) => {
     lastListUrl = request.url
-    return HttpResponse.json(mockEmployees)
+    return HttpResponse.json(mockPage)
   }),
   http.delete('/api/admin/employees/:id', ({ params }) => {
     lastDeletedId = params.id as string
@@ -36,6 +41,8 @@ afterEach(async () => {
   server.resetHandlers()
   lastDeletedId = ''
   lastListUrl = ''
+  pushMock.mockClear()
+  mockSearch = ''
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
   })
@@ -53,7 +60,7 @@ beforeEach(() => {
       email: 'func@test.com',
       role: 'EMPLOYEE' as const,
       permissions: ['MANAGE_EMPLOYEES' as const],
-    },
+     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 
@@ -178,5 +185,42 @@ describe('EmployeesContent — filtro de permissão', () => {
     await user.click(screen.getByRole('checkbox', { name: 'Gerenciamento de Pedidos' }))
 
     expect(lastListUrl).toBe(urlBeforeFilter)
+  })
+})
+
+describe('EmployeesContent — paginação', () => {
+  it('com totalPages<=1, não exibe navegação de página', async () => {
+    renderContent()
+    await screen.findByText('Ana Costa')
+    expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument()
+  })
+
+  it('URL com ?page=2 carrega a página 2 direto', async () => {
+    mockSearch = 'page=2'
+    server.use(
+      http.get('/api/admin/employees', ({ request }) => {
+        lastListUrl = request.url
+        return HttpResponse.json({ ...mockPage, page: 1, totalPages: 3, last: false })
+      }),
+    )
+    renderContent()
+    await screen.findByText('Ana Costa')
+
+    expect(new URL(lastListUrl).searchParams.get('page')).toBe('1')
+  })
+
+  it('clicar em "Next page" atualiza a URL para ?page=2', async () => {
+    server.use(
+      http.get('/api/admin/employees', () =>
+        HttpResponse.json({ ...mockPage, totalPages: 3, last: false }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByText('Ana Costa')
+
+    await user.click(screen.getByRole('button', { name: /next page/i }))
+
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/employees?page=2')
   })
 })

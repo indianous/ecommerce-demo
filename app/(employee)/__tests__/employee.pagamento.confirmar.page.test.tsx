@@ -4,7 +4,7 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { PaymentConfirmContent } from '../dashboard/payments/[id]/PaymentConfirmContent'
+import { PaymentConfirmContent } from '@/components/content/PaymentConfirmContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { AdminOrderDetailResponse } from '@/types'
 
@@ -71,7 +71,7 @@ beforeEach(() => {
       email: 'func@test.com',
       role: 'EMPLOYEE' as const,
       permissions: ['MANAGE_PAYMENTS' as const],
-    },
+     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 
@@ -258,7 +258,7 @@ describe('PaymentConfirmContent — controle de acesso', () => {
       isAuthenticated: true,
       accessToken: 'tok',
       role: 'EMPLOYEE' as const,
-      user: { id: '1', name: 'F', email: 'f@test.com', role: 'EMPLOYEE' as const, permissions: ['MANAGE_ORDERS' as const] },
+      user: { id: '1', name: 'F', email: 'f@test.com', role: 'EMPLOYEE' as const, permissions: ['MANAGE_ORDERS' as const] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
     })
     await act(async () => { renderContent() })
     expect(replaceMock).toHaveBeenCalledWith('/dashboard')

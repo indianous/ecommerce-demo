@@ -5,6 +5,7 @@ import { Button, Dialog, Icon, Skeleton, Table, type TableColumn, Text } from 'b
 import type { Employee, EmployeeFormData } from '@/types'
 import { EmployeeForm } from '@/components/forms/EmployeeForm'
 import { CopyButton } from '@/components/ui/CopyButton'
+import { PaginationBar } from '@/components/ui/PaginationBar'
 import { sortTableData } from '@/lib/sortTableData'
 
 interface Props {
@@ -14,6 +15,9 @@ interface Props {
   onDelete: (id: string) => void
   onManagePermissions?: (employee: Employee) => void
   createLabel?: string
+  page?: number
+  totalPages?: number
+  onPageChange?: (page: number) => void
 }
 
 export function EmployeeManagementTable({
@@ -23,6 +27,9 @@ export function EmployeeManagementTable({
   onDelete,
   onManagePermissions,
   createLabel = 'Novo funcionário',
+  page = 1,
+  totalPages = 1,
+  onPageChange,
 }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
@@ -83,11 +90,14 @@ export function EmployeeManagementTable({
       ) : employees.length === 0 ? (
         <Text size="sm" color="muted">Nenhum funcionário cadastrado.</Text>
       ) : (
-        <Table
-          columns={columns}
-          data={sortedEmployees}
-          onSort={(key, direction) => setSort({ key, direction })}
-        />
+        <>
+          <Table
+            columns={columns}
+            data={sortedEmployees}
+            onSort={(key, direction) => setSort({ key, direction })}
+          />
+          {onPageChange && <PaginationBar page={page} totalPages={totalPages} onPageChange={onPageChange} className="mt-4" />}
+        </>
       )}
 
       <Dialog

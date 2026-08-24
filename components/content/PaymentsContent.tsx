@@ -1,14 +1,16 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button, Dialog, Heading, Icon, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
+import { PaginationBar } from '@/components/ui/PaginationBar'
 import { RejectPaymentForm } from '@/components/forms/RejectPaymentForm'
 import { sortTableData } from '@/lib/sortTableData'
-import type { AdminOrderPage, AdminOrderResponse } from '@/types'
+import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
+import type { AdminOrderResponse } from '@/types'
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
   PIX: 'PIX',
@@ -24,30 +26,27 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
   const { toast } = useToast()
   const router = useRouter()
 
-  const [orders, setOrders] = useState<AdminOrderResponse[]>([])
-  const [loading, setLoading] = useState(true)
   const [rejectTarget, setRejectTarget] = useState<AdminOrderResponse | null>(null)
   const [rejectReason, setRejectReason] = useState('')
   const [rejecting, setRejecting] = useState(false)
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
-  const fetchOrders = useCallback(async () => {
-    if (!accessToken) return
+  const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<AdminOrderResponse> | null> => {
+    if (!accessToken) return null
+    params.set('paymentStatus', 'PENDING')
     try {
-      const res = await fetch('/api/admin/orders?paymentStatus=PENDING&size=50', {
+      const res = await fetch(`/api/admin/orders?${params}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       if (!res.ok) throw new Error()
-      const data: AdminOrderPage = await res.json()
-      setOrders(data.content)
+      return await res.json()
     } catch {
       toast({ variant: 'destructive', description: 'Erro ao carregar pagamentos pendentes.' })
-    } finally {
-      setLoading(false)
+      return null
     }
   }, [accessToken, toast])
 
-  useEffect(() => { fetchOrders() }, [fetchOrders])
+  const { page, items: orders, setItems: setOrders, totalPages, loading, goToPage } = usePaginatedFetch(fetchPage)
 
   const closeRejectDialog = () => {
     setRejectTarget(null)
@@ -130,7 +129,10 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
         ) : orders.length === 0 ? (
           <Text size="sm" color="muted">Nenhum pagamento pendente.</Text>
         ) : (
-          <Table columns={columns} data={sortedOrders} onSort={(key, direction) => setSort({ key, direction })} />
+          <>
+            <Table columns={columns} data={sortedOrders} onSort={(key, direction) => setSort({ key, direction })} />
+            <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mt-4" />
+          </>
         )}
       </main>
 

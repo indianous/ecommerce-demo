@@ -8,7 +8,7 @@ import { ChangePasswordForm } from '@/components/forms/ChangePasswordForm'
 import { ProfileDataForm } from '@/components/forms/ProfileDataForm'
 import { AddressForm, EMPTY_ADDRESS, type NewAddress } from '@/components/forms/AddressForm'
 
-export function ProfileContent() {
+export function CustomerProfileContent() {
   const { accessToken, setUser } = useAuthStore()
   const { toast } = useToast()
 

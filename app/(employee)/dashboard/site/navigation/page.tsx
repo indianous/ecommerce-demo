@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { NavigationContent } from './NavigationContent'
+import { NavigationContent } from '@/components/content/NavigationContent'
 
 export const metadata: Metadata = { title: 'Navegação do site' }
 

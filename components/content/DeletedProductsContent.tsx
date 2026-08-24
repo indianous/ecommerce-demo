@@ -1,11 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Button, Heading, Icon, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { PaginationBar } from '@/components/ui/PaginationBar'
 import { sortTableData } from '@/lib/sortTableData'
-import type { AdminProductPage, Product } from '@/types'
+import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
+import type { Product } from '@/types'
 
 const formatDate = (iso: string) =>
   new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(iso))
@@ -14,27 +16,19 @@ export function DeletedProductsContent() {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
 
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(() => Boolean(accessToken))
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
-  const fetchProducts = useCallback(async () => {
-    if (!accessToken) return
-    setLoading(true)
-    try {
-      const res = await fetch('/api/admin/products?active=false', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      if (res.ok) {
-        const data: AdminProductPage = await res.json()
-        setProducts(data.content)
-      }
-    } finally {
-      setLoading(false)
-    }
+  const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<Product> | null> => {
+    if (!accessToken) return null
+    params.set('active', 'false')
+    const res = await fetch(`/api/admin/products?${params}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    if (!res.ok) return null
+    return await res.json()
   }, [accessToken])
 
-  useEffect(() => { fetchProducts() }, [fetchProducts])
+  const { page, items: products, setItems: setProducts, totalPages, loading, goToPage } = usePaginatedFetch(fetchPage)
 
   const handleRestore = async (product: Product) => {
     if (!accessToken) return
@@ -76,7 +70,10 @@ export function DeletedProductsContent() {
         {products.length === 0 ? (
           <Text size="sm" color="muted">Nenhum produto excluído.</Text>
         ) : (
-          <Table columns={columns} data={sortedProducts} onSort={(key, direction) => setSort({ key, direction })} />
+          <>
+            <Table columns={columns} data={sortedProducts} onSort={(key, direction) => setSort({ key, direction })} />
+            <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mt-4" />
+          </>
         )}
       </main>
     </PermissionGuard>

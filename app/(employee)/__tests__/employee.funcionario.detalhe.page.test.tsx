@@ -10,7 +10,7 @@ vi.mock('next/navigation', () => ({
 }))
 
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { EmployeeFuncionarioDetailContent } from '../dashboard/employees/[id]/EmployeeFuncionarioDetailContent'
+import { EmployeeFuncionarioDetailContent } from '@/components/content/EmployeeFuncionarioDetailContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { AuditLogPage, EmployeeDetailResponse } from '@/types'
 
@@ -39,7 +39,8 @@ const mockAuditLogs: AuditLogPage = {
   totalElements: 1,
   totalPages: 1,
   size: 10,
-  number: 0,
+  page: 0,
+  last: true,
 }
 
 const server = setupServer(
@@ -71,7 +72,7 @@ beforeEach(() => {
       email: 'manager@test.com',
       role: 'EMPLOYEE',
       permissions: ['MANAGE_EMPLOYEES'],
-    },
+     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 
@@ -164,7 +165,7 @@ describe('EmployeeFuncionarioDetailContent', () => {
     useAuthStore.setState({
       accessToken: 'tok',
       isAuthenticated: true,
-      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] },
+      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
     })
     await act(async () => {
       render(<ToastProvider><EmployeeFuncionarioDetailContent id="emp-1" /></ToastProvider>)

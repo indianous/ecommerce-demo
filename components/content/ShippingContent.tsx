@@ -1,13 +1,15 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Badge, Button, Heading, Icon, Skeleton, Table, type TableColumn, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
+import { PaginationBar } from '@/components/ui/PaginationBar'
 import { sortTableData } from '@/lib/sortTableData'
-import type { AdminOrderPage, AdminOrderResponse } from '@/types'
+import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
+import type { AdminOrderResponse } from '@/types'
 
 const formatBRL = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
@@ -15,25 +17,19 @@ const formatBRL = (v: number) =>
 export function ShippingContent({ orderBasePath = '/dashboard/orders' }: { orderBasePath?: string }) {
   const { accessToken } = useAuthStore()
   const router = useRouter()
-  const [orders, setOrders] = useState<AdminOrderResponse[]>([])
-  const [loading, setLoading] = useState(true)
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
-  const fetchOrders = useCallback(async () => {
-    if (!accessToken) return
-    try {
-      const res = await fetch('/api/admin/orders?status=CONFIRMED&size=50', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      if (!res.ok) throw new Error()
-      const data: AdminOrderPage = await res.json()
-      setOrders(data.content)
-    } finally {
-      setLoading(false)
-    }
+  const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<AdminOrderResponse> | null> => {
+    if (!accessToken) return null
+    params.set('status', 'CONFIRMED')
+    const res = await fetch(`/api/admin/orders?${params}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    if (!res.ok) return null
+    return await res.json()
   }, [accessToken])
 
-  useEffect(() => { fetchOrders() }, [fetchOrders])
+  const { page, items: orders, totalPages, loading, goToPage } = usePaginatedFetch(fetchPage)
 
   const sortedOrders = sort
     ? sortTableData(orders, sort.key as keyof AdminOrderResponse, sort.direction, sort.key === 'orderNumber' || sort.key === 'totalAmount' ? 'number' : 'string')
@@ -81,7 +77,10 @@ export function ShippingContent({ orderBasePath = '/dashboard/orders' }: { order
         ) : orders.length === 0 ? (
           <Text size="sm" color="muted">Nenhum pedido aguardando envio.</Text>
         ) : (
-          <Table columns={columns} data={sortedOrders} onSort={(key, direction) => setSort({ key, direction })} />
+          <>
+            <Table columns={columns} data={sortedOrders} onSort={(key, direction) => setSort({ key, direction })} />
+            <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mt-4" />
+          </>
         )}
       </main>
     </PermissionGuard>

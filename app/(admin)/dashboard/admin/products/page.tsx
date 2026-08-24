@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { ProductsContent } from '@/app/(employee)/dashboard/products/ProductsContent'
+import { ProductsContent } from '@/components/content/ProductsContent'
 
 export const metadata: Metadata = { title: 'Produtos' }
 

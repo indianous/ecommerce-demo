@@ -1,17 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback } from 'react'
 import Link from 'next/link'
-import { Badge, Heading, Pagination, Table, type TableColumn, Text } from 'base-ds'
+import { Badge, Heading, Table, type TableColumn, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
+import { PaginationBar } from '@/components/ui/PaginationBar'
+import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { OrderItemResponse, OrderResponse, OrderStatus } from '@/types'
-
-const PAGE_SIZE = 5
 
 const STATUS_BADGE_VARIANT: Record<OrderStatus, 'warning' | 'info' | 'primary' | 'success' | 'danger'> = {
   PENDING: 'warning',
   CONFIRMED: 'info',
   SHIPPED: 'primary',
+  RETURNED: 'warning',
   DELIVERED: 'success',
   CANCELLED: 'danger',
 }
@@ -21,19 +22,17 @@ const formatBRL = (value: number) =>
 
 const formatDate = (iso: string) => new Intl.DateTimeFormat('pt-BR').format(new Date(iso))
 
-export function OrdersContent() {
+export function CustomerOrdersContent() {
   const { accessToken } = useAuthStore()
-  const [orders, setOrders] = useState<OrderResponse[]>([])
-  const [loading, setLoading] = useState(() => Boolean(accessToken))
-  const [page, setPage] = useState(1)
 
-  useEffect(() => {
-    if (!accessToken) return
-    fetch('/api/orders', { headers: { Authorization: `Bearer ${accessToken}` } })
-      .then((res) => (res.ok ? res.json() : []))
-      .then(setOrders)
-      .finally(() => setLoading(false))
+  const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<OrderResponse> | null> => {
+    if (!accessToken) return null
+    const res = await fetch(`/api/orders?${params}`, { headers: { Authorization: `Bearer ${accessToken}` } })
+    if (!res.ok) return null
+    return await res.json()
   }, [accessToken])
+
+  const { page, items: orders, totalPages, loading, goToPage } = usePaginatedFetch(fetchPage, 10)
 
   if (loading) {
     return (
@@ -53,9 +52,6 @@ export function OrdersContent() {
       </main>
     )
   }
-
-  const totalPages = Math.ceil(orders.length / PAGE_SIZE)
-  const pageOrders = orders.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const columns: TableColumn<OrderResponse>[] = [
     { key: 'orderNumber', header: 'Pedido', render: (order) => `#${order.orderNumber}` },
@@ -92,15 +88,13 @@ export function OrdersContent() {
 
       <Table
         columns={columns}
-        data={pageOrders}
+        data={orders}
         renderExpandedRow={(order) => <Table columns={itemColumns} data={order.items} className="text-xs" />}
       />
 
-      {totalPages > 1 && (
-        <div className="mt-6 flex justify-center">
-          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
-        </div>
-      )}
+      <div className="mt-6 flex justify-center">
+        <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} />
+      </div>
     </main>
   )
 }

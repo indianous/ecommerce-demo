@@ -4,13 +4,16 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { OrdersContent } from '../OrdersContent'
+import { EmployeeOrdersContent } from '@/components/content/EmployeeOrdersContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { AdminOrderPage } from '@/types'
 
 const pushMock = vi.fn()
+let mockSearch = ''
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushMock }),
+  usePathname: () => '/dashboard/orders',
+  useSearchParams: () => new URLSearchParams(mockSearch),
 }))
 
 const mockPage: AdminOrderPage = {
@@ -53,6 +56,7 @@ beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
   pushMock.mockClear()
+  mockSearch = ''
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
   })
@@ -70,20 +74,20 @@ beforeEach(() => {
       email: 'func@test.com',
       role: 'EMPLOYEE' as const,
       permissions: ['MANAGE_ORDERS' as const],
-    },
+     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 
 function renderContent(orderBasePath?: string) {
   return render(
     <ToastProvider>
-      <OrdersContent orderBasePath={orderBasePath} />
+      <EmployeeOrdersContent orderBasePath={orderBasePath} />
       <ToastViewport />
     </ToastProvider>,
   )
 }
 
-describe('OrdersContent — listagem', () => {
+describe('EmployeeOrdersContent — listagem', () => {
   it('renderiza heading e tabela de pedidos vinda da API', async () => {
     renderContent()
     expect(screen.getByRole('heading', { name: 'Gestão de Pedidos' })).toBeInTheDocument()
@@ -158,7 +162,7 @@ describe('OrdersContent — listagem', () => {
   })
 })
 
-describe('OrdersContent — filtros', () => {
+describe('EmployeeOrdersContent — filtros', () => {
   it('marcar 2 status e clicar "Aplicar" chama a API com os dois status no query string', async () => {
     let capturedUrl = ''
     server.use(
@@ -203,7 +207,7 @@ describe('OrdersContent — filtros', () => {
   })
 })
 
-describe('OrdersContent — busca', () => {
+describe('EmployeeOrdersContent — busca', () => {
   it('digitar no campo de busca não dispara nova chamada à API', async () => {
     let callCount = 0
     server.use(
@@ -239,5 +243,43 @@ describe('OrdersContent — busca', () => {
 
     await new Promise((r) => setTimeout(r, 0))
     expect(new URL(capturedUrl).searchParams.get('search')).toBe('Bruno')
+  })
+})
+
+describe('EmployeeOrdersContent — paginação', () => {
+  it('com totalPages<=1, não exibe navegação de página', async () => {
+    renderContent()
+    await screen.findByRole('cell', { name: 'Bruno Souza' })
+    expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument()
+  })
+
+  it('URL com ?page=2 carrega a página 2 direto', async () => {
+    mockSearch = 'page=2'
+    let lastUrl = ''
+    server.use(
+      http.get('/api/admin/orders', ({ request }) => {
+        lastUrl = request.url
+        return HttpResponse.json({ ...mockPage, page: 1, totalPages: 3, last: false })
+      }),
+    )
+    renderContent()
+    await screen.findByRole('cell', { name: 'Bruno Souza' })
+
+    expect(new URL(lastUrl).searchParams.get('page')).toBe('1')
+  })
+
+  it('clicar em "Next page" atualiza a URL para ?page=2', async () => {
+    server.use(
+      http.get('/api/admin/orders', () =>
+        HttpResponse.json({ ...mockPage, totalPages: 3, last: false }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByRole('cell', { name: 'Bruno Souza' })
+
+    await user.click(screen.getByRole('button', { name: /next page/i }))
+
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/orders?page=2')
   })
 })

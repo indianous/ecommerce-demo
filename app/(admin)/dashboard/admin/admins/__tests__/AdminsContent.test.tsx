@@ -2,9 +2,18 @@ import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+
+const pushMock = vi.fn()
+let mockSearch = ''
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: pushMock }),
+  usePathname: () => '/dashboard/admin/admins',
+  useSearchParams: () => new URLSearchParams(mockSearch),
+}))
+
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { AdminsContent } from '../AdminsContent'
+import { AdminsContent } from '@/components/content/AdminsContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Employee } from '@/types'
 
@@ -17,11 +26,12 @@ const newAdmin: Employee = { id: 'admin-2', name: 'Carlos Melo', email: 'carlos@
 let lastDeletedId = ''
 let lastListUrl = ''
 let deleteResponse: { status: number; body?: Record<string, unknown> } = { status: 204 }
+const mockPage = { content: mockAdmins, page: 0, size: 20, totalElements: mockAdmins.length, totalPages: 1, last: true }
 
 const server = setupServer(
   http.get('/api/admin/admins', ({ request }) => {
     lastListUrl = request.url
-    return HttpResponse.json(mockAdmins)
+    return HttpResponse.json(mockPage)
   }),
   http.post('/api/admin/admins', () => HttpResponse.json(newAdmin, { status: 201 })),
   http.delete('/api/admin/admins/:id', ({ params }) => {
@@ -37,6 +47,8 @@ afterEach(async () => {
   lastDeletedId = ''
   lastListUrl = ''
   deleteResponse = { status: 204 }
+  pushMock.mockClear()
+  mockSearch = ''
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
   })
@@ -48,7 +60,7 @@ beforeEach(() => {
     isAuthenticated: true,
     accessToken: 'mock-token',
     role: 'ADMIN' as const,
-    user: { id: '1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN' as const },
+    user: { id: '1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN' as const , permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 
@@ -157,5 +169,42 @@ describe('AdminsContent — exclusão', () => {
 
     expect(await screen.findByText(/não é possível excluir o último administrador/i)).toBeInTheDocument()
     expect(screen.getByText('Ana Costa')).toBeInTheDocument()
+  })
+})
+
+describe('AdminsContent — paginação', () => {
+  it('com totalPages<=1, não exibe navegação de página', async () => {
+    renderContent()
+    await screen.findByText('Ana Costa')
+    expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument()
+  })
+
+  it('URL com ?page=2 carrega a página 2 direto', async () => {
+    mockSearch = 'page=2'
+    server.use(
+      http.get('/api/admin/admins', ({ request }) => {
+        lastListUrl = request.url
+        return HttpResponse.json({ ...mockPage, page: 1, totalPages: 3, last: false })
+      }),
+    )
+    renderContent()
+    await screen.findByText('Ana Costa')
+
+    expect(new URL(lastListUrl).searchParams.get('page')).toBe('1')
+  })
+
+  it('clicar em "Next page" atualiza a URL para ?page=2', async () => {
+    server.use(
+      http.get('/api/admin/admins', () =>
+        HttpResponse.json({ ...mockPage, totalPages: 3, last: false }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByText('Ana Costa')
+
+    await user.click(screen.getByRole('button', { name: /next page/i }))
+
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/admin/admins?page=2')
   })
 })

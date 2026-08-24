@@ -9,6 +9,10 @@ describe('Domain types', () => {
       name: 'João Victor',
       email: 'joao@example.com',
       role: 'CUSTOMER',
+      permissions: [],
+      phone: null,
+      birthDate: null,
+      gender: 'PREFIRO_NAO_DIZER',
     }
     expect(user.role).toBe('CUSTOMER')
   })
@@ -21,7 +25,11 @@ describe('Domain types', () => {
       slug: 'mechanical-keyboard',
       price: 499.90,
       stockQuantity: 10,
+      imageUrls: [],
       active: true,
+      status: 'AVAILABLE',
+      createdAt: '2026-01-01T00:00:00',
+      updatedAt: '2026-01-01T00:00:00',
     }
     expect(product.price).toBeGreaterThan(0)
     expect(product.stockQuantity).toBe(10)
@@ -35,9 +43,13 @@ describe('Domain types', () => {
       slug: 'wireless-mouse',
       price: 199,
       stockQuantity: 5,
+      imageUrls: [],
       active: true,
+      status: 'AVAILABLE',
+      createdAt: '2026-01-01T00:00:00',
+      updatedAt: '2026-01-01T00:00:00',
     }
-    const item: CartItem = { product, quantity: 2 }
+    const item: CartItem = { productId: product.id, name: product.name, price: product.price, quantity: 2 }
     expect(item.quantity).toBe(2)
   })
 })

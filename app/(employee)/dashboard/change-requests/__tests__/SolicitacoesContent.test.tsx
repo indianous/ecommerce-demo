@@ -4,12 +4,16 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { SolicitacoesContent } from '../SolicitacoesContent'
+import { SolicitacoesContent } from '@/components/content/SolicitacoesContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { OrderChangeRequest } from '@/types'
 
+const pushMock = vi.fn()
+let mockSearch = ''
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  useRouter: () => ({ push: pushMock, replace: vi.fn() }),
+  usePathname: () => '/dashboard/change-requests',
+  useSearchParams: () => new URLSearchParams(mockSearch),
 }))
 
 const mockRequests: OrderChangeRequest[] = [
@@ -43,13 +47,17 @@ const mockRequests: OrderChangeRequest[] = [
   },
 ]
 
+const mockPage = { content: mockRequests, page: 0, size: 20, totalElements: mockRequests.length, totalPages: 1, last: true }
+
 const server = setupServer(
-  http.get('/api/admin/orders/change-requests', () => HttpResponse.json({ content: mockRequests })),
+  http.get('/api/admin/orders/change-requests', () => HttpResponse.json(mockPage)),
 )
 
 beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
+  pushMock.mockClear()
+  mockSearch = ''
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
   })
@@ -67,7 +75,7 @@ beforeEach(() => {
       email: 'func@test.com',
       role: 'EMPLOYEE' as const,
       permissions: ['MANAGE_ORDER_STATUS_REQUESTS' as const],
-    },
+     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 
@@ -212,5 +220,43 @@ describe('SolicitacoesContent — busca', () => {
 
     await new Promise((r) => setTimeout(r, 0))
     expect(new URL(capturedUrl).searchParams.get('search')).toBe('20')
+  })
+})
+
+describe('SolicitacoesContent — paginação', () => {
+  it('com totalPages<=1, não exibe navegação de página', async () => {
+    renderContent()
+    await screen.findByRole('cell', { name: '#20' })
+    expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument()
+  })
+
+  it('URL com ?page=2 carrega a página 2 direto', async () => {
+    mockSearch = 'page=2'
+    let lastUrl = ''
+    server.use(
+      http.get('/api/admin/orders/change-requests', ({ request }) => {
+        lastUrl = request.url
+        return HttpResponse.json({ ...mockPage, page: 1, totalPages: 3, last: false })
+      }),
+    )
+    renderContent()
+    await screen.findByRole('cell', { name: '#20' })
+
+    expect(new URL(lastUrl).searchParams.get('page')).toBe('1')
+  })
+
+  it('clicar em "Next page" atualiza a URL para ?page=2', async () => {
+    server.use(
+      http.get('/api/admin/orders/change-requests', () =>
+        HttpResponse.json({ ...mockPage, totalPages: 3, last: false }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByRole('cell', { name: '#20' })
+
+    await user.click(screen.getByRole('button', { name: /next page/i }))
+
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/change-requests?page=2')
   })
 })

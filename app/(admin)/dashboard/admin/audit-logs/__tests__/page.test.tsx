@@ -2,7 +2,16 @@ import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+
+const pushMock = vi.fn()
+let mockSearch = ''
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: pushMock }),
+  usePathname: () => '/dashboard/admin/audit-logs',
+  useSearchParams: () => new URLSearchParams(mockSearch),
+}))
+
 import { ToastProvider, ToastViewport } from 'base-ds'
 import AuditLogsPage from '../page'
 import { useAuthStore } from '@/stores/auth.store'
@@ -19,12 +28,14 @@ const makeLog = (overrides: Partial<AuditLogResponse> = {}): AuditLogResponse =>
   ...overrides,
 })
 
-const makePage = (content: AuditLogResponse[]): AuditLogPage => ({
+const makePage = (content: AuditLogResponse[], overrides: Partial<AuditLogPage> = {}): AuditLogPage => ({
   content,
   totalElements: content.length,
   totalPages: 1,
   size: 20,
-  number: 0,
+  page: 0,
+  last: true,
+  ...overrides,
 })
 
 const server = setupServer(
@@ -41,6 +52,8 @@ const server = setupServer(
 beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
+  pushMock.mockClear()
+  mockSearch = ''
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
   })
@@ -171,5 +184,43 @@ describe('AuditLogsPage — Histórico de Auditoria', () => {
     await screen.findByText('uuid-order-1')
     const header = screen.getByRole('columnheader', { name: 'ID da Entidade' })
     expect(header.querySelector('button')).not.toBeInTheDocument()
+  })
+})
+
+describe('AuditLogsPage — paginação', () => {
+  it('com totalPages<=1, não exibe navegação de página', async () => {
+    renderPage()
+    await screen.findByText('uuid-order-1')
+    expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument()
+  })
+
+  it('URL com ?page=2 carrega a página 2 direto', async () => {
+    mockSearch = 'page=2'
+    let lastUrl = ''
+    server.use(
+      http.get('/api/admin/audit-logs', ({ request }) => {
+        lastUrl = request.url
+        return HttpResponse.json(makePage([makeLog()], { page: 1, totalPages: 3, last: false }))
+      }),
+    )
+    renderPage()
+    await screen.findByText('uuid-order-1')
+
+    expect(new URL(lastUrl).searchParams.get('page')).toBe('1')
+  })
+
+  it('clicar em "Next page" atualiza a URL para ?page=2', async () => {
+    server.use(
+      http.get('/api/admin/audit-logs', () =>
+        HttpResponse.json(makePage([makeLog()], { totalPages: 3, last: false })),
+      ),
+    )
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('uuid-order-1')
+
+    await user.click(screen.getByRole('button', { name: /next page/i }))
+
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/admin/audit-logs?page=2')
   })
 })

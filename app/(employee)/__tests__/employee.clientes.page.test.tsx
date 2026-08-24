@@ -8,6 +8,8 @@ const replaceMock = vi.fn()
 const pushMock = vi.fn()
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: replaceMock, push: pushMock }),
+  usePathname: () => '/dashboard/customers',
+  useSearchParams: () => new URLSearchParams(),
 }))
 import { ToastProvider, ToastViewport } from 'base-ds'
 import ClientesPage from '../dashboard/customers/page'
@@ -54,7 +56,7 @@ beforeEach(() => {
   useAuthStore.setState({
     accessToken: 'mock-token',
     isAuthenticated: true,
-    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_CUSTOMERS'] },
+    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_CUSTOMERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 
@@ -125,7 +127,7 @@ describe('ClientesPage — controle de acesso', () => {
     useAuthStore.setState({
       accessToken: 'tok',
       isAuthenticated: true,
-      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] },
+      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
     })
     await act(async () => {
       render(

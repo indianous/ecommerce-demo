@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import { OrdersContent } from './OrdersContent'
+import { EmployeeOrdersContent } from '@/components/content/EmployeeOrdersContent'
 
 export const metadata: Metadata = { title: 'Pedidos' }
 
 export default function PedidosPage() {
-  return <OrdersContent />
+  return <EmployeeOrdersContent />
 }

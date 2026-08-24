@@ -4,13 +4,16 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { ProductsContent } from '../ProductsContent'
+import { ProductsContent } from '@/components/content/ProductsContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { AdminProductPage, Category } from '@/types'
 
 const pushMock = vi.fn()
+let mockSearch = ''
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushMock }),
+  usePathname: () => '/dashboard/products',
+  useSearchParams: () => new URLSearchParams(mockSearch),
 }))
 
 const mockCategories: Category[] = [{ id: 'cat-1', name: 'Camisetas', slug: 'camisetas' }]
@@ -60,6 +63,7 @@ beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
   pushMock.mockClear()
+  mockSearch = ''
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
   })
@@ -77,7 +81,7 @@ beforeEach(() => {
       email: 'func@test.com',
       role: 'EMPLOYEE' as const,
       permissions: ['MANAGE_PRODUCTS' as const],
-    },
+     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 
@@ -167,5 +171,43 @@ describe('ProductsContent — busca', () => {
 
     await new Promise((r) => setTimeout(r, 0))
     expect(new URL(capturedUrl).searchParams.get('search')).toBe('branca')
+  })
+})
+
+describe('ProductsContent — paginação', () => {
+  it('com totalPages<=1, não exibe navegação de página', async () => {
+    renderContent()
+    await screen.findByRole('cell', { name: 'Camiseta Branca' })
+    expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument()
+  })
+
+  it('URL com ?page=2 carrega a página 2 direto', async () => {
+    mockSearch = 'page=2'
+    let lastUrl = ''
+    server.use(
+      http.get('/api/admin/products', ({ request }) => {
+        lastUrl = request.url
+        return HttpResponse.json({ ...mockPage, page: 1, totalPages: 3, last: false })
+      }),
+    )
+    renderContent()
+    await screen.findByRole('cell', { name: 'Camiseta Branca' })
+
+    expect(new URL(lastUrl).searchParams.get('page')).toBe('1')
+  })
+
+  it('clicar em "Next page" atualiza a URL para ?page=2', async () => {
+    server.use(
+      http.get('/api/admin/products', () =>
+        HttpResponse.json({ ...mockPage, totalPages: 3, last: false }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByRole('cell', { name: 'Camiseta Branca' })
+
+    await user.click(screen.getByRole('button', { name: /next page/i }))
+
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/products?page=2')
   })
 })

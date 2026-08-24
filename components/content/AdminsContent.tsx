@@ -1,46 +1,39 @@
 'use client'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Heading, SearchField, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { EmployeeManagementTable } from '@/components/admin/EmployeeManagementTable'
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 import { useConfirmDelete } from '@/lib/useConfirmDelete'
+import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { Employee, EmployeeFormData } from '@/types'
 
 export function AdminsContent() {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
-  const [admins, setAdmins] = useState<Employee[]>([])
-  const [loading, setLoading] = useState(true)
   const searchRef = useRef('')
 
-  const fetchAdmins = useCallback(async (searchTerm?: string) => {
-    if (!accessToken) return
+  const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<Employee> | null> => {
+    if (!accessToken) return null
+    if (searchRef.current) params.set('search', searchRef.current)
     try {
-      const term = searchTerm ?? searchRef.current
-      const params = new URLSearchParams()
-      if (term) params.set('search', term)
       const res = await fetch(`/api/admin/admins?${params}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       if (!res.ok) throw new Error()
-      const data = await res.json()
-      setAdmins(data.content ?? data)
+      return await res.json()
     } catch {
       toast({ variant: 'destructive', description: 'Erro ao carregar administradores.' })
-    } finally {
-      setLoading(false)
+      return null
     }
   }, [accessToken, toast])
 
+  const { page, items: admins, setItems: setAdmins, totalPages, loading, goToPage, reload } = usePaginatedFetch(fetchPage)
+
   const handleSearch = (value: string) => {
     searchRef.current = value
-    fetchAdmins(value)
+    reload()
   }
-
-  useEffect(() => {
-    fetchAdmins()
-  }, [fetchAdmins])
 
   const handleCreate = async (data: EmployeeFormData) => {
     if (!accessToken) return
@@ -110,6 +103,9 @@ export function AdminsContent() {
         onCreate={handleCreate}
         onDelete={setDeleteTarget}
         createLabel="Novo administrador"
+        page={page}
+        totalPages={totalPages}
+        onPageChange={goToPage}
       />
 
       <ConfirmDeleteDialog

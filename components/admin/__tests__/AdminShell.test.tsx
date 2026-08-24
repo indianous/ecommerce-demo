@@ -18,7 +18,7 @@ const authenticatedAdmin = {
   isAuthenticated: true,
   accessToken: 'tok',
   role: 'ADMIN' as const,
-  user: { id: '1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN' as const },
+  user: { id: '1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN' as const , permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
 }
 
 function renderAdminShell(pathname = '/dashboard/admin') {

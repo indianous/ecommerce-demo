@@ -24,7 +24,7 @@ describe('Employee ProfilePage', () => {
     useAuthStore.setState({
       isAuthenticated: true,
       accessToken: 'tok',
-      user: { id: '1', name: 'Funcionário', email: 'employee@test.com', role: 'EMPLOYEE' },
+      user: { id: '1', name: 'Funcionário', email: 'employee@test.com', role: 'EMPLOYEE', permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
     })
     renderPage()
     expect(screen.getByRole('heading', { name: /meu perfil/i })).toBeInTheDocument()
@@ -34,7 +34,7 @@ describe('Employee ProfilePage', () => {
     useAuthStore.setState({
       isAuthenticated: true,
       accessToken: 'tok',
-      user: { id: '1', name: 'Funcionário', email: 'employee@test.com', role: 'EMPLOYEE' },
+      user: { id: '1', name: 'Funcionário', email: 'employee@test.com', role: 'EMPLOYEE', permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
     })
     renderPage()
     expect(screen.getByText('Funcionário')).toBeInTheDocument()
@@ -45,7 +45,7 @@ describe('Employee ProfilePage', () => {
     useAuthStore.setState({
       isAuthenticated: true,
       accessToken: 'tok',
-      user: { id: '1', name: 'Funcionário', email: 'employee@test.com', role: 'EMPLOYEE' },
+      user: { id: '1', name: 'Funcionário', email: 'employee@test.com', role: 'EMPLOYEE', permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
     })
     renderPage()
     expect(screen.getByRole('heading', { name: /trocar senha/i })).toBeInTheDocument()

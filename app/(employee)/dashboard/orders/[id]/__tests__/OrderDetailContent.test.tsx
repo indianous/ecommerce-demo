@@ -10,7 +10,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: replaceMock, push: pushMock }),
 }))
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { OrderDetailContent } from '../OrderDetailContent'
+import { OrderDetailContent } from '@/components/content/OrderDetailContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { AdminOrderDetailResponse } from '@/types'
 
@@ -59,7 +59,7 @@ beforeEach(() => {
   useAuthStore.setState({
     accessToken: 'mock-token',
     isAuthenticated: true,
-    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PAYMENTS', 'MANAGE_ORDERS'] },
+    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PAYMENTS', 'MANAGE_ORDERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 
@@ -133,7 +133,7 @@ describe('OrderDetailContent — nota fiscal', () => {
     useAuthStore.setState({
       accessToken: 'mock-token',
       isAuthenticated: true,
-      user: { id: 'u-2', name: 'Func2', email: 'func2@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] },
+      user: { id: 'u-2', name: 'Func2', email: 'func2@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
     })
     renderPage()
 

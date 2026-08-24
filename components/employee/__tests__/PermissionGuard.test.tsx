@@ -21,6 +21,9 @@ function makeEmployee(permissions: EmployeePermission[] = []) {
       email: 'func@test.com',
       role: 'EMPLOYEE' as const,
       permissions,
+      phone: null,
+      birthDate: null,
+      gender: 'PREFIRO_NAO_DIZER' as const,
     },
   }
 }
@@ -132,6 +135,9 @@ describe('PermissionGuard', () => {
         email: 'admin@test.com',
         role: 'ADMIN' as const,
         permissions: [],
+        phone: null,
+        birthDate: null,
+        gender: 'PREFIRO_NAO_DIZER' as const,
       },
     })
 

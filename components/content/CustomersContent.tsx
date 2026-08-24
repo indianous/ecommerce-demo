@@ -1,47 +1,44 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button, Heading, Icon, SearchField, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
+import { PaginationBar } from '@/components/ui/PaginationBar'
 import { sortTableData } from '@/lib/sortTableData'
+import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { CustomerResponse } from '@/types'
 
 export function CustomersContent({ basePath = '/dashboard/customers' }: { basePath?: string }) {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
   const router = useRouter()
-  const [customers, setCustomers] = useState<CustomerResponse[]>([])
-  const [loading, setLoading] = useState(true)
+  const searchRef = useRef('')
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
-  const fetchCustomers = useCallback(
-    async (q: string) => {
-      if (!accessToken) return
-      setLoading(true)
-      try {
-        const params = new URLSearchParams()
-        if (q) params.set('search', q)
-        const res = await fetch(`/api/admin/customers?${params}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        })
-        if (!res.ok) throw new Error()
-        const data = await res.json()
-        setCustomers(data.content ?? data)
-      } catch {
-        toast({ variant: 'destructive', description: 'Erro ao carregar clientes.' })
-      } finally {
-        setLoading(false)
-      }
-    },
-    [accessToken, toast],
-  )
+  const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<CustomerResponse> | null> => {
+    if (!accessToken) return null
+    if (searchRef.current) params.set('search', searchRef.current)
+    try {
+      const res = await fetch(`/api/admin/customers?${params}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      if (!res.ok) throw new Error()
+      return await res.json()
+    } catch {
+      toast({ variant: 'destructive', description: 'Erro ao carregar clientes.' })
+      return null
+    }
+  }, [accessToken, toast])
 
-  useEffect(() => {
-    fetchCustomers('')
-  }, [fetchCustomers])
+  const { page, items: customers, totalPages, loading, goToPage, reload } = usePaginatedFetch(fetchPage)
+
+  const handleSearch = (value: string) => {
+    searchRef.current = value
+    reload()
+  }
 
   const sortedCustomers = sort ? sortTableData(customers, sort.key as keyof CustomerResponse, sort.direction, 'string') : customers
 
@@ -96,7 +93,7 @@ export function CustomersContent({ basePath = '/dashboard/customers' }: { basePa
           placeholder="Buscar por nome ou email..."
           buttonLabel="Buscar"
           buttonIconOnly
-          onSearch={fetchCustomers}
+          onSearch={handleSearch}
           className="mb-4"
         />
 
@@ -109,11 +106,14 @@ export function CustomersContent({ basePath = '/dashboard/customers' }: { basePa
         ) : customers.length === 0 ? (
           <Text size="sm" color="muted">Nenhum cliente encontrado.</Text>
         ) : (
-          <Table
-            columns={columns}
-            data={sortedCustomers}
-            onSort={(key, direction) => setSort({ key, direction })}
-          />
+          <>
+            <Table
+              columns={columns}
+              data={sortedCustomers}
+              onSort={(key, direction) => setSort({ key, direction })}
+            />
+            <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mt-4" />
+          </>
         )}
       </main>
     </PermissionGuard>

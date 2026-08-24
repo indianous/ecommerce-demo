@@ -5,8 +5,10 @@ import Link from 'next/link'
 import { FilterDropdown, FormField, Heading, Table, type TableColumn, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { PaginationBar } from '@/components/ui/PaginationBar'
 import { sortTableData } from '@/lib/sortTableData'
-import type { StockMovement, StockMovementPage } from '@/types'
+import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
+import type { StockMovement } from '@/types'
 
 interface Props {
   productId: string
@@ -25,11 +27,9 @@ const REASON_OPTIONS = [
 export function StockMovementHistoryContent({ productId, stockBasePath = '/dashboard/stock' }: Props) {
   const { accessToken } = useAuthStore()
   const [productName, setProductName] = useState('')
-  const [movements, setMovements] = useState<StockMovement[]>([])
   const [reason, setReason] = useState<string[]>([])
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
-  const [loading, setLoading] = useState(true)
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   useEffect(() => {
@@ -40,27 +40,19 @@ export function StockMovementHistoryContent({ productId, stockBasePath = '/dashb
       .catch(() => {})
   }, [accessToken, productId])
 
-  const fetchMovements = useCallback(async () => {
-    if (!accessToken) return
-    setLoading(true)
-    try {
-      const params = new URLSearchParams()
-      reason.forEach((r) => params.append('reason', r))
-      if (from) params.set('from', from)
-      if (to) params.set('to', to)
-      const res = await fetch(`/api/admin/products/${productId}/stock-movements?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      if (res.ok) {
-        const data: StockMovementPage = await res.json()
-        setMovements(data.content)
-      }
-    } finally {
-      setLoading(false)
-    }
+  const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<StockMovement> | null> => {
+    if (!accessToken) return null
+    reason.forEach((r) => params.append('reason', r))
+    if (from) params.set('from', from)
+    if (to) params.set('to', to)
+    const res = await fetch(`/api/admin/products/${productId}/stock-movements?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    if (!res.ok) return null
+    return await res.json()
   }, [accessToken, productId, reason, from, to])
 
-  useEffect(() => { fetchMovements() }, [fetchMovements])
+  const { page, items: movements, totalPages, loading, goToPage } = usePaginatedFetch(fetchPage)
 
   const sortedMovements = sort
     ? sortTableData(movements, sort.key as keyof StockMovement, sort.direction, sort.key === 'quantity' ? 'number' : sort.key === 'createdAt' ? 'date' : 'string')
@@ -125,11 +117,14 @@ export function StockMovementHistoryContent({ productId, stockBasePath = '/dashb
         ) : movements.length === 0 ? (
           <Text size="sm" color="muted">Nenhuma movimentação encontrada.</Text>
         ) : (
-          <Table
-            columns={columns}
-            data={sortedMovements}
-            onSort={(key, direction) => setSort({ key, direction })}
-          />
+          <>
+            <Table
+              columns={columns}
+              data={sortedMovements}
+              onSort={(key, direction) => setSort({ key, direction })}
+            />
+            <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mt-4" />
+          </>
         )}
       </main>
     </PermissionGuard>

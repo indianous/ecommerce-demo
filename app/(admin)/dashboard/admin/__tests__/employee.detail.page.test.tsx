@@ -4,7 +4,7 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { EmployeeDetailPage } from '../employees/[id]/EmployeeDetailContent'
+import { EmployeeDetailPage } from '@/components/content/EmployeeDetailContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { AuditLogPage, EmployeeDetailResponse } from '@/types'
 
@@ -33,7 +33,8 @@ const mockAuditLogs: AuditLogPage = {
   totalElements: 1,
   totalPages: 1,
   size: 10,
-  number: 0,
+  page: 0,
+  last: true,
 }
 
 const server = setupServer(

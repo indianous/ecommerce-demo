@@ -6,6 +6,8 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  usePathname: () => '/dashboard/admin/employees',
+  useSearchParams: () => new URLSearchParams(),
 }))
 
 import { ToastProvider, ToastViewport } from 'base-ds'
@@ -31,7 +33,9 @@ const mockEmployees: Employee[] = [
 ]
 
 const server = setupServer(
-  http.get('/api/admin/employees', () => HttpResponse.json(mockEmployees)),
+  http.get('/api/admin/employees', () =>
+    HttpResponse.json({ content: mockEmployees, page: 0, size: 20, totalElements: mockEmployees.length, totalPages: 1, last: true }),
+  ),
   http.put('/api/admin/employees/:id/permissions', () =>
     HttpResponse.json({ permissions: ['MANAGE_ORDERS'] }),
   ),
@@ -51,7 +55,7 @@ beforeEach(() => {
     accessToken: 'mock-token',
     isAuthenticated: true,
     role: 'ADMIN' as const,
-    user: { id: '1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN' as const },
+    user: { id: '1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN' as const , permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 

@@ -1,9 +1,11 @@
 'use client'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { FilterDropdown, Heading, Skeleton, Table, type TableColumn, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
+import { PaginationBar } from '@/components/ui/PaginationBar'
 import { sortTableData } from '@/lib/sortTableData'
-import type { AuditAction, AuditEntityType, AuditLogPage, AuditLogResponse } from '@/types'
+import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
+import type { AuditAction, AuditEntityType, AuditLogResponse } from '@/types'
 
 const ENTITY_TYPE_OPTIONS = [
   { value: 'ORDER', label: 'Pedido' },
@@ -53,34 +55,26 @@ const columns: TableColumn<AuditLogResponse>[] = [
 
 export function AuditLogsContent() {
   const { accessToken } = useAuthStore()
-  const [page, setPage] = useState<AuditLogPage | null>(null)
-  const [loading, setLoading] = useState(true)
   const [entityType, setEntityType] = useState<string[]>([])
   const [action, setAction] = useState<string[]>([])
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
-  const fetchLogs = useCallback(async () => {
-    if (!accessToken) return
-    setLoading(true)
+  const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<AuditLogResponse> | null> => {
+    if (!accessToken) return null
+    entityType.forEach((t) => params.append('entityType', t))
+    action.forEach((a) => params.append('action', a))
     try {
-      const params = new URLSearchParams()
-      entityType.forEach((t) => params.append('entityType', t))
-      action.forEach((a) => params.append('action', a))
       const res = await fetch(`/api/admin/audit-logs?${params.toString()}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
-      if (!res.ok) throw new Error()
-      setPage(await res.json())
+      if (!res.ok) return null
+      return await res.json()
     } catch {
-      // empty state handles no data
-    } finally {
-      setLoading(false)
+      return null
     }
   }, [accessToken, entityType, action])
 
-  useEffect(() => {
-    fetchLogs()
-  }, [fetchLogs])
+  const { page, items: logs, totalPages, loading, goToPage } = usePaginatedFetch(fetchPage)
 
   return (
     <div>
@@ -109,23 +103,26 @@ export function AuditLogsContent() {
             <Skeleton key={i} variant="line" height={48} className="mb-2" />
           ))}
         </div>
-      ) : !page || page.content.length === 0 ? (
+      ) : logs.length === 0 ? (
         <Text size="sm" color="muted">Nenhum log encontrado.</Text>
       ) : (
-        <Table
-          columns={columns}
-          data={
-            sort
-              ? sortTableData(
-                  page.content,
-                  sort.key as keyof AuditLogResponse,
-                  sort.direction,
-                  sort.key === 'createdAt' ? 'date' : 'string',
-                )
-              : page.content
-          }
-          onSort={(key, direction) => setSort({ key, direction })}
-        />
+        <>
+          <Table
+            columns={columns}
+            data={
+              sort
+                ? sortTableData(
+                    logs,
+                    sort.key as keyof AuditLogResponse,
+                    sort.direction,
+                    sort.key === 'createdAt' ? 'date' : 'string',
+                  )
+                : logs
+            }
+            onSort={(key, direction) => setSort({ key, direction })}
+          />
+          <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mt-4" />
+        </>
       )}
     </div>
   )

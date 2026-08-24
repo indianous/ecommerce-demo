@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { SiteContent } from '@/app/(employee)/dashboard/site/SiteContent'
+import { SiteContent } from '@/components/content/SiteContent'
 
 export const metadata: Metadata = { title: 'Site' }
 

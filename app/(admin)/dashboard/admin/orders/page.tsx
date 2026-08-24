@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import { OrdersContent } from '@/app/(employee)/dashboard/orders/OrdersContent'
+import { EmployeeOrdersContent } from '@/components/content/EmployeeOrdersContent'
 
 export const metadata: Metadata = { title: 'Pedidos' }
 
 export default function AdminOrdersPage() {
-  return <OrdersContent orderBasePath="/dashboard/admin/orders" />
+  return <EmployeeOrdersContent orderBasePath="/dashboard/admin/orders" />
 }

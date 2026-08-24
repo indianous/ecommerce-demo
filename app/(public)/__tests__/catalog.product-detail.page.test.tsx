@@ -19,6 +19,8 @@ function renderWithToast(jsx: ReactElement) {
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => '/catalog/mechanical-keyboard',
+  useSearchParams: () => new URLSearchParams(),
   redirect: vi.fn((url: string) => {
     throw new Error(`NEXT_REDIRECT:${url}`)
   }),
@@ -104,7 +106,7 @@ afterAll(() => server.close())
 
 describe('ProductDetailPage', () => {
   it('renderiza nome, descrição, preço, categoria e nota média do produto', async () => {
-    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }), searchParams: Promise.resolve({}) })
     renderWithToast(jsx)
 
     expect(screen.getByRole('heading', { name: 'Mechanical Keyboard' })).toBeInTheDocument()
@@ -115,7 +117,7 @@ describe('ProductDetailPage', () => {
   })
 
   it('renderiza breadcrumb Catálogo > Categoria > Nome do produto', async () => {
-    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }), searchParams: Promise.resolve({}) })
     renderWithToast(jsx)
 
     const breadcrumb = screen.getByRole('navigation', { name: /breadcrumb/i })
@@ -139,7 +141,7 @@ describe('ProductDetailPage', () => {
         }),
       ),
     )
-    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }), searchParams: Promise.resolve({}) })
     renderWithToast(jsx)
 
     expect(screen.getAllByText('Electronics').length).toBeGreaterThan(0)
@@ -153,14 +155,14 @@ describe('ProductDetailPage', () => {
       ),
       http.get('http://localhost:8080/api/v1/products/prod-1/reviews', () => HttpResponse.json(makeReviewPage([]))),
     )
-    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }), searchParams: Promise.resolve({}) })
     renderWithToast(jsx)
 
     expect(screen.getByText(/seja o primeiro a avaliar/i)).toBeInTheDocument()
   })
 
   it('lista os comentários e fotos das avaliações existentes', async () => {
-    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }), searchParams: Promise.resolve({}) })
     renderWithToast(jsx)
 
     expect(await screen.findByText('Excelente produto!')).toBeInTheDocument()
@@ -171,7 +173,7 @@ describe('ProductDetailPage', () => {
   })
 
   it('slug inexistente e UUID inexistente aciona notFound()', async () => {
-    await expect(ProductDetailPage({ params: Promise.resolve({ slug: 'missing' }) })).rejects.toThrow(
+    await expect(ProductDetailPage({ params: Promise.resolve({ slug: 'missing' }), searchParams: Promise.resolve({}) })).rejects.toThrow(
       'NEXT_NOT_FOUND',
     )
   })
@@ -182,7 +184,7 @@ describe('ProductDetailPage', () => {
         HttpResponse.json({ ...mockProduct, active: false, status: 'UNAVAILABLE' }),
       ),
     )
-    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }), searchParams: Promise.resolve({}) })
     renderWithToast(jsx)
 
     expect(screen.getByRole('heading', { name: 'Mechanical Keyboard' })).toBeInTheDocument()
@@ -190,7 +192,7 @@ describe('ProductDetailPage', () => {
   })
 
   it('acessar a rota com um UUID válido redireciona para /catalog/{slug} do mesmo produto', async () => {
-    await expect(ProductDetailPage({ params: Promise.resolve({ slug: 'prod-1' }) })).rejects.toThrow(
+    await expect(ProductDetailPage({ params: Promise.resolve({ slug: 'prod-1' }), searchParams: Promise.resolve({}) })).rejects.toThrow(
       'NEXT_REDIRECT:/catalog/mechanical-keyboard',
     )
     expect(redirect).toHaveBeenCalledWith('/catalog/mechanical-keyboard')
@@ -202,7 +204,7 @@ describe('ProductDetailPage', () => {
         HttpResponse.json({ ...mockProduct, effectivePrice: 399.9, onPromotion: true }),
       ),
     )
-    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }), searchParams: Promise.resolve({}) })
     renderWithToast(jsx)
 
     expect(screen.getByText(/promoção/i)).toBeInTheDocument()
@@ -215,7 +217,7 @@ describe('ProductDetailPage', () => {
     server.use(
       http.get('http://localhost:8080/api/v1/catalog/products/prod-1/related', () => HttpResponse.json([related])),
     )
-    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }), searchParams: Promise.resolve({}) })
     renderWithToast(jsx)
 
     expect(screen.getByRole('heading', { name: /produtos relacionados/i })).toBeInTheDocument()
@@ -223,7 +225,7 @@ describe('ProductDetailPage', () => {
   })
 
   it('lista vazia de relacionados: a seção não aparece', async () => {
-    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }), searchParams: Promise.resolve({}) })
     renderWithToast(jsx)
 
     expect(screen.queryByRole('heading', { name: /produtos relacionados/i })).not.toBeInTheDocument()
@@ -238,7 +240,7 @@ describe('ProductDetailPage', () => {
         }),
       ),
     )
-    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }), searchParams: Promise.resolve({}) })
     renderWithToast(jsx)
 
     const gallery = screen.getByRole('group', { name: /product image gallery/i })
@@ -251,7 +253,7 @@ describe('ProductDetailPage', () => {
         HttpResponse.json({ ...mockProduct, imageUrls: ['https://cdn.example.com/1.jpg'] }),
       ),
     )
-    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }), searchParams: Promise.resolve({}) })
     renderWithToast(jsx)
 
     const gallery = screen.getByRole('group', { name: /product image gallery/i })
@@ -259,7 +261,7 @@ describe('ProductDetailPage', () => {
   })
 
   it('produto sem nenhuma imagem cai no placeholder, sem renderizar a galeria', async () => {
-    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }) })
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }), searchParams: Promise.resolve({}) })
     renderWithToast(jsx)
 
     expect(screen.queryByRole('group', { name: /product image gallery/i })).not.toBeInTheDocument()

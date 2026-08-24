@@ -42,9 +42,9 @@ async function fetchProductByUuid(id: string): Promise<Product | null> {
   }
 }
 
-async function fetchReviews(id: string): Promise<ProductReviewPage> {
+async function fetchReviews(id: string, page: number): Promise<ProductReviewPage> {
   try {
-    const res = await fetch(`${API}/products/${id}/reviews`, { next: { revalidate: 30 } })
+    const res = await fetch(`${API}/products/${id}/reviews?page=${page}`, { next: { revalidate: 30 } })
     if (!res.ok) return EMPTY_REVIEWS
     return res.json()
   } catch {
@@ -64,6 +64,7 @@ async function fetchRelatedProducts(id: string): Promise<Product[]> {
 
 interface Props {
   params: Promise<{ slug: string }>
+  searchParams: Promise<{ reviewsPage?: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -76,14 +77,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function ProductDetailPage({ params }: Props) {
+export default async function ProductDetailPage({ params, searchParams }: Props) {
   const { slug } = await params
+  const { reviewsPage } = await searchParams
   const bySlug = await fetchProductBySlug(slug)
   const product = bySlug ?? (await fetchProductByUuid(slug))
   if (!product) notFound()
   if (!bySlug) redirect(`/catalog/${product.slug}`)
 
-  const reviews = await fetchReviews(product.id)
+  const reviews = await fetchReviews(product.id, Math.max(0, Number(reviewsPage ?? '1') - 1))
   const relatedProducts = await fetchRelatedProducts(product.id)
 
   const onPromotion = product.onPromotion ?? false
@@ -145,7 +147,7 @@ export default async function ProductDetailPage({ params }: Props) {
         </div>
       </div>
 
-      <ProductReviewsSection productId={product.id} reviews={reviews} />
+      <ProductReviewsSection reviews={reviews} />
 
       <ProductCarousel title="Produtos relacionados" products={relatedProducts} />
 

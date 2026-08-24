@@ -10,6 +10,8 @@ import type { AdminOrderResponse } from '@/types'
 const pushMock = vi.fn()
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushMock, replace: vi.fn() }),
+  usePathname: () => '/dashboard/admin/orders',
+  useSearchParams: () => new URLSearchParams(),
 }))
 
 const mockOrder: AdminOrderResponse = {
@@ -46,7 +48,7 @@ beforeEach(() => {
     accessToken: 'mock-token',
     isAuthenticated: true,
     role: 'ADMIN' as const,
-    user: { id: '1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN' as const, permissions: [] },
+    user: { id: '1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN' as const, permissions: [] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 

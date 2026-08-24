@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { EmployeeDetailPage } from './EmployeeDetailContent'
+import { EmployeeDetailPage } from '@/components/content/EmployeeDetailContent'
 
 export const metadata: Metadata = { title: 'Detalhes do funcionário' }
 

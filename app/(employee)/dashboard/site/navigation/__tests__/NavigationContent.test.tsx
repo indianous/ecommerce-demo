@@ -9,7 +9,7 @@ vi.mock('next/navigation', () => ({
 }))
 
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { NavigationContent } from '../NavigationContent'
+import { NavigationContent } from '@/components/content/NavigationContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { SiteNavItem } from '@/types'
 
@@ -78,7 +78,7 @@ beforeEach(() => {
   useAuthStore.setState({
     accessToken: 'mock-token',
     isAuthenticated: true,
-    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_SITE'] },
+    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_SITE'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 
@@ -219,7 +219,7 @@ describe('NavigationContent — controle de acesso', () => {
     useAuthStore.setState({
       accessToken: 'tok',
       isAuthenticated: true,
-      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] },
+      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
     })
     await act(async () => {
       render(

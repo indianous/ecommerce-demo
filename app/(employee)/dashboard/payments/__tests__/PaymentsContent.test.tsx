@@ -4,13 +4,16 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { PaymentsContent } from '../PaymentsContent'
+import { PaymentsContent } from '@/components/content/PaymentsContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { AdminOrderPage } from '@/types'
 
 const pushMock = vi.fn()
+let mockSearch = ''
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushMock }),
+  usePathname: () => '/dashboard/payments',
+  useSearchParams: () => new URLSearchParams(mockSearch),
 }))
 
 const mockPage: AdminOrderPage = {
@@ -58,6 +61,7 @@ beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
   pushMock.mockClear()
+  mockSearch = ''
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
   })
@@ -75,7 +79,7 @@ beforeEach(() => {
       email: 'func@test.com',
       role: 'EMPLOYEE' as const,
       permissions: ['MANAGE_PAYMENTS' as const],
-    },
+     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 
@@ -213,5 +217,43 @@ describe('PaymentsContent — rejeição com motivo', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(patchCalled).toBe(false)
     expect(screen.getByText('Ana Lima')).toBeInTheDocument()
+  })
+})
+
+describe('PaymentsContent — paginação', () => {
+  it('com totalPages<=1, não exibe navegação de página', async () => {
+    renderContent()
+    await screen.findByText('Ana Lima')
+    expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument()
+  })
+
+  it('URL com ?page=2 carrega a página 2 direto', async () => {
+    mockSearch = 'page=2'
+    let lastUrl = ''
+    server.use(
+      http.get('/api/admin/orders', ({ request }) => {
+        lastUrl = request.url
+        return HttpResponse.json({ ...mockPage, page: 1, totalPages: 3, last: false })
+      }),
+    )
+    renderContent()
+    await screen.findByText('Ana Lima')
+
+    expect(new URL(lastUrl).searchParams.get('page')).toBe('1')
+  })
+
+  it('clicar em "Next page" atualiza a URL para ?page=2', async () => {
+    server.use(
+      http.get('/api/admin/orders', () =>
+        HttpResponse.json({ ...mockPage, totalPages: 3, last: false }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByText('Ana Lima')
+
+    await user.click(screen.getByRole('button', { name: /next page/i }))
+
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/payments?page=2')
   })
 })

@@ -8,6 +8,8 @@ const replaceMock = vi.fn()
 const pushMock = vi.fn()
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: replaceMock, push: pushMock }),
+  usePathname: () => '/dashboard/employees',
+  useSearchParams: () => new URLSearchParams(),
 }))
 import { ToastProvider, ToastViewport } from 'base-ds'
 import EmployeeFuncionariosPage from '../dashboard/employees/page'
@@ -36,10 +38,13 @@ const newEmployee: Employee = {
   name: 'Lucas Ramos',
   email: 'lucas@test.com',
   role: 'EMPLOYEE',
+  permissions: [],
 }
 
 const server = setupServer(
-  http.get('/api/admin/employees', () => HttpResponse.json(mockEmployees)),
+  http.get('/api/admin/employees', () =>
+    HttpResponse.json({ content: mockEmployees, page: 0, size: 20, totalElements: mockEmployees.length, totalPages: 1, last: true }),
+  ),
   http.post('/api/admin/employees', () => HttpResponse.json(newEmployee, { status: 201 })),
   http.delete('/api/admin/employees/:id', () => new HttpResponse(null, { status: 204 })),
   http.put('/api/admin/employees/:id/permissions', () =>
@@ -68,7 +73,7 @@ beforeEach(() => {
       email: 'manager@test.com',
       role: 'EMPLOYEE',
       permissions: ['MANAGE_EMPLOYEES'],
-    },
+     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 
@@ -244,7 +249,7 @@ describe('EmployeeFuncionariosPage — controle de acesso', () => {
     useAuthStore.setState({
       accessToken: 'tok',
       isAuthenticated: true,
-      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] },
+      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
     })
     await act(async () => {
       render(<ToastProvider><EmployeeFuncionariosPage /></ToastProvider>)

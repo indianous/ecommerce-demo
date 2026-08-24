@@ -1,14 +1,16 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Badge, Button, FilterDropdown, Heading, Icon, SearchField, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
+import { PaginationBar } from '@/components/ui/PaginationBar'
 import { formatBRL } from '@/lib/format'
 import { sortTableData } from '@/lib/sortTableData'
-import type { AdminOrderResponse, AdminOrderPage, OrderStatus } from '@/types'
+import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
+import type { AdminOrderResponse, OrderStatus } from '@/types'
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   PENDING: 'Pendente',
@@ -19,53 +21,47 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
   CANCELLED: 'Cancelado',
 }
 
-const STATUS_BADGE_VARIANT: Record<OrderStatus, 'default' | 'success' | 'warning' | 'destructive' | 'secondary'> = {
+const STATUS_BADGE_VARIANT: Record<OrderStatus, 'default' | 'success' | 'warning' | 'danger'> = {
   PENDING: 'warning',
   CONFIRMED: 'default',
-  SHIPPED: 'secondary',
+  SHIPPED: 'default',
   RETURNED: 'warning',
   DELIVERED: 'success',
-  CANCELLED: 'destructive',
+  CANCELLED: 'danger',
 }
 
 const ALL_STATUSES: OrderStatus[] = ['PENDING', 'CONFIRMED', 'SHIPPED', 'RETURNED', 'DELIVERED', 'CANCELLED']
 
-export function OrdersContent({ orderBasePath = '/dashboard/orders' }: { orderBasePath?: string }) {
+export function EmployeeOrdersContent({ orderBasePath = '/dashboard/orders' }: { orderBasePath?: string }) {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
   const router = useRouter()
-  const [orders, setOrders] = useState<AdminOrderResponse[]>([])
-  const [loading, setLoading] = useState(true)
   const searchRef = useRef('')
   const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
-  const fetchOrders = useCallback(async (searchTerm?: string) => {
-    if (!accessToken) return
-    const term = searchTerm ?? searchRef.current
-    const params = new URLSearchParams({ page: '0', size: '20' })
-    if (term) params.set('search', term)
+  const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<AdminOrderResponse> | null> => {
+    if (!accessToken) return null
+    if (searchRef.current) params.set('search', searchRef.current)
     statusFilter.forEach((s) => params.append('status', s))
     try {
       const res = await fetch(`/api/admin/orders?${params.toString()}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       if (!res.ok) throw new Error()
-      const data: AdminOrderPage = await res.json()
-      setOrders(data.content)
+      return await res.json()
     } catch {
       toast({ variant: 'destructive', description: 'Erro ao carregar pedidos.' })
-    } finally {
-      setLoading(false)
+      return null
     }
   }, [accessToken, statusFilter, toast])
 
+  const { page, items: orders, totalPages, loading, goToPage, reload } = usePaginatedFetch(fetchPage)
+
   const handleSearch = (value: string) => {
     searchRef.current = value
-    fetchOrders(value)
+    reload()
   }
-
-  useEffect(() => { fetchOrders() }, [fetchOrders])
 
   const sortedOrders = sort
     ? sortTableData(orders, sort.key as keyof AdminOrderResponse, sort.direction, sort.key === 'totalAmount' ? 'number' : sort.key === 'orderNumber' ? 'number' : 'string')
@@ -143,12 +139,15 @@ export function OrdersContent({ orderBasePath = '/dashboard/orders' }: { orderBa
         ) : orders.length === 0 ? (
           <Text size="sm" color="muted">Nenhum pedido encontrado.</Text>
         ) : (
-          <Table
-            columns={columns}
-            data={sortedOrders}
-            onSort={(key, direction) => setSort({ key, direction })}
-            className="mb-6"
-          />
+          <>
+            <Table
+              columns={columns}
+              data={sortedOrders}
+              onSort={(key, direction) => setSort({ key, direction })}
+              className="mb-6"
+            />
+            <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mb-6" />
+          </>
         )}
       </main>
     </PermissionGuard>

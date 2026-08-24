@@ -4,7 +4,7 @@ import { Heading, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { ChangePasswordForm } from '@/components/forms/ChangePasswordForm'
 
-export function ProfileContent() {
+export function AdminProfileContent() {
   const user = useAuthStore((s) => s.user)
 
   return (

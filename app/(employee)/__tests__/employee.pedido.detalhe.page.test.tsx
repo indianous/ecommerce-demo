@@ -8,7 +8,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), back: vi.fn(), replace: vi.fn() }),
 }))
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { OrderDetailContent } from '../dashboard/orders/[id]/OrderDetailContent'
+import { OrderDetailContent } from '@/components/content/OrderDetailContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { AdminOrderDetailResponse, OrderStatus } from '@/types'
 
@@ -82,7 +82,7 @@ beforeEach(() => {
   useAuthStore.setState({
     accessToken: 'mock-token',
     isAuthenticated: true,
-    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] },
+    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 

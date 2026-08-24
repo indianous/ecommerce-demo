@@ -5,12 +5,16 @@ import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const replaceMock = vi.fn()
+const pushMock = vi.fn()
+let mockSearch = ''
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: replaceMock, push: vi.fn() }),
+  useRouter: () => ({ replace: replaceMock, push: pushMock }),
+  usePathname: () => '/dashboard/products/deleted',
+  useSearchParams: () => new URLSearchParams(mockSearch),
 }))
 
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { DeletedProductsContent } from '../dashboard/products/deleted/DeletedProductsContent'
+import { DeletedProductsContent } from '@/components/content/DeletedProductsContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Product } from '@/types'
 
@@ -61,6 +65,8 @@ beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
   replaceMock.mockClear()
+  pushMock.mockClear()
+  mockSearch = ''
   lastRestoreId = ''
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
@@ -73,7 +79,7 @@ beforeEach(() => {
   useAuthStore.setState({
     accessToken: 'mock-token',
     isAuthenticated: true,
-    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['RESTORE_PRODUCTS'] },
+    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['RESTORE_PRODUCTS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 
@@ -142,11 +148,34 @@ describe('DeletedProductsContent', () => {
     useAuthStore.setState({
       accessToken: 'tok',
       isAuthenticated: true,
-      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'] },
+      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
     })
     await act(async () => {
       render(<ToastProvider><DeletedProductsContent /></ToastProvider>)
     })
     expect(replaceMock).toHaveBeenCalledWith('/dashboard')
+  })
+})
+
+describe('DeletedProductsContent — paginação', () => {
+  it('com totalPages<=1, não exibe navegação de página', async () => {
+    renderDeleted()
+    await screen.findByText('Headset Antigo')
+    expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument()
+  })
+
+  it('clicar em "Next page" atualiza a URL para ?page=2', async () => {
+    server.use(
+      http.get('/api/admin/products', () =>
+        HttpResponse.json({ ...makePage(deletedProducts), totalPages: 3, last: false }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderDeleted()
+    await screen.findByText('Headset Antigo')
+
+    await user.click(screen.getByRole('button', { name: /next page/i }))
+
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/products/deleted?page=2')
   })
 })

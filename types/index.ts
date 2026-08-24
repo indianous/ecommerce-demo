@@ -543,10 +543,11 @@ export interface AuditLogResponse {
 
 export interface AuditLogPage {
   content: AuditLogResponse[]
+  page: number
+  size: number
   totalElements: number
   totalPages: number
-  size: number
-  number: number
+  last: boolean
 }
 
 export interface ProductReview {

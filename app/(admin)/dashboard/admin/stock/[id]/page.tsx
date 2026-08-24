@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { StockMovementHistoryContent } from '@/app/(employee)/dashboard/stock/[id]/StockMovementHistoryContent'
+import { StockMovementHistoryContent } from '@/components/content/StockMovementHistoryContent'
 
 export const metadata: Metadata = { title: 'Detalhes do estoque' }
 

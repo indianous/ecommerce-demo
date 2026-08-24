@@ -24,10 +24,10 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
   useEffect(() => {
     if (!accessToken) return
     Promise.all([
-      fetch('/api/categories').then((r) => (r.ok ? r.json() : [])),
+      fetch('/api/categories').then((r) => (r.ok ? (r.json() as Promise<Category[]>) : [])),
       fetch(`/api/admin/products/${id}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
-      }).then((r) => (r.ok ? r.json() : null)),
+      }).then((r) => (r.ok ? (r.json() as Promise<Product>) : null)),
     ]).then(([cats, product]) => {
       setCategories(cats)
       if (product) {

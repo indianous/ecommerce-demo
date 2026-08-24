@@ -89,7 +89,7 @@ export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/em
               {employee.email}
               <CopyButton value={employee.email} label="e-mail" />
             </p>
-            <Badge variant="secondary">{employee.role}</Badge>
+            <Badge variant="default">{employee.role}</Badge>
           </div>
         </div>
 

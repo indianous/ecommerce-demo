@@ -7,6 +7,8 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 const replaceMock = vi.fn()
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: replaceMock }),
+  usePathname: () => '/dashboard/change-requests',
+  useSearchParams: () => new URLSearchParams(),
 }))
 import { ToastProvider, ToastViewport } from 'base-ds'
 import SolicitacoesPage from '../dashboard/change-requests/page'
@@ -82,7 +84,7 @@ beforeEach(() => {
   useAuthStore.setState({
     accessToken: 'mock-token',
     isAuthenticated: true,
-    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDER_STATUS_REQUESTS'] },
+    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDER_STATUS_REQUESTS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 
@@ -259,7 +261,7 @@ describe('SolicitacoesPage — controle de acesso', () => {
     useAuthStore.setState({
       accessToken: 'tok',
       isAuthenticated: true,
-      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] },
+      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
     })
     await act(async () => {
       render(

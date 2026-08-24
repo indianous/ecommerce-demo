@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { ReviewsContent } from './ReviewsContent'
+import { ReviewsContent } from '@/components/content/ReviewsContent'
 
 export const metadata: Metadata = { title: 'Minhas avaliações' }
 

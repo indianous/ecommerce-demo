@@ -7,8 +7,8 @@ import { EmployeeManagementTable } from '../EmployeeManagementTable'
 import type { Employee, EmployeeFormData } from '@/types'
 
 const mockEmployees: Employee[] = [
-  { id: 'emp-1', name: 'Ana Costa', email: 'ana@test.com', role: 'EMPLOYEE' },
-  { id: 'emp-2', name: 'Bruno Lima', email: 'bruno@test.com', role: 'EMPLOYEE' },
+  { id: 'emp-1', name: 'Ana Costa', email: 'ana@test.com', role: 'EMPLOYEE', permissions: [] },
+  { id: 'emp-2', name: 'Bruno Lima', email: 'bruno@test.com', role: 'EMPLOYEE', permissions: [] },
 ]
 
 function renderTable(props: {
@@ -181,5 +181,36 @@ describe('EmployeeManagementTable', () => {
     renderTable()
     const header = screen.getByRole('columnheader', { name: /e-mail/i })
     expect(header.querySelector('button')).toBeInTheDocument()
+  })
+
+  it('sem onPageChange, não exibe navegação de página mesmo com totalPages > 1', () => {
+    render(
+      <ToastProvider>
+        <EmployeeManagementTable employees={mockEmployees} onDelete={vi.fn()} onCreate={vi.fn()} loading={false} totalPages={3} />
+      </ToastProvider>,
+    )
+    expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument()
+  })
+
+  it('com onPageChange e totalPages > 1, exibe navegação de página e chama onPageChange ao clicar em "Next page"', async () => {
+    const onPageChange = vi.fn()
+    const user = userEvent.setup()
+    render(
+      <ToastProvider>
+        <EmployeeManagementTable
+          employees={mockEmployees}
+          onDelete={vi.fn()}
+          onCreate={vi.fn()}
+          loading={false}
+          page={1}
+          totalPages={3}
+          onPageChange={onPageChange}
+        />
+      </ToastProvider>,
+    )
+
+    expect(screen.getByRole('navigation', { name: /pagination/i })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /next page/i }))
+    expect(onPageChange).toHaveBeenCalledWith(2)
   })
 })

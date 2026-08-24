@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import { ProfileContent } from './ProfileContent'
+import { CustomerProfileContent } from '@/components/content/CustomerProfileContent'
 
 export const metadata: Metadata = { title: 'Meus dados' }
 
 export default function ProfilePage() {
-  return <ProfileContent />
+  return <CustomerProfileContent />
 }

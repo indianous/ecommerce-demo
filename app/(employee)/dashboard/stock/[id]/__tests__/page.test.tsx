@@ -4,12 +4,16 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { StockMovementHistoryContent } from '../StockMovementHistoryContent'
+import { StockMovementHistoryContent } from '@/components/content/StockMovementHistoryContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { StockMovement } from '@/types'
 
+const pushMock = vi.fn()
+let mockSearch = ''
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  useRouter: () => ({ replace: vi.fn(), push: pushMock }),
+  usePathname: () => '/dashboard/stock/prod-1',
+  useSearchParams: () => new URLSearchParams(mockSearch),
 }))
 
 const mockMovement: StockMovement = {
@@ -57,6 +61,8 @@ afterEach(() => {
   server.resetHandlers()
   lastMovementsUrl = ''
   movementsResponse = [mockMovement]
+  pushMock.mockClear()
+  mockSearch = ''
 })
 afterAll(() => server.close())
 
@@ -64,7 +70,7 @@ beforeEach(() => {
   useAuthStore.setState({
     accessToken: 'mock-token',
     isAuthenticated: true,
-    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_STOCK'] },
+    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_STOCK'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 
@@ -160,5 +166,46 @@ describe('StockMovementHistoryContent', () => {
     await user.click(within(header).getByRole('button'))
     const rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
     expect(rows[0]).toContain('SALE')
+  })
+})
+
+describe('StockMovementHistoryContent — paginação', () => {
+  it('com totalPages<=1, não exibe navegação de página', async () => {
+    renderHistory()
+    await screen.findByText('PURCHASE')
+    expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument()
+  })
+
+  it('URL com ?page=2 carrega a página 2 direto', async () => {
+    mockSearch = 'page=2'
+    server.use(
+      http.get('/api/admin/products/:id/stock-movements', ({ request }) => {
+        lastMovementsUrl = request.url
+        return HttpResponse.json({
+          content: movementsResponse, page: 1, size: 20, totalElements: 3, totalPages: 3, last: false,
+        })
+      }),
+    )
+    renderHistory()
+    await screen.findByText('PURCHASE')
+
+    expect(new URL(lastMovementsUrl).searchParams.get('page')).toBe('1')
+  })
+
+  it('clicar em "Next page" atualiza a URL para ?page=2', async () => {
+    server.use(
+      http.get('/api/admin/products/:id/stock-movements', () =>
+        HttpResponse.json({
+          content: movementsResponse, page: 0, size: 20, totalElements: 3, totalPages: 3, last: false,
+        }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderHistory()
+    await screen.findByText('PURCHASE')
+
+    await user.click(screen.getByRole('button', { name: /next page/i }))
+
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/stock/prod-1?page=2')
   })
 })

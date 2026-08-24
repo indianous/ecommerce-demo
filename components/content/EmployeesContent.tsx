@@ -1,19 +1,18 @@
 'use client'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Button, Checkbox, Dialog, FilterDropdown, Heading, Icon, SearchField, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { EmployeeManagementTable } from '@/components/admin/EmployeeManagementTable'
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 import { useConfirmDelete } from '@/lib/useConfirmDelete'
+import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions'
 import type { Employee, EmployeeFormData, EmployeePermission } from '@/types'
 
 export function EmployeesContent() {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
-  const [employees, setEmployees] = useState<Employee[]>([])
-  const [loading, setLoading] = useState(true)
   const searchRef = useRef('')
   const [permissionFilter, setPermissionFilter] = useState<string[]>([])
 
@@ -21,34 +20,29 @@ export function EmployeesContent() {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const [editedPerms, setEditedPerms] = useState<EmployeePermission[]>([])
 
-  const fetchEmployees = useCallback(async (searchTerm?: string) => {
-    if (!accessToken) return
+  const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<Employee> | null> => {
+    if (!accessToken) return null
+    params.set('role', 'EMPLOYEE')
+    if (searchRef.current) params.set('search', searchRef.current)
+    permissionFilter.forEach((p) => params.append('permission', p))
     try {
-      const term = searchTerm ?? searchRef.current
-      const params = new URLSearchParams({ role: 'EMPLOYEE' })
-      if (term) params.set('search', term)
-      permissionFilter.forEach((p) => params.append('permission', p))
       const res = await fetch(`/api/admin/employees?${params}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       if (!res.ok) throw new Error()
-      const data = await res.json()
-      setEmployees(data.content ?? data)
+      return await res.json()
     } catch {
       toast({ variant: 'destructive', description: 'Erro ao carregar funcionários.' })
-    } finally {
-      setLoading(false)
+      return null
     }
   }, [accessToken, permissionFilter, toast])
 
+  const { page, items: employees, setItems: setEmployees, totalPages, loading, goToPage, reload } = usePaginatedFetch(fetchPage)
+
   const handleSearch = (value: string) => {
     searchRef.current = value
-    fetchEmployees(value)
+    reload()
   }
-
-  useEffect(() => {
-    fetchEmployees()
-  }, [fetchEmployees])
 
   const handleCreate = async (data: EmployeeFormData) => {
     if (!accessToken) return
@@ -155,6 +149,9 @@ export function EmployeesContent() {
           onCreate={handleCreate}
           onDelete={setDeleteTarget}
           onManagePermissions={openPermissionsDialog}
+          page={page}
+          totalPages={totalPages}
+          onPageChange={goToPage}
         />
 
         <Dialog

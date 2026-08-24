@@ -11,7 +11,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: replaceMock, push: pushMock }),
 }))
 
-import { ProductReviewsModerationContent } from '../ProductReviewsModerationContent'
+import { ProductReviewsModerationContent } from '@/components/content/ProductReviewsModerationContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { ProductReview, ProductReviewPage } from '@/types'
 
@@ -82,7 +82,7 @@ describe('ProductReviewsModerationContent', () => {
       useAuthStore.setState({
         accessToken: 'mock-token',
         isAuthenticated: true,
-        user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'] },
+        user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
       })
     })
     renderModeration()
@@ -96,7 +96,7 @@ describe('ProductReviewsModerationContent', () => {
       useAuthStore.setState({
         accessToken: 'mock-token',
         isAuthenticated: true,
-        user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'] },
+        user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
       })
     })
     const user = userEvent.setup()
@@ -117,7 +117,7 @@ describe('ProductReviewsModerationContent', () => {
       useAuthStore.setState({
         accessToken: 'mock-token',
         isAuthenticated: true,
-        user: { id: 'u-2', name: 'Sem Permissão', email: 'no@test.com', role: 'EMPLOYEE', permissions: [] },
+        user: { id: 'u-2', name: 'Sem Permissão', email: 'no@test.com', role: 'EMPLOYEE', permissions: [] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
       })
     })
     renderModeration()

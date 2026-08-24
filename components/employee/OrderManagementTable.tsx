@@ -15,6 +15,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
   PENDING: 'Pendente',
   CONFIRMED: 'Confirmado',
   SHIPPED: 'Enviado',
+  RETURNED: 'Devolvido',
   DELIVERED: 'Entregue',
   CANCELLED: 'Cancelado',
 }
@@ -23,6 +24,7 @@ const STATUS_BADGE_VARIANT: Record<OrderStatus, 'warning' | 'info' | 'primary' |
   PENDING: 'warning',
   CONFIRMED: 'info',
   SHIPPED: 'primary',
+  RETURNED: 'warning',
   DELIVERED: 'success',
   CANCELLED: 'danger',
 }

@@ -37,13 +37,13 @@ const ACTION_ICONS: Record<OrderStatus, IconName> = {
   CANCELLED: 'X',
 }
 
-const STATUS_BADGE_VARIANT: Record<OrderStatus, 'default' | 'success' | 'warning' | 'destructive' | 'secondary'> = {
+const STATUS_BADGE_VARIANT: Record<OrderStatus, 'default' | 'success' | 'warning' | 'danger'> = {
   PENDING: 'warning',
   CONFIRMED: 'default',
-  SHIPPED: 'secondary',
+  SHIPPED: 'default',
   RETURNED: 'warning',
   DELIVERED: 'success',
-  CANCELLED: 'destructive',
+  CANCELLED: 'danger',
 }
 
 const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
@@ -53,11 +53,11 @@ const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   REFUNDED: 'Reembolsado',
 }
 
-const PAYMENT_STATUS_BADGE_VARIANT: Record<PaymentStatus, 'default' | 'success' | 'warning' | 'destructive' | 'secondary'> = {
+const PAYMENT_STATUS_BADGE_VARIANT: Record<PaymentStatus, 'default' | 'success' | 'warning' | 'danger'> = {
   PENDING: 'warning',
   PAID: 'success',
-  FAILED: 'destructive',
-  REFUNDED: 'secondary',
+  FAILED: 'danger',
+  REFUNDED: 'default',
 }
 
 const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {

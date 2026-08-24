@@ -12,6 +12,8 @@ const replaceMock = vi.fn()
 const pushMock = vi.fn()
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: replaceMock, push: pushMock }),
+  usePathname: () => '/dashboard/payments',
+  useSearchParams: () => new URLSearchParams(),
 }))
 
 const mockOrder: AdminOrderResponse = {
@@ -64,7 +66,7 @@ const authenticatedEmployee = {
     email: 'func@test.com',
     role: 'EMPLOYEE' as const,
     permissions: ['MANAGE_PAYMENTS' as const],
-  },
+   phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
 }
 
 function renderPage() {
@@ -88,7 +90,7 @@ describe('PagamentosPage', () => {
       isAuthenticated: true,
       accessToken: 'tok',
       role: 'EMPLOYEE' as const,
-      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE' as const, permissions: ['MANAGE_ORDERS' as const] },
+      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE' as const, permissions: ['MANAGE_ORDERS' as const] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
     })
     await act(async () => { renderPage() })
     expect(replaceMock).toHaveBeenCalledWith('/dashboard')

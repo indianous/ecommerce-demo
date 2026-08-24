@@ -2,7 +2,7 @@ import { render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 const paymentsContentPropsSpy = vi.fn()
-vi.mock('@/app/(employee)/dashboard/payments/PaymentsContent', () => ({
+vi.mock('@/components/content/PaymentsContent', () => ({
   PaymentsContent: (props: Record<string, unknown>) => {
     paymentsContentPropsSpy(props)
     return null

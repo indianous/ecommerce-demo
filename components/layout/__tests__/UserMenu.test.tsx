@@ -37,7 +37,7 @@ describe('UserMenu', () => {
     useAuthStore.setState({
       isAuthenticated: true,
       accessToken: 'tok',
-      user: { id: '1', name: 'João Silva', email: 'joao@test.com', role: 'CUSTOMER' },
+      user: { id: '1', name: 'João Silva', email: 'joao@test.com', role: 'CUSTOMER', permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const },
       role: 'CUSTOMER',
     })
     renderUserMenu()
@@ -48,7 +48,7 @@ describe('UserMenu', () => {
     useAuthStore.setState({
       isAuthenticated: true,
       accessToken: 'tok',
-      user: { id: '1', name: 'João Silva', email: 'joao@test.com', role: 'CUSTOMER' },
+      user: { id: '1', name: 'João Silva', email: 'joao@test.com', role: 'CUSTOMER', permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const },
       role: 'CUSTOMER',
     })
     renderUserMenu()
@@ -60,7 +60,7 @@ describe('UserMenu', () => {
     useAuthStore.setState({
       isAuthenticated: true,
       accessToken: 'tok',
-      user: { id: '1', name: 'João Silva', email: 'joao@test.com', role: 'CUSTOMER' },
+      user: { id: '1', name: 'João Silva', email: 'joao@test.com', role: 'CUSTOMER', permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const },
       role: 'CUSTOMER',
     })
     renderUserMenu()
@@ -75,7 +75,7 @@ describe('UserMenu', () => {
     useAuthStore.setState({
       isAuthenticated: true,
       accessToken: 'tok',
-      user: { id: '1', name: 'João Silva', email: 'joao@test.com', role: 'CUSTOMER' },
+      user: { id: '1', name: 'João Silva', email: 'joao@test.com', role: 'CUSTOMER', permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const },
       role: 'CUSTOMER',
     })
     renderUserMenu()
@@ -92,7 +92,7 @@ describe('UserMenu', () => {
     useAuthStore.setState({
       isAuthenticated: true,
       accessToken: 'tok',
-      user: { id: '1', name: 'João Silva', email: 'joao@test.com', role: 'CUSTOMER' },
+      user: { id: '1', name: 'João Silva', email: 'joao@test.com', role: 'CUSTOMER', permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const },
       role: 'CUSTOMER',
     })
     renderUserMenu()
@@ -110,7 +110,7 @@ describe('UserMenu', () => {
       isAuthenticated: true,
       accessToken: 'tok',
       role: 'ADMIN' as const,
-      user: { id: '1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN' as const },
+      user: { id: '1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN' as const, permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const },
     })
     renderUserMenu()
 
@@ -130,7 +130,7 @@ describe('UserMenu', () => {
       isAuthenticated: true,
       accessToken: 'tok',
       role: 'EMPLOYEE' as const,
-      user: { id: '1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE' as const, permissions: [] },
+      user: { id: '1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE' as const, permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const },
     })
     renderUserMenu()
 
@@ -150,7 +150,7 @@ describe('UserMenu', () => {
       isAuthenticated: true,
       accessToken: 'tok',
       role: 'CUSTOMER' as const,
-      user: { id: '1', name: 'João Silva', email: 'joao@test.com', role: 'CUSTOMER' as const },
+      user: { id: '1', name: 'João Silva', email: 'joao@test.com', role: 'CUSTOMER' as const, permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const },
     })
     renderUserMenu()
 
@@ -165,7 +165,7 @@ describe('UserMenu', () => {
     useAuthStore.setState({
       isAuthenticated: true,
       accessToken: 'tok',
-      user: { id: '1', name: 'João Silva', email: 'joao@test.com', role: 'CUSTOMER' },
+      user: { id: '1', name: 'João Silva', email: 'joao@test.com', role: 'CUSTOMER', permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const },
       role: 'CUSTOMER',
     })
     renderUserMenu()

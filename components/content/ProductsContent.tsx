@@ -6,8 +6,10 @@ import { Badge, Button, Dialog, FilterDropdown, Heading, Icon, SearchField, Tabl
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CategoryForm } from '@/components/forms/CategoryForm'
+import { PaginationBar } from '@/components/ui/PaginationBar'
 import { sortTableData } from '@/lib/sortTableData'
-import type { AdminProductPage, Category, Product } from '@/types'
+import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
+import type { Category, Product } from '@/types'
 
 const formatBRL = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -24,9 +26,7 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
   const [categoryIds, setCategoryIds] = useState<string[]>([])
   const [statusFilter, setStatusFilter] = useState<string[]>([])
 
-  const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(() => Boolean(accessToken))
 
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
   const [categoryName, setCategoryName] = useState('')
@@ -34,37 +34,30 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
 
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
-  const fetchProducts = useCallback(async (searchTerm?: string) => {
-    if (!accessToken) return
-    try {
-      const term = searchTerm ?? searchRef.current
-      const params = new URLSearchParams({ active: 'true' })
-      if (term) params.set('search', term)
-      categoryIds.forEach((id) => params.append('categoryId', id))
-      statusFilter.forEach((s) => params.append('status', s))
-      const res = await fetch(`/api/admin/products?${params}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      if (res.ok) {
-        const data: AdminProductPage = await res.json()
-        setProducts(data.content)
-      }
-    } finally {
-      setLoading(false)
-    }
+  const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<Product> | null> => {
+    if (!accessToken) return null
+    params.set('active', 'true')
+    if (searchRef.current) params.set('search', searchRef.current)
+    categoryIds.forEach((id) => params.append('categoryId', id))
+    statusFilter.forEach((s) => params.append('status', s))
+    const res = await fetch(`/api/admin/products?${params}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    if (!res.ok) return null
+    return await res.json()
   }, [accessToken, categoryIds, statusFilter])
+
+  const { page, items: products, totalPages, loading, goToPage, reload } = usePaginatedFetch(fetchPage)
 
   const handleSearch = (value: string) => {
     searchRef.current = value
-    fetchProducts(value)
+    reload()
   }
 
   useEffect(() => {
     if (!accessToken) return
     fetch('/api/categories').then((r) => (r.ok ? r.json() : [])).then(setCategories)
   }, [accessToken])
-
-  useEffect(() => { fetchProducts() }, [fetchProducts])
 
   const handleCategorySave = async () => {
     if (!categoryName.trim() || !accessToken) return
@@ -180,11 +173,14 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
         {products.length === 0 ? (
           <Text size="sm" color="muted">Nenhum produto encontrado.</Text>
         ) : (
-          <Table
-            columns={columns}
-            data={sortedProducts}
-            onSort={(key, direction) => setSort({ key, direction })}
-          />
+          <>
+            <Table
+              columns={columns}
+              data={sortedProducts}
+              onSort={(key, direction) => setSort({ key, direction })}
+            />
+            <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mt-4" />
+          </>
         )}
 
         <Dialog open={categoryDialogOpen} onClose={() => setCategoryDialogOpen(false)} title="Nova categoria">

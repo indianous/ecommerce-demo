@@ -6,6 +6,8 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  usePathname: () => '/dashboard/admin/employees',
+  useSearchParams: () => new URLSearchParams(),
 }))
 
 import { ToastProvider, ToastViewport } from 'base-ds'
@@ -14,7 +16,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import type { Employee } from '@/types'
 
 const mockEmployees: Employee[] = [
-  { id: 'emp-1', name: 'Ana Costa', email: 'ana@test.com', role: 'EMPLOYEE' },
+  { id: 'emp-1', name: 'Ana Costa', email: 'ana@test.com', role: 'EMPLOYEE', permissions: [] },
 ]
 
 const newEmployee: Employee = {
@@ -22,10 +24,13 @@ const newEmployee: Employee = {
   name: 'Carlos Melo',
   email: 'carlos@test.com',
   role: 'EMPLOYEE',
+  permissions: [],
 }
 
 const server = setupServer(
-  http.get('/api/admin/employees', () => HttpResponse.json(mockEmployees)),
+  http.get('/api/admin/employees', () =>
+    HttpResponse.json({ content: mockEmployees, page: 0, size: 20, totalElements: mockEmployees.length, totalPages: 1, last: true }),
+  ),
   http.post('/api/admin/employees', () => HttpResponse.json(newEmployee, { status: 201 })),
   http.delete('/api/admin/employees/:id', () => new HttpResponse(null, { status: 204 })),
 )
@@ -44,7 +49,7 @@ beforeEach(() => {
     accessToken: 'mock-token',
     isAuthenticated: true,
     role: 'ADMIN' as const,
-    user: { id: '1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN' as const },
+    user: { id: '1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN' as const , permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
   })
 })
 

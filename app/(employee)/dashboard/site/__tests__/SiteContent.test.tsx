@@ -4,7 +4,7 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { SiteContent } from '../SiteContent'
+import { SiteContent } from '@/components/content/SiteContent'
 import { useAuthStore } from '@/stores/auth.store'
 
 vi.mock('next/navigation', () => ({
@@ -73,7 +73,7 @@ const authenticatedWithSite = {
   user: {
     id: '1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE' as const,
     permissions: ['MANAGE_SITE' as const],
-  },
+   phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
 }
 
 const authenticatedWithoutSite = {
@@ -83,7 +83,7 @@ const authenticatedWithoutSite = {
   user: {
     id: '2', name: 'Other', email: 'other@test.com', role: 'EMPLOYEE' as const,
     permissions: ['MANAGE_ORDERS' as const],
-  },
+   phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
 }
 
 function renderContent() {

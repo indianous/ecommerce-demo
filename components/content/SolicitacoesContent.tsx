@@ -1,10 +1,12 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Badge, Button, Dialog, FilterDropdown, Heading, Icon, SearchField, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { PaginationBar } from '@/components/ui/PaginationBar'
 import { sortTableData } from '@/lib/sortTableData'
+import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { OrderChangeRequest, OrderChangeRequestStatus, OrderStatus } from '@/types'
 
 const STATUS_LABELS: Record<OrderChangeRequestStatus, string> = {
@@ -13,10 +15,10 @@ const STATUS_LABELS: Record<OrderChangeRequestStatus, string> = {
   REJECTED: 'Rejeitada',
 }
 
-const STATUS_BADGE_VARIANT: Record<OrderChangeRequestStatus, 'warning' | 'success' | 'destructive'> = {
+const STATUS_BADGE_VARIANT: Record<OrderChangeRequestStatus, 'warning' | 'success' | 'danger'> = {
   PENDING: 'warning',
   APPROVED: 'success',
-  REJECTED: 'destructive',
+  REJECTED: 'danger',
 }
 
 const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
@@ -32,8 +34,6 @@ export function SolicitacoesContent() {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
 
-  const [requests, setRequests] = useState<OrderChangeRequest[]>([])
-  const [loading, setLoading] = useState(true)
   const searchRef = useRef('')
   const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [selected, setSelected] = useState<OrderChangeRequest | null>(null)
@@ -41,35 +41,28 @@ export function SolicitacoesContent() {
   const [denyDialogOpen, setDenyDialogOpen] = useState(false)
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
-  const fetchRequests = useCallback(async (searchTerm?: string) => {
-    if (!accessToken) return
-    setLoading(true)
+  const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<OrderChangeRequest> | null> => {
+    if (!accessToken) return null
+    statusFilter.forEach((s) => params.append('status', s))
+    if (searchRef.current) params.set('search', searchRef.current)
     try {
-      const term = searchTerm ?? searchRef.current
-      const params = new URLSearchParams()
-      statusFilter.forEach((s) => params.append('status', s))
-      if (term) params.set('search', term)
       const res = await fetch(`/api/admin/orders/change-requests?${params.toString()}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       if (!res.ok) throw new Error()
-      const data = await res.json()
-      setRequests(data.content ?? data)
+      return await res.json()
     } catch {
       toast({ variant: 'destructive', description: 'Erro ao carregar solicitações.' })
-    } finally {
-      setLoading(false)
+      return null
     }
   }, [accessToken, statusFilter, toast])
 
+  const { page, items: requests, setItems: setRequests, totalPages, loading, goToPage, reload } = usePaginatedFetch(fetchPage)
+
   const handleSearch = (value: string) => {
     searchRef.current = value
-    fetchRequests(value)
+    reload()
   }
-
-  useEffect(() => {
-    fetchRequests()
-  }, [fetchRequests])
 
   const handleApprove = async () => {
     if (!selected) return
@@ -261,11 +254,14 @@ export function SolicitacoesContent() {
         ) : requests.length === 0 ? (
           <Text size="sm" color="muted">Nenhuma solicitação encontrada.</Text>
         ) : (
-          <Table
-            columns={changeRequestColumns}
-            data={sortedRequests}
-            onSort={(key, direction) => setSort({ key, direction })}
-          />
+          <>
+            <Table
+              columns={changeRequestColumns}
+              data={sortedRequests}
+              onSort={(key, direction) => setSort({ key, direction })}
+            />
+            <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mt-4" />
+          </>
         )}
       </main>
     </PermissionGuard>

@@ -108,7 +108,7 @@ export function CheckoutAuth() {
         />
 
         {error && (
-          <Text color="danger" size="sm" role="alert">
+          <Text color="destructive" size="sm" role="alert">
             {error}
           </Text>
         )}
