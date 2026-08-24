@@ -5,8 +5,12 @@ import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const replaceMock = vi.fn()
+const pushMock = vi.fn()
+let mockSearch = ''
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: replaceMock, push: vi.fn() }),
+  useRouter: () => ({ replace: replaceMock, push: pushMock }),
+  usePathname: () => '/dashboard/stock',
+  useSearchParams: () => new URLSearchParams(mockSearch),
 }))
 
 import { ToastProvider, ToastViewport } from 'base-ds'
@@ -71,6 +75,8 @@ beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
   replaceMock.mockClear()
+  pushMock.mockClear()
+  mockSearch = ''
   lastEntryBody = {}
   lastExitBody = {}
   await act(async () => {
@@ -203,5 +209,81 @@ describe('StockContent', () => {
       render(<ToastProvider><StockContent /></ToastProvider>)
     })
     expect(replaceMock).toHaveBeenCalledWith('/dashboard')
+  })
+})
+
+describe('StockContent — busca', () => {
+  it('digitar no campo de busca não dispara nova chamada à API', async () => {
+    let callCount = 0
+    server.use(
+      http.get('/api/admin/products', () => {
+        callCount += 1
+        return HttpResponse.json(makePage(products))
+      }),
+    )
+    const user = userEvent.setup()
+    renderStock()
+    await screen.findByText('Teclado Mecânico')
+    const callsBeforeTyping = callCount
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar produtos' }), 'teclado')
+
+    expect(callCount).toBe(callsBeforeTyping)
+  })
+
+  it('clicar no botão de busca dispara a chamada com o termo no query param', async () => {
+    let capturedUrl = ''
+    server.use(
+      http.get('/api/admin/products', ({ request }) => {
+        capturedUrl = request.url
+        return HttpResponse.json(makePage(products))
+      }),
+    )
+    const user = userEvent.setup()
+    renderStock()
+    await screen.findByText('Teclado Mecânico')
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar produtos' }), 'teclado')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+
+    expect(new URL(capturedUrl).searchParams.get('search')).toBe('teclado')
+  })
+})
+
+describe('StockContent — paginação', () => {
+  it('com totalPages<=1, não exibe navegação de página', async () => {
+    renderStock()
+    await screen.findByText('Teclado Mecânico')
+    expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument()
+  })
+
+  it('URL com ?page=2 carrega a página 2 direto', async () => {
+    mockSearch = 'page=2'
+    let lastUrl = ''
+    server.use(
+      http.get('/api/admin/products', ({ request }) => {
+        lastUrl = request.url
+        return HttpResponse.json({ ...makePage(products), page: 1, totalPages: 3, last: false })
+      }),
+    )
+    renderStock()
+    await screen.findByText('Teclado Mecânico')
+
+    expect(new URL(lastUrl).searchParams.get('page')).toBe('1')
+  })
+
+  it('clicar em "Next page" atualiza a URL para ?page=2', async () => {
+    server.use(
+      http.get('/api/admin/products', () =>
+        HttpResponse.json({ ...makePage(products), totalPages: 3, last: false }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderStock()
+    await screen.findByText('Teclado Mecânico')
+
+    await user.click(screen.getByRole('button', { name: /next page/i }))
+
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/stock?page=2')
   })
 })

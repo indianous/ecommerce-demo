@@ -1,37 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, Dialog, Icon, Skeleton, Table, type TableColumn, Text } from 'base-ds'
-import type { Employee, EmployeeFormData } from '@/types'
-import { EmployeeForm } from '@/components/forms/EmployeeForm'
+import { Button, Icon, Table, type TableColumn } from 'base-ds'
+import type { Employee } from '@/types'
 import { CopyButton } from '@/components/ui/CopyButton'
-import { PaginationBar } from '@/components/ui/PaginationBar'
 import { sortTableData } from '@/lib/sortTableData'
 
 interface Props {
   employees: Employee[]
-  loading: boolean
-  onCreate: (data: EmployeeFormData) => void
   onDelete: (id: string) => void
   onManagePermissions?: (employee: Employee) => void
-  createLabel?: string
-  page?: number
-  totalPages?: number
-  onPageChange?: (page: number) => void
 }
 
-export function EmployeeManagementTable({
-  employees,
-  loading,
-  onCreate,
-  onDelete,
-  onManagePermissions,
-  createLabel = 'Novo funcionário',
-  page = 1,
-  totalPages = 1,
-  onPageChange,
-}: Props) {
-  const [dialogOpen, setDialogOpen] = useState(false)
+export function EmployeeManagementTable({ employees, onDelete, onManagePermissions }: Props) {
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const sortedEmployees = sort
@@ -76,43 +57,10 @@ export function EmployeeManagementTable({
   ]
 
   return (
-    <div>
-      <div className="flex justify-end mb-4">
-        <Button iconOnly leftIcon={<Icon name="UserPlus" size="sm" />} aria-label={createLabel} variant="primary" onClick={() => setDialogOpen(true)} />
-      </div>
-
-      {loading ? (
-        <div role="status" aria-label="Carregando funcionários">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} variant="line" height={40} className="mb-2" />
-          ))}
-        </div>
-      ) : employees.length === 0 ? (
-        <Text size="sm" color="muted">Nenhum funcionário cadastrado.</Text>
-      ) : (
-        <>
-          <Table
-            columns={columns}
-            data={sortedEmployees}
-            onSort={(key, direction) => setSort({ key, direction })}
-          />
-          {onPageChange && <PaginationBar page={page} totalPages={totalPages} onPageChange={onPageChange} className="mt-4" />}
-        </>
-      )}
-
-      <Dialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        title={createLabel}
-      >
-        <EmployeeForm
-          onSave={(data) => {
-            onCreate(data)
-            setDialogOpen(false)
-          }}
-          onCancel={() => setDialogOpen(false)}
-        />
-      </Dialog>
-    </div>
+    <Table
+      columns={columns}
+      data={sortedEmployees}
+      onSort={(key, direction) => setSort({ key, direction })}
+    />
   )
 }

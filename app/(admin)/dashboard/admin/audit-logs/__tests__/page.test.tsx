@@ -187,6 +187,44 @@ describe('AuditLogsPage — Histórico de Auditoria', () => {
   })
 })
 
+describe('AuditLogsPage — busca', () => {
+  it('digitar no campo de busca não dispara nova chamada à API', async () => {
+    let callCount = 0
+    server.use(
+      http.get('/api/admin/audit-logs', () => {
+        callCount += 1
+        return HttpResponse.json(makePage([makeLog()]))
+      }),
+    )
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('uuid-order-1')
+    const callsBeforeTyping = callCount
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar logs' }), 'uuid-order-1')
+
+    expect(callCount).toBe(callsBeforeTyping)
+  })
+
+  it('clicar no botão de busca dispara a chamada com o termo no query param', async () => {
+    let capturedUrl = ''
+    server.use(
+      http.get('/api/admin/audit-logs', ({ request }) => {
+        capturedUrl = request.url
+        return HttpResponse.json(makePage([makeLog()]))
+      }),
+    )
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('uuid-order-1')
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar logs' }), 'uuid-order-1')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+
+    expect(capturedUrl).toContain('search=uuid-order-1')
+  })
+})
+
 describe('AuditLogsPage — paginação', () => {
   it('com totalPages<=1, não exibe navegação de página', async () => {
     renderPage()

@@ -2,13 +2,16 @@ import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ToastProvider, ToastViewport } from 'base-ds'
 
 const replaceMock = vi.fn()
 const pushMock = vi.fn()
+let mockSearch = ''
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: replaceMock, push: pushMock }),
+  usePathname: () => '/dashboard/products/prod-1/reviews',
+  useSearchParams: () => new URLSearchParams(mockSearch),
 }))
 
 import { ProductReviewsModerationContent } from '@/components/content/ProductReviewsModerationContent'
@@ -60,6 +63,7 @@ afterEach(async () => {
   server.resetHandlers()
   replaceMock.mockClear()
   pushMock.mockClear()
+  mockSearch = ''
   deleteHeaders = null
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
@@ -123,5 +127,101 @@ describe('ProductReviewsModerationContent', () => {
     renderModeration()
 
     await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('/dashboard'))
+  })
+})
+
+describe('ProductReviewsModerationContent — busca', () => {
+  beforeEach(async () => {
+    await act(async () => {
+      useAuthStore.setState({
+        accessToken: 'mock-token',
+        isAuthenticated: true,
+        user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const },
+      })
+    })
+  })
+
+  it('digitar no campo de busca não dispara nova chamada à API', async () => {
+    let callCount = 0
+    server.use(
+      http.get(`/api/products/${productId}/reviews`, () => {
+        callCount += 1
+        return HttpResponse.json(makePage([makeReview()]))
+      }),
+    )
+    const user = userEvent.setup()
+    renderModeration()
+    await screen.findByText('Maria')
+    const callsBeforeTyping = callCount
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar avaliações' }), 'maria')
+
+    expect(callCount).toBe(callsBeforeTyping)
+  })
+
+  it('clicar no botão de busca dispara a chamada com o termo no query param', async () => {
+    let capturedUrl = ''
+    server.use(
+      http.get(`/api/products/${productId}/reviews`, ({ request }) => {
+        capturedUrl = request.url
+        return HttpResponse.json(makePage([makeReview()]))
+      }),
+    )
+    const user = userEvent.setup()
+    renderModeration()
+    await screen.findByText('Maria')
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar avaliações' }), 'maria')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+
+    expect(new URL(capturedUrl).searchParams.get('search')).toBe('maria')
+  })
+})
+
+describe('ProductReviewsModerationContent — paginação', () => {
+  beforeEach(async () => {
+    await act(async () => {
+      useAuthStore.setState({
+        accessToken: 'mock-token',
+        isAuthenticated: true,
+        user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const },
+      })
+    })
+  })
+
+  it('com totalPages<=1, não exibe navegação de página', async () => {
+    renderModeration()
+    await screen.findByText('Maria')
+    expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument()
+  })
+
+  it('URL com ?page=2 carrega a página 2 direto', async () => {
+    mockSearch = 'page=2'
+    let lastUrl = ''
+    server.use(
+      http.get(`/api/products/${productId}/reviews`, ({ request }) => {
+        lastUrl = request.url
+        return HttpResponse.json({ ...makePage([makeReview()]), page: 1, totalPages: 3, last: false })
+      }),
+    )
+    renderModeration()
+    await screen.findByText('Maria')
+
+    expect(new URL(lastUrl).searchParams.get('page')).toBe('1')
+  })
+
+  it('clicar em "Next page" atualiza a URL para ?page=2', async () => {
+    server.use(
+      http.get(`/api/products/${productId}/reviews`, () =>
+        HttpResponse.json({ ...makePage([makeReview()]), totalPages: 3, last: false }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderModeration()
+    await screen.findByText('Maria')
+
+    await user.click(screen.getByRole('button', { name: /next page/i }))
+
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/products/prod-1/reviews?page=2')
   })
 })

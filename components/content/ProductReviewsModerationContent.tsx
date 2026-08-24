@@ -1,14 +1,19 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { Button, Heading, Icon, Text, useToast } from 'base-ds'
+import { Button, Icon, Image, Rating, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
-import { ProductReviewCard } from '@/components/product/ProductReviewCard'
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
+import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
+import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
+import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
+import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
+import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
 import { useConfirmDelete } from '@/lib/useConfirmDelete'
-import type { ProductReview, ProductReviewPage } from '@/types'
+import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
+import type { ProductReview } from '@/types'
 
 interface Props {
   id: string
@@ -18,27 +23,21 @@ interface Props {
 export function ProductReviewsModerationContent({ id, basePath = '/dashboard/products' }: Props) {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
+  const searchRef = useRef('')
 
-  const [reviews, setReviews] = useState<ProductReview[]>([])
-  const [loading, setLoading] = useState(true)
-
-  const fetchReviews = async () => {
-    setLoading(true)
-    try {
-      const res = await fetch(`/api/products/${id}/reviews?size=50`)
-      if (res.ok) {
-        const data: ProductReviewPage = await res.json()
-        setReviews(data.content)
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchReviews()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<ProductReview> | null> => {
+    if (searchRef.current) params.set('search', searchRef.current)
+    const res = await fetch(`/api/products/${id}/reviews?${params}`)
+    if (!res.ok) return null
+    return await res.json()
   }, [id])
+
+  const { page, items: reviews, setItems: setReviews, totalPages, loading, goToPage, reload } = usePaginatedFetch(fetchPage)
+
+  const handleSearch = (value: string) => {
+    searchRef.current = value
+    reload()
+  }
 
   const handleDeleteReview = async (review: ProductReview) => {
     if (!accessToken) return
@@ -62,38 +61,64 @@ export function ProductReviewsModerationContent({ id, basePath = '/dashboard/pro
     cancel: cancelDelete,
   } = useConfirmDelete(handleDeleteReview)
 
+  const columns: TableColumn<ProductReview>[] = [
+    { key: 'userName', header: 'Nome', sortable: true, render: (r) => r.userName },
+    { key: 'rating', header: 'Nota', sortable: true, render: (r) => <Rating value={r.rating} readOnly size="sm" /> },
+    {
+      key: 'comment',
+      header: 'Comentário',
+      render: (r) => (
+        <div className="flex flex-col gap-2 max-w-xs">
+          {r.comment && <span>{r.comment}</span>}
+          {r.imageUrls.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {r.imageUrls.map((url) => (
+                <Image key={url} src={url} alt={`Foto enviada por ${r.userName}`} aspectRatio="square" objectFit="cover" className="w-12 h-12 rounded" />
+              ))}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'createdAt',
+      header: 'Data',
+      sortable: true,
+      render: (r) => new Intl.DateTimeFormat('pt-BR').format(new Date(r.createdAt)),
+    },
+    {
+      key: 'actions',
+      header: 'Ações',
+      render: (r) => (
+        <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Remover avaliação de ${r.userName}`} variant="danger" size="sm" onClick={() => setReviewToDelete(r)} />
+      ),
+    },
+  ]
+
   return (
     <PermissionGuard permissions={['MANAGE_PRODUCTS']}>
       <main className="mx-auto max-w-3xl px-4 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <Heading as="h1" size="2xl">
-            Avaliações do produto
-          </Heading>
-          <Link href={`${basePath}/${id}/edit`} className="text-sm underline">
-            Voltar para o produto
-          </Link>
-        </div>
+        <ManagementPageHeader title="Avaliações do produto" />
+        <ManagementPageBody
+          actions={
+            <Link href={`${basePath}/${id}/edit`} className="text-sm underline self-center">
+              Voltar para o produto
+            </Link>
+          }
+        >
+          <ManagementContentHeader
+            searchId="product-reviews-search"
+            searchLabel="Buscar avaliações"
+            searchPlaceholder="Buscar por nome de quem avaliou..."
+            onSearch={handleSearch}
+          />
 
-        {loading ? (
-          <Text size="sm" color="muted">
-            Carregando avaliações...
-          </Text>
-        ) : reviews.length === 0 ? (
-          <Text size="sm" color="muted">
-            Nenhuma avaliação para este produto.
-          </Text>
-        ) : (
-          <div className="flex flex-col">
-            {reviews.map((review) => (
-              <div key={review.id} className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <ProductReviewCard review={review} />
-                </div>
-                <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Remover avaliação de ${review.userName}`} variant="danger" size="sm" onClick={() => setReviewToDelete(review)} />
-              </div>
-            ))}
-          </div>
-        )}
+          <ManagementContentBody loading={loading} empty={reviews.length === 0} emptyMessage="Nenhuma avaliação para este produto." loadingLabel="Carregando avaliações">
+            <Table columns={columns} data={reviews} />
+          </ManagementContentBody>
+
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+        </ManagementPageBody>
 
         <ConfirmDeleteDialog
           open={reviewToDelete !== null}

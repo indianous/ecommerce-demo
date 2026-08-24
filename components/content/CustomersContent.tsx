@@ -2,11 +2,15 @@
 
 import { useCallback, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button, Heading, Icon, SearchField, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
+import { Button, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
-import { PaginationBar } from '@/components/ui/PaginationBar'
+import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
+import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
+import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
+import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
+import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
 import { sortTableData } from '@/lib/sortTableData'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { CustomerResponse } from '@/types'
@@ -83,38 +87,25 @@ export function CustomersContent({ basePath = '/dashboard/customers' }: { basePa
   return (
     <PermissionGuard permissions={['MANAGE_CUSTOMERS']}>
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <Heading as="h1" size="2xl" className="mb-6">
-          Gestão de Clientes
-        </Heading>
+        <ManagementPageHeader title="Gestão de Clientes" />
+        <ManagementPageBody>
+          <ManagementContentHeader
+            searchId="customers-search"
+            searchLabel="Buscar clientes"
+            searchPlaceholder="Buscar por nome, e-mail, telefone ou id..."
+            onSearch={handleSearch}
+          />
 
-        <SearchField
-          id="customers-search"
-          label="Buscar clientes"
-          placeholder="Buscar por nome ou email..."
-          buttonLabel="Buscar"
-          buttonIconOnly
-          onSearch={handleSearch}
-          className="mb-4"
-        />
-
-        {loading ? (
-          <div role="status">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} variant="line" height={40} className="mb-2" />
-            ))}
-          </div>
-        ) : customers.length === 0 ? (
-          <Text size="sm" color="muted">Nenhum cliente encontrado.</Text>
-        ) : (
-          <>
+          <ManagementContentBody loading={loading} empty={customers.length === 0} emptyMessage="Nenhum cliente encontrado." loadingLabel="Carregando clientes">
             <Table
               columns={columns}
               data={sortedCustomers}
               onSort={(key, direction) => setSort({ key, direction })}
             />
-            <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mt-4" />
-          </>
-        )}
+          </ManagementContentBody>
+
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+        </ManagementPageBody>
       </main>
     </PermissionGuard>
   )

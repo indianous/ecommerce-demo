@@ -2,11 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, Dialog, FilterDropdown, Heading, Icon, SearchField, Table, type TableColumn, Text, useToast } from 'base-ds'
+import { Badge, Button, Dialog, FilterDropdown, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CategoryForm } from '@/components/forms/CategoryForm'
-import { PaginationBar } from '@/components/ui/PaginationBar'
+import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
+import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
+import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
+import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
+import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
 import { sortTableData } from '@/lib/sortTableData'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { Category, Product } from '@/types'
@@ -85,8 +89,6 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
     }
   }
 
-  if (loading) return <main className="px-4 py-8"><p>Carregando produtos...</p></main>
-
   const sortedProducts = sort
     ? sortTableData(
         products,
@@ -133,59 +135,57 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
   return (
     <PermissionGuard permissions={['MANAGE_PRODUCTS']}>
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <Heading as="h1" size="2xl">Gestão de Produtos</Heading>
-          {canManageProducts && (
-            <div className="flex gap-2">
-              <Button iconOnly leftIcon={<Icon name="FolderPlus" size="sm" />} aria-label="Nova categoria" variant="outline" onClick={() => setCategoryDialogOpen(true)} />
-              <Button iconOnly leftIcon={<Icon name="Plus" size="sm" />} aria-label="Novo produto" variant="primary" onClick={() => router.push(`${basePath}/new`)} />
-            </div>
-          )}
-        </div>
-
-        <div className="flex gap-4 mb-4 flex-wrap items-start">
-          <SearchField
-            id="products-search"
-            label="Buscar produtos"
-            placeholder="Buscar por nome..."
-            buttonLabel="Buscar"
-            buttonIconOnly
+        <ManagementPageHeader title="Gestão de Produtos" />
+        <ManagementPageBody
+          actions={
+            canManageProducts && (
+              <>
+                <Button iconOnly leftIcon={<Icon name="FolderPlus" size="sm" />} aria-label="Nova categoria" variant="outline" onClick={() => setCategoryDialogOpen(true)} />
+                <Button iconOnly leftIcon={<Icon name="Plus" size="sm" />} aria-label="Novo produto" variant="primary" onClick={() => router.push(`${basePath}/new`)} />
+              </>
+            )
+          }
+        >
+          <ManagementContentHeader
+            searchId="products-search"
+            searchLabel="Buscar produtos"
+            searchPlaceholder="Buscar por nome, id ou código..."
             onSearch={handleSearch}
-            className="flex-1 min-w-40"
+            filters={
+              <>
+                <FilterDropdown
+                  label="Categoria"
+                  options={categories.map((c) => ({ value: c.id, label: c.name }))}
+                  value={categoryIds}
+                  onApply={setCategoryIds}
+                />
+                <FilterDropdown
+                  label="Disponibilidade"
+                  options={[
+                    { value: 'AVAILABLE', label: 'Disponível' },
+                    { value: 'UNAVAILABLE', label: 'Indisponível' },
+                  ]}
+                  value={statusFilter}
+                  onApply={setStatusFilter}
+                />
+              </>
+            }
           />
-          <FilterDropdown
-            label="Categoria"
-            options={categories.map((c) => ({ value: c.id, label: c.name }))}
-            value={categoryIds}
-            onApply={setCategoryIds}
-          />
-          <FilterDropdown
-            label="Disponibilidade"
-            options={[
-              { value: 'AVAILABLE', label: 'Disponível' },
-              { value: 'UNAVAILABLE', label: 'Indisponível' },
-            ]}
-            value={statusFilter}
-            onApply={setStatusFilter}
-          />
-        </div>
 
-        {products.length === 0 ? (
-          <Text size="sm" color="muted">Nenhum produto encontrado.</Text>
-        ) : (
-          <>
+          <ManagementContentBody loading={loading} empty={products.length === 0} emptyMessage="Nenhum produto encontrado." loadingLabel="Carregando produtos">
             <Table
               columns={columns}
               data={sortedProducts}
               onSort={(key, direction) => setSort({ key, direction })}
             />
-            <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mt-4" />
-          </>
-        )}
+          </ManagementContentBody>
 
-        <Dialog open={categoryDialogOpen} onClose={() => setCategoryDialogOpen(false)} title="Nova categoria">
-          <CategoryForm name={categoryName} onChange={setCategoryName} onSave={handleCategorySave} saving={categorySaving} />
-        </Dialog>
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+
+          <Dialog open={categoryDialogOpen} onClose={() => setCategoryDialogOpen(false)} title="Nova categoria">
+            <CategoryForm name={categoryName} onChange={setCategoryName} onSave={handleCategorySave} saving={categorySaving} />
+          </Dialog>
+        </ManagementPageBody>
       </main>
     </PermissionGuard>
   )

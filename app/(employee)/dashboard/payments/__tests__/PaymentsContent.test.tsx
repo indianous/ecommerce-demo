@@ -121,6 +121,42 @@ describe('PaymentsContent — listagem', () => {
   })
 })
 
+describe('PaymentsContent — busca', () => {
+  it('digitar no campo de busca não dispara nova chamada à API', async () => {
+    let callCount = 0
+    server.use(
+      http.get('/api/admin/orders', () => {
+        callCount += 1
+        return HttpResponse.json(mockPage)
+      }),
+    )
+    renderContent()
+    await screen.findByText('Ana Lima')
+    const callsBeforeTyping = callCount
+
+    await userEvent.type(screen.getByRole('textbox', { name: 'Buscar pagamentos' }), 'ana')
+
+    expect(callCount).toBe(callsBeforeTyping)
+  })
+
+  it('clicar no botão de busca dispara a chamada com o termo no query param', async () => {
+    let capturedUrl = ''
+    server.use(
+      http.get('/api/admin/orders', ({ request }) => {
+        capturedUrl = request.url
+        return HttpResponse.json(mockPage)
+      }),
+    )
+    renderContent()
+    await screen.findByText('Ana Lima')
+
+    await userEvent.type(screen.getByRole('textbox', { name: 'Buscar pagamentos' }), 'ana')
+    await userEvent.click(screen.getByRole('button', { name: 'Buscar' }))
+
+    expect(new URL(capturedUrl).searchParams.get('search')).toBe('ana')
+  })
+})
+
 describe('PaymentsContent — ordenação', () => {
   it('clicar no cabeçalho "Nº" ordena as linhas (asc, depois desc)', async () => {
     renderContent()

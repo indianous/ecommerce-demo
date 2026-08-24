@@ -1,14 +1,20 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import Link from 'next/link'
-import { Button, Dialog, Heading, Icon, Table, type TableColumn, Text, useToast } from 'base-ds'
+import { Button, Dialog, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { StockEntryForm } from '@/components/forms/StockEntryForm'
 import { StockExitForm } from '@/components/forms/StockExitForm'
+import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
+import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
+import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
+import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
+import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
 import { sortTableData } from '@/lib/sortTableData'
-import type { AdminProductPage, Product, StockLot, StockLotPage, StockMovementReason } from '@/types'
+import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
+import type { Product, StockLot, StockLotPage, StockMovementReason } from '@/types'
 
 interface Props {
   stockBasePath?: string
@@ -17,9 +23,8 @@ interface Props {
 export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
+  const searchRef = useRef('')
 
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(() => Boolean(accessToken))
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const [entryProductId, setEntryProductId] = useState<string | null>(null)
@@ -38,23 +43,23 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
   const [exitNote, setExitNote] = useState('')
   const [exitSaving, setExitSaving] = useState(false)
 
-  const fetchProducts = useCallback(async () => {
-    if (!accessToken) return
-    setLoading(true)
-    try {
-      const res = await fetch('/api/admin/products?active=true', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      if (res.ok) {
-        const data: AdminProductPage = await res.json()
-        setProducts(data.content)
-      }
-    } finally {
-      setLoading(false)
-    }
+  const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<Product> | null> => {
+    if (!accessToken) return null
+    params.set('active', 'true')
+    if (searchRef.current) params.set('search', searchRef.current)
+    const res = await fetch(`/api/admin/products?${params}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    if (!res.ok) return null
+    return await res.json()
   }, [accessToken])
 
-  useEffect(() => { fetchProducts() }, [fetchProducts])
+  const { page, items: products, totalPages, loading, goToPage, reload, refetch } = usePaginatedFetch(fetchPage)
+
+  const handleSearch = (value: string) => {
+    searchRef.current = value
+    reload()
+  }
 
   const authHeader = () => ({ Authorization: `Bearer ${accessToken}` })
 
@@ -91,7 +96,7 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
       }
       closeEntryDialog()
       toast({ variant: 'success', description: 'Entrada registrada com sucesso.' })
-      fetchProducts()
+      refetch()
     } catch {
       toast({ variant: 'destructive', description: 'Erro ao registrar entrada.' })
     } finally {
@@ -139,15 +144,13 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
       }
       closeExitDialog()
       toast({ variant: 'success', description: 'Saída registrada com sucesso.' })
-      fetchProducts()
+      refetch()
     } catch {
       toast({ variant: 'destructive', description: 'Erro ao registrar saída.' })
     } finally {
       setExitSaving(false)
     }
   }
-
-  if (loading) return <main className="px-4 py-8"><p>Carregando produtos...</p></main>
 
   const sortedProducts = sort ? sortTableData(products, sort.key as keyof Product, sort.direction, sort.key === 'stockQuantity' ? 'number' : 'string') : products
 
@@ -171,22 +174,31 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
   return (
     <PermissionGuard permissions={['MANAGE_STOCK']}>
       <main className="mx-auto max-w-4xl px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <Heading as="h1" size="2xl">Gestão de Estoque</Heading>
-          <Link href={`${stockBasePath}/expiring`} className="text-sm underline">
-            Lotes vencendo
-          </Link>
-        </div>
-
-        {products.length === 0 ? (
-          <Text size="sm" color="muted">Nenhum produto encontrado.</Text>
-        ) : (
-          <Table
-            columns={columns}
-            data={sortedProducts}
-            onSort={(key, direction) => setSort({ key, direction })}
+        <ManagementPageHeader title="Gestão de Estoque" />
+        <ManagementPageBody
+          actions={
+            <Link href={`${stockBasePath}/expiring`} className="text-sm underline self-center">
+              Lotes vencendo
+            </Link>
+          }
+        >
+          <ManagementContentHeader
+            searchId="stock-search"
+            searchLabel="Buscar produtos"
+            searchPlaceholder="Buscar por nome, id ou código..."
+            onSearch={handleSearch}
           />
-        )}
+
+          <ManagementContentBody loading={loading} empty={products.length === 0} emptyMessage="Nenhum produto encontrado." loadingLabel="Carregando produtos">
+            <Table
+              columns={columns}
+              data={sortedProducts}
+              onSort={(key, direction) => setSort({ key, direction })}
+            />
+          </ManagementContentBody>
+
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+        </ManagementPageBody>
       </main>
 
       <Dialog open={entryProductId !== null} onClose={closeEntryDialog} title="Registrar entrada">

@@ -2,11 +2,15 @@
 
 import { useCallback, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, FilterDropdown, Heading, Icon, SearchField, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
+import { Badge, Button, FilterDropdown, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
-import { PaginationBar } from '@/components/ui/PaginationBar'
+import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
+import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
+import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
+import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
+import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
 import { formatBRL } from '@/lib/format'
 import { sortTableData } from '@/lib/sortTableData'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
@@ -108,47 +112,34 @@ export function EmployeeOrdersContent({ orderBasePath = '/dashboard/orders' }: {
   return (
     <PermissionGuard permissions={['MANAGE_ORDERS', 'MANAGE_SHIPPING', 'MANAGE_ORDER_STATUS_REQUESTS']}>
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <Heading as="h1" size="2xl" className="mb-6">
-          Gestão de Pedidos
-        </Heading>
-
-        <div className="mb-4 flex flex-wrap gap-3 items-start">
-          <SearchField
-            id="orders-search"
-            label="Buscar pedidos"
-            placeholder="Buscar por nº do pedido, cliente ou e-mail..."
-            buttonLabel="Buscar"
-            buttonIconOnly
+        <ManagementPageHeader title="Gestão de Pedidos" />
+        <ManagementPageBody>
+          <ManagementContentHeader
+            searchId="orders-search"
+            searchLabel="Buscar pedidos"
+            searchPlaceholder="Buscar por nº do pedido, cliente ou e-mail..."
             onSearch={handleSearch}
-            className="w-64"
+            filters={
+              <FilterDropdown
+                label="Status"
+                options={ALL_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
+                value={statusFilter}
+                onApply={setStatusFilter}
+              />
+            }
           />
-          <FilterDropdown
-            label="Status"
-            options={ALL_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
-            value={statusFilter}
-            onApply={setStatusFilter}
-          />
-        </div>
 
-        {loading ? (
-          <div role="status">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} variant="line" height={40} className="mb-2" />
-            ))}
-          </div>
-        ) : orders.length === 0 ? (
-          <Text size="sm" color="muted">Nenhum pedido encontrado.</Text>
-        ) : (
-          <>
+          <ManagementContentBody loading={loading} empty={orders.length === 0} emptyMessage="Nenhum pedido encontrado." loadingLabel="Carregando pedidos">
             <Table
               columns={columns}
               data={sortedOrders}
               onSort={(key, direction) => setSort({ key, direction })}
               className="mb-6"
             />
-            <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mb-6" />
-          </>
-        )}
+          </ManagementContentBody>
+
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+        </ManagementPageBody>
       </main>
     </PermissionGuard>
   )

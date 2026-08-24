@@ -1,10 +1,14 @@
 'use client'
 
-import { useCallback, useState } from 'react'
-import { FormField, Heading, Table, type TableColumn, Text } from 'base-ds'
+import { useCallback, useRef, useState } from 'react'
+import { FormField, Table, type TableColumn } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
-import { PaginationBar } from '@/components/ui/PaginationBar'
+import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
+import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
+import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
+import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
+import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
 import { sortTableData } from '@/lib/sortTableData'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { StockLot } from '@/types'
@@ -12,11 +16,13 @@ import type { StockLot } from '@/types'
 export function ExpiringLotsContent() {
   const { accessToken } = useAuthStore()
   const [days, setDays] = useState(30)
+  const searchRef = useRef('')
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<StockLot> | null> => {
     if (!accessToken) return null
     params.set('days', String(days))
+    if (searchRef.current) params.set('search', searchRef.current)
     const res = await fetch(`/api/admin/stock-lots/expiring?${params}`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     })
@@ -24,7 +30,12 @@ export function ExpiringLotsContent() {
     return await res.json()
   }, [accessToken, days])
 
-  const { page, items: lots, totalPages, loading, goToPage } = usePaginatedFetch(fetchPage)
+  const { page, items: lots, totalPages, loading, goToPage, reload } = usePaginatedFetch(fetchPage)
+
+  const handleSearch = (value: string) => {
+    searchRef.current = value
+    reload()
+  }
 
   const sortedLots = sort
     ? sortTableData(lots, sort.key as keyof StockLot, sort.direction, sort.key === 'quantity' ? 'number' : sort.key === 'expiryDate' ? 'date' : 'string')
@@ -40,34 +51,37 @@ export function ExpiringLotsContent() {
   return (
     <PermissionGuard permissions={['MANAGE_STOCK']}>
       <main className="mx-auto max-w-3xl px-4 py-8">
-        <Heading as="h1" size="2xl" className="mb-6">Lotes vencendo</Heading>
-
-        <FormField label="Próximos N dias" id="expiring-days">
-          <input
-            id="expiring-days"
-            type="number"
-            min={0}
-            value={days}
-            onChange={(e) => setDays(Number(e.target.value))}
-            className="w-24 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        <ManagementPageHeader title="Lotes vencendo" />
+        <ManagementPageBody>
+          <ManagementContentHeader
+            searchId="expiring-lots-search"
+            searchLabel="Buscar lotes"
+            searchPlaceholder="Buscar por lote ou produto..."
+            onSearch={handleSearch}
+            filters={
+              <FormField label="Próximos N dias" id="expiring-days">
+                <input
+                  id="expiring-days"
+                  type="number"
+                  min={0}
+                  value={days}
+                  onChange={(e) => setDays(Number(e.target.value))}
+                  className="w-24 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </FormField>
+            }
           />
-        </FormField>
 
-        {loading ? (
-          <p className="mt-4">Carregando...</p>
-        ) : lots.length === 0 ? (
-          <Text size="sm" color="muted" className="mt-4">Nenhum lote vencendo nesse período.</Text>
-        ) : (
-          <>
+          <ManagementContentBody loading={loading} empty={lots.length === 0} emptyMessage="Nenhum lote vencendo nesse período." loadingLabel="Carregando lotes">
             <Table
               columns={columns}
               data={sortedLots}
               onSort={(key, direction) => setSort({ key, direction })}
-              className="mt-4"
             />
-            <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mt-4" />
-          </>
-        )}
+          </ManagementContentBody>
+
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+        </ManagementPageBody>
       </main>
     </PermissionGuard>
   )

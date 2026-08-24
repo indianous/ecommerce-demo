@@ -169,6 +169,30 @@ describe('StockMovementHistoryContent', () => {
   })
 })
 
+describe('StockMovementHistoryContent — busca', () => {
+  it('digitar no campo de busca não dispara nova chamada à API', async () => {
+    const user = userEvent.setup()
+    renderHistory()
+    await screen.findByText('PURCHASE')
+    const urlBeforeTyping = lastMovementsUrl
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar movimentações' }), 'L1')
+
+    expect(lastMovementsUrl).toBe(urlBeforeTyping)
+  })
+
+  it('clicar no botão de busca dispara a chamada com o termo no query param', async () => {
+    const user = userEvent.setup()
+    renderHistory()
+    await screen.findByText('PURCHASE')
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar movimentações' }), 'L1')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+
+    expect(new URL(lastMovementsUrl).searchParams.get('search')).toBe('L1')
+  })
+})
+
 describe('StockMovementHistoryContent — paginação', () => {
   it('com totalPages<=1, não exibe navegação de página', async () => {
     renderHistory()

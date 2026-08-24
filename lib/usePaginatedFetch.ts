@@ -54,5 +54,5 @@ export function usePaginatedFetch<T>(
     else load()
   }, [page, goToPage, load])
 
-  return { page, items, setItems, totalPages, loading, goToPage, reload }
+  return { page, items, setItems, totalPages, loading, goToPage, reload, refetch: load }
 }

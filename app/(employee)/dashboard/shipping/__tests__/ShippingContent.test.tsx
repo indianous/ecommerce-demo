@@ -143,6 +143,42 @@ describe('ShippingContent', () => {
   })
 })
 
+describe('ShippingContent — busca', () => {
+  it('digitar no campo de busca não dispara nova chamada à API', async () => {
+    let callCount = 0
+    server.use(
+      http.get('/api/admin/orders', () => {
+        callCount += 1
+        return HttpResponse.json(mockPage)
+      }),
+    )
+    renderContent()
+    await screen.findByRole('cell', { name: 'Bruno Souza' })
+    const callsBeforeTyping = callCount
+
+    await userEvent.type(screen.getByRole('textbox', { name: 'Buscar pedidos' }), 'bruno')
+
+    expect(callCount).toBe(callsBeforeTyping)
+  })
+
+  it('clicar no botão de busca dispara a chamada com o termo no query param', async () => {
+    let capturedUrl = ''
+    server.use(
+      http.get('/api/admin/orders', ({ request }) => {
+        capturedUrl = request.url
+        return HttpResponse.json(mockPage)
+      }),
+    )
+    renderContent()
+    await screen.findByRole('cell', { name: 'Bruno Souza' })
+
+    await userEvent.type(screen.getByRole('textbox', { name: 'Buscar pedidos' }), 'bruno')
+    await userEvent.click(screen.getByRole('button', { name: 'Buscar' }))
+
+    expect(new URL(capturedUrl).searchParams.get('search')).toBe('bruno')
+  })
+})
+
 describe('ShippingContent — paginação', () => {
   it('com totalPages<=1, não exibe navegação de página', async () => {
     renderContent()

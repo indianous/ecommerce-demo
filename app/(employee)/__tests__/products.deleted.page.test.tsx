@@ -157,6 +157,46 @@ describe('DeletedProductsContent', () => {
   })
 })
 
+describe('DeletedProductsContent — busca', () => {
+  it('digitar no campo de busca não dispara nova chamada à API', async () => {
+    let callCount = 0
+    server.use(
+      http.get('/api/admin/products', () => {
+        callCount += 1
+        return HttpResponse.json(makePage(deletedProducts))
+      }),
+    )
+    const user = userEvent.setup()
+    renderDeleted()
+    await screen.findByText('Headset Antigo')
+    const callsBeforeTyping = callCount
+
+    await user.type(screen.getByRole('textbox', { name: /buscar produtos excluídos/i }), 'headset')
+
+    expect(callCount).toBe(callsBeforeTyping)
+  })
+
+  it('clicar no botão de busca dispara a chamada com o termo no query param', async () => {
+    let capturedUrl = ''
+    server.use(
+      http.get('/api/admin/products', ({ request }) => {
+        capturedUrl = request.url
+        return HttpResponse.json(makePage(deletedProducts))
+      }),
+    )
+    const user = userEvent.setup()
+    renderDeleted()
+    await screen.findByText('Headset Antigo')
+
+    await user.type(screen.getByRole('textbox', { name: /buscar produtos excluídos/i }), 'headset')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+
+    await waitFor(() => {
+      expect(new URL(capturedUrl).searchParams.get('search')).toBe('headset')
+    })
+  })
+})
+
 describe('DeletedProductsContent — paginação', () => {
   it('com totalPages<=1, não exibe navegação de página', async () => {
     renderDeleted()

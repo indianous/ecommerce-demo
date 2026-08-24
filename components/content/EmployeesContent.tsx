@@ -1,10 +1,16 @@
 'use client'
 import { useCallback, useRef, useState } from 'react'
-import { Button, Checkbox, Dialog, FilterDropdown, Heading, Icon, SearchField, useToast } from 'base-ds'
+import { Button, Checkbox, Dialog, FilterDropdown, Icon, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { EmployeeManagementTable } from '@/components/admin/EmployeeManagementTable'
+import { EmployeeForm } from '@/components/forms/EmployeeForm'
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
+import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
+import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
+import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
+import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
+import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
 import { useConfirmDelete } from '@/lib/useConfirmDelete'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions'
@@ -16,6 +22,7 @@ export function EmployeesContent() {
   const searchRef = useRef('')
   const [permissionFilter, setPermissionFilter] = useState<string[]>([])
 
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [permDialogOpen, setPermDialogOpen] = useState(false)
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const [editedPerms, setEditedPerms] = useState<EmployeePermission[]>([])
@@ -57,6 +64,7 @@ export function EmployeesContent() {
     if (res.ok) {
       const created: Employee = await res.json()
       setEmployees((prev) => [...prev, created])
+      setCreateDialogOpen(false)
     }
   }
 
@@ -120,39 +128,47 @@ export function EmployeesContent() {
 
   return (
     <PermissionGuard permissions={['MANAGE_EMPLOYEES']}>
-      <div>
-        <Heading as="h1" size="2xl" className="mb-6">
-          Gestão de Funcionários
-        </Heading>
-
-        <div className="flex gap-4 mb-4 flex-wrap items-start">
-          <SearchField
-            id="employees-search"
-            label="Buscar funcionários"
-            placeholder="Buscar por nome ou e-mail..."
-            buttonLabel="Buscar"
-            buttonIconOnly
-            onSearch={handleSearch}
-            className="flex-1 min-w-40"
-          />
-          <FilterDropdown
-            label="Permissão"
-            options={ALL_PERMISSIONS.map((p) => ({ value: p, label: PERMISSION_LABELS[p] }))}
-            value={permissionFilter}
-            onApply={setPermissionFilter}
-          />
-        </div>
-
-        <EmployeeManagementTable
-          employees={employees}
-          loading={loading}
-          onCreate={handleCreate}
-          onDelete={setDeleteTarget}
-          onManagePermissions={openPermissionsDialog}
-          page={page}
-          totalPages={totalPages}
-          onPageChange={goToPage}
+      <ManagementPageHeader title="Gestão de Funcionários" />
+      <ManagementPageBody
+        actions={
+          <Button iconOnly leftIcon={<Icon name="UserPlus" size="sm" />} aria-label="Novo funcionário" variant="primary" onClick={() => setCreateDialogOpen(true)} />
+        }
+      >
+        <ManagementContentHeader
+          searchId="employees-search"
+          searchLabel="Buscar funcionários"
+          searchPlaceholder="Buscar por nome ou e-mail..."
+          onSearch={handleSearch}
+          filters={
+            <FilterDropdown
+              label="Permissão"
+              options={ALL_PERMISSIONS.map((p) => ({ value: p, label: PERMISSION_LABELS[p] }))}
+              value={permissionFilter}
+              onApply={setPermissionFilter}
+            />
+          }
         />
+
+        <ManagementContentBody loading={loading} empty={employees.length === 0} emptyMessage="Nenhum funcionário cadastrado." loadingLabel="Carregando funcionários">
+          <EmployeeManagementTable
+            employees={employees}
+            onDelete={setDeleteTarget}
+            onManagePermissions={openPermissionsDialog}
+          />
+        </ManagementContentBody>
+
+        <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+
+        <Dialog
+          open={createDialogOpen}
+          onClose={() => setCreateDialogOpen(false)}
+          title="Novo funcionário"
+        >
+          <EmployeeForm
+            onSave={handleCreate}
+            onCancel={() => setCreateDialogOpen(false)}
+          />
+        </Dialog>
 
         <Dialog
           open={permDialogOpen}
@@ -187,7 +203,7 @@ export function EmployeesContent() {
           title="Excluir funcionário"
           description={deleteTargetEmployee ? `Remover "${deleteTargetEmployee.name}"? Essa ação não pode ser desfeita.` : undefined}
         />
-      </div>
+      </ManagementPageBody>
     </PermissionGuard>
   )
 }

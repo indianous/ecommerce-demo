@@ -1,13 +1,17 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button, Dialog, Heading, Icon, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
+import { Button, Dialog, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
-import { PaginationBar } from '@/components/ui/PaginationBar'
 import { RejectPaymentForm } from '@/components/forms/RejectPaymentForm'
+import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
+import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
+import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
+import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
+import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
 import { sortTableData } from '@/lib/sortTableData'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { AdminOrderResponse } from '@/types'
@@ -25,6 +29,7 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
   const router = useRouter()
+  const searchRef = useRef('')
 
   const [rejectTarget, setRejectTarget] = useState<AdminOrderResponse | null>(null)
   const [rejectReason, setRejectReason] = useState('')
@@ -34,6 +39,7 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
   const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<AdminOrderResponse> | null> => {
     if (!accessToken) return null
     params.set('paymentStatus', 'PENDING')
+    if (searchRef.current) params.set('search', searchRef.current)
     try {
       const res = await fetch(`/api/admin/orders?${params}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -46,7 +52,12 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
     }
   }, [accessToken, toast])
 
-  const { page, items: orders, setItems: setOrders, totalPages, loading, goToPage } = usePaginatedFetch(fetchPage)
+  const { page, items: orders, setItems: setOrders, totalPages, loading, goToPage, reload } = usePaginatedFetch(fetchPage)
+
+  const handleSearch = (value: string) => {
+    searchRef.current = value
+    reload()
+  }
 
   const closeRejectDialog = () => {
     setRejectTarget(null)
@@ -116,24 +127,21 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
   return (
     <PermissionGuard permissions={['MANAGE_PAYMENTS']}>
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <Heading as="h1" size="2xl" className="mb-6">
-          Gestão de Pagamentos
-        </Heading>
+        <ManagementPageHeader title="Gestão de Pagamentos" />
+        <ManagementPageBody>
+          <ManagementContentHeader
+            searchId="payments-search"
+            searchLabel="Buscar pagamentos"
+            searchPlaceholder="Buscar por nº do pedido, cliente ou e-mail..."
+            onSearch={handleSearch}
+          />
 
-        {loading ? (
-          <div role="status">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} variant="line" height={40} className="mb-2" />
-            ))}
-          </div>
-        ) : orders.length === 0 ? (
-          <Text size="sm" color="muted">Nenhum pagamento pendente.</Text>
-        ) : (
-          <>
+          <ManagementContentBody loading={loading} empty={orders.length === 0} emptyMessage="Nenhum pagamento pendente." loadingLabel="Carregando pagamentos">
             <Table columns={columns} data={sortedOrders} onSort={(key, direction) => setSort({ key, direction })} />
-            <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mt-4" />
-          </>
-        )}
+          </ManagementContentBody>
+
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+        </ManagementPageBody>
       </main>
 
       <Dialog

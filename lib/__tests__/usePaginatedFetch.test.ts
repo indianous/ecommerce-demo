@@ -74,6 +74,20 @@ describe('usePaginatedFetch', () => {
     expect(fetcher.mock.calls.length).toBe(callsBeforeReload + 1)
   })
 
+  it('refetch(): chama o fetcher de novo para a página atual, sem navegar', async () => {
+    mockSearch = 'page=3'
+    const fetcher = vi.fn().mockResolvedValue({ content: [], totalPages: 5 })
+    const { result } = renderHook(() => usePaginatedFetch(fetcher))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    const callsBeforeRefetch = fetcher.mock.calls.length
+
+    await act(async () => { await result.current.refetch() })
+
+    expect(pushMock).not.toHaveBeenCalled()
+    expect(fetcher.mock.calls.length).toBe(callsBeforeRefetch + 1)
+    expect(fetcher).toHaveBeenLastCalledWith(new URLSearchParams({ page: '2', size: '20' }))
+  })
+
   it('reload(): se não está na página 1, navega para page=1 em vez de chamar o fetcher direto', async () => {
     mockSearch = 'page=3'
     const fetcher = vi.fn().mockResolvedValue({ content: [], totalPages: 5 })

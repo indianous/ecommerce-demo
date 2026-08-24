@@ -1,10 +1,14 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
-import { Badge, Button, Dialog, FilterDropdown, Heading, Icon, SearchField, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
+import { Badge, Button, Dialog, FilterDropdown, Heading, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
-import { PaginationBar } from '@/components/ui/PaginationBar'
+import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
+import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
+import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
+import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
+import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
 import { sortTableData } from '@/lib/sortTableData'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { OrderChangeRequest, OrderChangeRequestStatus, OrderStatus } from '@/types'
@@ -219,50 +223,37 @@ export function SolicitacoesContent() {
   return (
     <PermissionGuard permissions={['MANAGE_ORDER_STATUS_REQUESTS']}>
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <Heading as="h1" size="2xl" className="mb-6">
-          Solicitações de Status
-        </Heading>
-
-        <div className="flex gap-3 mb-4 flex-wrap">
-          <SearchField
-            id="change-requests-search"
-            label="Buscar solicitações"
-            placeholder="Buscar por número do pedido..."
-            buttonLabel="Buscar"
-            buttonIconOnly
+        <ManagementPageHeader title="Solicitações de Status" />
+        <ManagementPageBody>
+          <ManagementContentHeader
+            searchId="change-requests-search"
+            searchLabel="Buscar solicitações"
+            searchPlaceholder="Buscar por número do pedido ou e-mail do solicitante..."
             onSearch={handleSearch}
-            className="max-w-xs"
+            filters={
+              <FilterDropdown
+                label="Status"
+                options={[
+                  { value: 'PENDING', label: 'Pendente' },
+                  { value: 'APPROVED', label: 'Aprovada' },
+                  { value: 'REJECTED', label: 'Rejeitada' },
+                ]}
+                value={statusFilter}
+                onApply={setStatusFilter}
+              />
+            }
           />
-          <FilterDropdown
-            label="Status"
-            options={[
-              { value: 'PENDING', label: 'Pendente' },
-              { value: 'APPROVED', label: 'Aprovada' },
-              { value: 'REJECTED', label: 'Rejeitada' },
-            ]}
-            value={statusFilter}
-            onApply={setStatusFilter}
-          />
-        </div>
 
-        {loading ? (
-          <div role="status">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} variant="line" height={40} className="mb-2" />
-            ))}
-          </div>
-        ) : requests.length === 0 ? (
-          <Text size="sm" color="muted">Nenhuma solicitação encontrada.</Text>
-        ) : (
-          <>
+          <ManagementContentBody loading={loading} empty={requests.length === 0} emptyMessage="Nenhuma solicitação encontrada." loadingLabel="Carregando solicitações">
             <Table
               columns={changeRequestColumns}
               data={sortedRequests}
               onSort={(key, direction) => setSort({ key, direction })}
             />
-            <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mt-4" />
-          </>
-        )}
+          </ManagementContentBody>
+
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+        </ManagementPageBody>
       </main>
     </PermissionGuard>
   )

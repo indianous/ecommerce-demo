@@ -152,6 +152,30 @@ describe('ExpiringLotsContent', () => {
   })
 })
 
+describe('ExpiringLotsContent — busca', () => {
+  it('digitar no campo de busca não dispara nova chamada à API', async () => {
+    const user = userEvent.setup()
+    renderExpiring()
+    await screen.findByText('Teclado Mecânico')
+    const urlBeforeTyping = lastUrl
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar lotes' }), 'L1')
+
+    expect(lastUrl).toBe(urlBeforeTyping)
+  })
+
+  it('clicar no botão de busca dispara a chamada com o termo no query param', async () => {
+    const user = userEvent.setup()
+    renderExpiring()
+    await screen.findByText('Teclado Mecânico')
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar lotes' }), 'L1')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+
+    expect(new URL(lastUrl).searchParams.get('search')).toBe('L1')
+  })
+})
+
 describe('ExpiringLotsContent — paginação', () => {
   it('com totalPages<=1, não exibe navegação de página', async () => {
     renderExpiring()

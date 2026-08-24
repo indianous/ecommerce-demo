@@ -1,12 +1,16 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, Heading, Icon, Skeleton, Table, type TableColumn, Text } from 'base-ds'
+import { Badge, Button, Icon, Table, type TableColumn } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
-import { PaginationBar } from '@/components/ui/PaginationBar'
+import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
+import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
+import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
+import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
+import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
 import { sortTableData } from '@/lib/sortTableData'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { AdminOrderResponse } from '@/types'
@@ -17,11 +21,13 @@ const formatBRL = (v: number) =>
 export function ShippingContent({ orderBasePath = '/dashboard/orders' }: { orderBasePath?: string }) {
   const { accessToken } = useAuthStore()
   const router = useRouter()
+  const searchRef = useRef('')
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<AdminOrderResponse> | null> => {
     if (!accessToken) return null
     params.set('status', 'CONFIRMED')
+    if (searchRef.current) params.set('search', searchRef.current)
     const res = await fetch(`/api/admin/orders?${params}`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     })
@@ -29,7 +35,12 @@ export function ShippingContent({ orderBasePath = '/dashboard/orders' }: { order
     return await res.json()
   }, [accessToken])
 
-  const { page, items: orders, totalPages, loading, goToPage } = usePaginatedFetch(fetchPage)
+  const { page, items: orders, totalPages, loading, goToPage, reload } = usePaginatedFetch(fetchPage)
+
+  const handleSearch = (value: string) => {
+    searchRef.current = value
+    reload()
+  }
 
   const sortedOrders = sort
     ? sortTableData(orders, sort.key as keyof AdminOrderResponse, sort.direction, sort.key === 'orderNumber' || sort.key === 'totalAmount' ? 'number' : 'string')
@@ -61,27 +72,21 @@ export function ShippingContent({ orderBasePath = '/dashboard/orders' }: { order
   return (
     <PermissionGuard permissions={['MANAGE_SHIPPING']}>
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <Heading as="h1" size="2xl" className="mb-2">
-          Gestão de Envios
-        </Heading>
-        <p className="text-sm text-muted-foreground mb-6">
-          Pedidos confirmados aguardando envio
-        </p>
+        <ManagementPageHeader title="Gestão de Envios" description="Pedidos confirmados aguardando envio" />
+        <ManagementPageBody>
+          <ManagementContentHeader
+            searchId="shipping-search"
+            searchLabel="Buscar pedidos"
+            searchPlaceholder="Buscar por nº do pedido, cliente ou e-mail..."
+            onSearch={handleSearch}
+          />
 
-        {loading ? (
-          <div role="status">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} variant="line" height={40} className="mb-2" />
-            ))}
-          </div>
-        ) : orders.length === 0 ? (
-          <Text size="sm" color="muted">Nenhum pedido aguardando envio.</Text>
-        ) : (
-          <>
+          <ManagementContentBody loading={loading} empty={orders.length === 0} emptyMessage="Nenhum pedido aguardando envio." loadingLabel="Carregando pedidos">
             <Table columns={columns} data={sortedOrders} onSort={(key, direction) => setSort({ key, direction })} />
-            <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mt-4" />
-          </>
-        )}
+          </ManagementContentBody>
+
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+        </ManagementPageBody>
       </main>
     </PermissionGuard>
   )

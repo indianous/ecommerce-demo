@@ -1,10 +1,14 @@
 'use client'
 
-import { useCallback, useState } from 'react'
-import { Button, Heading, Icon, Table, type TableColumn, Text, useToast } from 'base-ds'
+import { useCallback, useRef, useState } from 'react'
+import { Button, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
-import { PaginationBar } from '@/components/ui/PaginationBar'
+import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
+import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
+import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
+import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
+import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
 import { sortTableData } from '@/lib/sortTableData'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { Product } from '@/types'
@@ -15,12 +19,14 @@ const formatDate = (iso: string) =>
 export function DeletedProductsContent() {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
+  const searchRef = useRef('')
 
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<Product> | null> => {
     if (!accessToken) return null
     params.set('active', 'false')
+    if (searchRef.current) params.set('search', searchRef.current)
     const res = await fetch(`/api/admin/products?${params}`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     })
@@ -28,7 +34,12 @@ export function DeletedProductsContent() {
     return await res.json()
   }, [accessToken])
 
-  const { page, items: products, setItems: setProducts, totalPages, loading, goToPage } = usePaginatedFetch(fetchPage)
+  const { page, items: products, setItems: setProducts, totalPages, loading, goToPage, reload } = usePaginatedFetch(fetchPage)
+
+  const handleSearch = (value: string) => {
+    searchRef.current = value
+    reload()
+  }
 
   const handleRestore = async (product: Product) => {
     if (!accessToken) return
@@ -44,8 +55,6 @@ export function DeletedProductsContent() {
       toast({ variant: 'destructive', description: 'Erro ao restaurar produto.' })
     }
   }
-
-  if (loading) return <main className="px-4 py-8"><p>Carregando produtos excluídos...</p></main>
 
   const sortedProducts = sort ? sortTableData(products, sort.key as keyof Product, sort.direction, sort.key === 'updatedAt' ? 'date' : 'string') : products
 
@@ -65,16 +74,21 @@ export function DeletedProductsContent() {
   return (
     <PermissionGuard permissions={['RESTORE_PRODUCTS']}>
       <main className="mx-auto max-w-3xl px-4 py-8">
-        <Heading as="h1" size="2xl" className="mb-6">Produtos Excluídos</Heading>
+        <ManagementPageHeader title="Produtos Excluídos" />
+        <ManagementPageBody>
+          <ManagementContentHeader
+            searchId="deleted-products-search"
+            searchLabel="Buscar produtos excluídos"
+            searchPlaceholder="Buscar por nome, id ou código..."
+            onSearch={handleSearch}
+          />
 
-        {products.length === 0 ? (
-          <Text size="sm" color="muted">Nenhum produto excluído.</Text>
-        ) : (
-          <>
+          <ManagementContentBody loading={loading} empty={products.length === 0} emptyMessage="Nenhum produto excluído." loadingLabel="Carregando produtos excluídos">
             <Table columns={columns} data={sortedProducts} onSort={(key, direction) => setSort({ key, direction })} />
-            <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mt-4" />
-          </>
-        )}
+          </ManagementContentBody>
+
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+        </ManagementPageBody>
       </main>
     </PermissionGuard>
   )

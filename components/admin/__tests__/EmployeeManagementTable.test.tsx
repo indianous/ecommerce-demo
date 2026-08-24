@@ -1,10 +1,10 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
 import { describe, expect, it, vi } from 'vitest'
 import { ToastProvider } from 'base-ds'
 import { EmployeeManagementTable } from '../EmployeeManagementTable'
-import type { Employee, EmployeeFormData } from '@/types'
+import type { Employee } from '@/types'
 
 const mockEmployees: Employee[] = [
   { id: 'emp-1', name: 'Ana Costa', email: 'ana@test.com', role: 'EMPLOYEE', permissions: [] },
@@ -14,16 +14,14 @@ const mockEmployees: Employee[] = [
 function renderTable(props: {
   employees?: Employee[]
   onDelete?: (id: string) => void
-  onCreate?: (data: EmployeeFormData) => void
-  loading?: boolean
+  onManagePermissions?: (employee: Employee) => void
 } = {}) {
   return render(
     <ToastProvider>
       <EmployeeManagementTable
         employees={props.employees ?? mockEmployees}
         onDelete={props.onDelete ?? vi.fn()}
-        onCreate={props.onCreate ?? vi.fn()}
-        loading={props.loading ?? false}
+        onManagePermissions={props.onManagePermissions}
       />
     </ToastProvider>,
   )
@@ -51,79 +49,19 @@ describe('EmployeeManagementTable', () => {
     expect(screen.getAllByRole('button', { name: 'Copiar e-mail' }).length).toBeGreaterThan(0)
   })
 
-  it('exibe Skeleton quando loading=true', () => {
-    renderTable({ loading: true })
-    expect(screen.queryByText('Ana Costa')).not.toBeInTheDocument()
-    expect(document.querySelector('[data-loading]') ?? screen.queryByRole('status')).toBeTruthy()
-  })
-
-  it('botão "Novo funcionário" abre o Dialog de cadastro', async () => {
-    const user = userEvent.setup()
+  it('sem onManagePermissions, não exibe botão de editar', () => {
     renderTable()
-
-    await user.click(screen.getByRole('button', { name: /novo funcionário/i }))
-
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /editar ana costa/i })).not.toBeInTheDocument()
   })
 
-  it('form contém campos Nome, E-mail e Senha', async () => {
+  it('com onManagePermissions, botão de editar chama a callback com o funcionário', async () => {
     const user = userEvent.setup()
-    renderTable()
+    const onManagePermissions = vi.fn()
+    renderTable({ onManagePermissions })
 
-    await user.click(screen.getByRole('button', { name: /novo funcionário/i }))
-    const dialog = screen.getByRole('dialog')
+    await user.click(screen.getByRole('button', { name: /editar ana costa/i }))
 
-    expect(within(dialog).getByLabelText(/nome/i)).toBeInTheDocument()
-    expect(within(dialog).getByLabelText(/e-mail/i)).toBeInTheDocument()
-    expect(within(dialog).getByLabelText(/senha/i)).toBeInTheDocument()
-  })
-
-  it('botão Salvar chama onCreate com os dados preenchidos', async () => {
-    const user = userEvent.setup()
-    const onCreate = vi.fn()
-    renderTable({ onCreate })
-
-    await user.click(screen.getByRole('button', { name: /novo funcionário/i }))
-    const dialog = screen.getByRole('dialog')
-
-    await user.type(within(dialog).getByLabelText(/nome/i), 'Carlos Melo')
-    await user.type(within(dialog).getByLabelText(/e-mail/i), 'carlos@test.com')
-    await user.type(within(dialog).getByLabelText(/senha/i), 'senhaSegura1')
-    await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
-
-    expect(onCreate).toHaveBeenCalledWith({
-      name: 'Carlos Melo',
-      email: 'carlos@test.com',
-      password: 'senhaSegura1',
-    })
-  })
-
-  it('botão Salvar permanece desabilitado com e-mail mal formatado', async () => {
-    const user = userEvent.setup()
-    renderTable()
-
-    await user.click(screen.getByRole('button', { name: /novo funcionário/i }))
-    const dialog = screen.getByRole('dialog')
-
-    await user.type(within(dialog).getByLabelText(/nome/i), 'Carlos Melo')
-    await user.type(within(dialog).getByLabelText(/e-mail/i), 'email-invalido')
-    await user.type(within(dialog).getByLabelText(/senha/i), 'senhaSegura1')
-
-    expect(within(dialog).getByRole('button', { name: /salvar/i })).toBeDisabled()
-  })
-
-  it('botão Salvar permanece desabilitado com senha menor que 8 caracteres', async () => {
-    const user = userEvent.setup()
-    renderTable()
-
-    await user.click(screen.getByRole('button', { name: /novo funcionário/i }))
-    const dialog = screen.getByRole('dialog')
-
-    await user.type(within(dialog).getByLabelText(/nome/i), 'Carlos Melo')
-    await user.type(within(dialog).getByLabelText(/e-mail/i), 'carlos@test.com')
-    await user.type(within(dialog).getByLabelText(/senha/i), 'curta')
-
-    expect(within(dialog).getByRole('button', { name: /salvar/i })).toBeDisabled()
+    expect(onManagePermissions).toHaveBeenCalledWith(mockEmployees[0])
   })
 
   it('botão Excluir chama onDelete com o id correto', async () => {
@@ -136,26 +74,9 @@ describe('EmployeeManagementTable', () => {
     expect(onDelete).toHaveBeenCalledWith('emp-1')
   })
 
-  it('dialog fecha ao clicar em Cancelar', async () => {
-    const user = userEvent.setup()
-    renderTable()
-
-    await user.click(screen.getByRole('button', { name: /novo funcionário/i }))
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
-
-    await user.click(screen.getByRole('button', { name: /cancelar/i }))
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-  })
-
   it('sem violações de acessibilidade', async () => {
     const { container } = renderTable()
     expect(await axe(container)).toHaveNoViolations()
-  })
-
-  it('mostra mensagem em português quando não há funcionários, não "No data"', () => {
-    renderTable({ employees: [] })
-    expect(screen.getByText(/nenhum funcionário cadastrado/i)).toBeInTheDocument()
-    expect(screen.queryByText('No data')).not.toBeInTheDocument()
   })
 
   it('clicar no cabeçalho "Nome" ordena as linhas (asc, depois desc)', async () => {
@@ -181,36 +102,5 @@ describe('EmployeeManagementTable', () => {
     renderTable()
     const header = screen.getByRole('columnheader', { name: /e-mail/i })
     expect(header.querySelector('button')).toBeInTheDocument()
-  })
-
-  it('sem onPageChange, não exibe navegação de página mesmo com totalPages > 1', () => {
-    render(
-      <ToastProvider>
-        <EmployeeManagementTable employees={mockEmployees} onDelete={vi.fn()} onCreate={vi.fn()} loading={false} totalPages={3} />
-      </ToastProvider>,
-    )
-    expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument()
-  })
-
-  it('com onPageChange e totalPages > 1, exibe navegação de página e chama onPageChange ao clicar em "Next page"', async () => {
-    const onPageChange = vi.fn()
-    const user = userEvent.setup()
-    render(
-      <ToastProvider>
-        <EmployeeManagementTable
-          employees={mockEmployees}
-          onDelete={vi.fn()}
-          onCreate={vi.fn()}
-          loading={false}
-          page={1}
-          totalPages={3}
-          onPageChange={onPageChange}
-        />
-      </ToastProvider>,
-    )
-
-    expect(screen.getByRole('navigation', { name: /pagination/i })).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: /next page/i }))
-    expect(onPageChange).toHaveBeenCalledWith(2)
   })
 })

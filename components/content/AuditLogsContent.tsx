@@ -1,8 +1,12 @@
 'use client'
-import { useCallback, useState } from 'react'
-import { FilterDropdown, Heading, Skeleton, Table, type TableColumn, Text } from 'base-ds'
+import { useCallback, useRef, useState } from 'react'
+import { FilterDropdown, Table, type TableColumn } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
-import { PaginationBar } from '@/components/ui/PaginationBar'
+import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
+import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
+import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
+import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
+import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
 import { sortTableData } from '@/lib/sortTableData'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { AuditAction, AuditEntityType, AuditLogResponse } from '@/types'
@@ -55,6 +59,7 @@ const columns: TableColumn<AuditLogResponse>[] = [
 
 export function AuditLogsContent() {
   const { accessToken } = useAuthStore()
+  const searchRef = useRef('')
   const [entityType, setEntityType] = useState<string[]>([])
   const [action, setAction] = useState<string[]>([])
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
@@ -63,6 +68,7 @@ export function AuditLogsContent() {
     if (!accessToken) return null
     entityType.forEach((t) => params.append('entityType', t))
     action.forEach((a) => params.append('action', a))
+    if (searchRef.current) params.set('search', searchRef.current)
     try {
       const res = await fetch(`/api/admin/audit-logs?${params.toString()}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -74,39 +80,41 @@ export function AuditLogsContent() {
     }
   }, [accessToken, entityType, action])
 
-  const { page, items: logs, totalPages, loading, goToPage } = usePaginatedFetch(fetchPage)
+  const { page, items: logs, totalPages, loading, goToPage, reload } = usePaginatedFetch(fetchPage)
+
+  const handleSearch = (value: string) => {
+    searchRef.current = value
+    reload()
+  }
 
   return (
     <div>
-      <Heading as="h1" size="2xl" className="mb-6">
-        Auditoria
-      </Heading>
-
-      <div className="flex gap-4 mb-6">
-        <FilterDropdown
-          label="Tipo de entidade"
-          options={ENTITY_TYPE_OPTIONS}
-          value={entityType}
-          onApply={setEntityType}
+      <ManagementPageHeader title="Auditoria" />
+      <ManagementPageBody>
+        <ManagementContentHeader
+          searchId="audit-logs-search"
+          searchLabel="Buscar logs"
+          searchPlaceholder="Buscar por id da entidade ou e-mail do ator..."
+          onSearch={handleSearch}
+          filters={
+            <>
+              <FilterDropdown
+                label="Tipo de entidade"
+                options={ENTITY_TYPE_OPTIONS}
+                value={entityType}
+                onApply={setEntityType}
+              />
+              <FilterDropdown
+                label="Ação"
+                options={ACTION_OPTIONS}
+                value={action}
+                onApply={setAction}
+              />
+            </>
+          }
         />
-        <FilterDropdown
-          label="Ação"
-          options={ACTION_OPTIONS}
-          value={action}
-          onApply={setAction}
-        />
-      </div>
 
-      {loading ? (
-        <div role="status" aria-label="Carregando logs">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} variant="line" height={48} className="mb-2" />
-          ))}
-        </div>
-      ) : logs.length === 0 ? (
-        <Text size="sm" color="muted">Nenhum log encontrado.</Text>
-      ) : (
-        <>
+        <ManagementContentBody loading={loading} empty={logs.length === 0} emptyMessage="Nenhum log encontrado." loadingLabel="Carregando logs">
           <Table
             columns={columns}
             data={
@@ -121,9 +129,10 @@ export function AuditLogsContent() {
             }
             onSort={(key, direction) => setSort({ key, direction })}
           />
-          <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} className="mt-4" />
-        </>
-      )}
+        </ManagementContentBody>
+
+        <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+      </ManagementPageBody>
     </div>
   )
 }

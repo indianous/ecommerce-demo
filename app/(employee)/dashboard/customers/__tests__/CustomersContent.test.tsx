@@ -128,6 +128,44 @@ describe('CustomersContent', () => {
   })
 })
 
+describe('CustomersContent — busca', () => {
+  it('digitar no campo de busca não dispara nova chamada à API', async () => {
+    let callCount = 0
+    server.use(
+      http.get('/api/admin/customers', () => {
+        callCount += 1
+        return HttpResponse.json(mockPage)
+      }),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByText('Bruno Souza')
+    const callsBeforeTyping = callCount
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar clientes' }), 'bruno')
+
+    expect(callCount).toBe(callsBeforeTyping)
+  })
+
+  it('clicar no botão de busca dispara a chamada com o termo no query param', async () => {
+    let capturedUrl = ''
+    server.use(
+      http.get('/api/admin/customers', ({ request }) => {
+        capturedUrl = request.url
+        return HttpResponse.json(mockPage)
+      }),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByText('Bruno Souza')
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar clientes' }), 'bruno')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+
+    expect(new URL(capturedUrl).searchParams.get('search')).toBe('bruno')
+  })
+})
+
 describe('CustomersContent — paginação', () => {
   it('com totalPages<=1, não exibe navegação de página', async () => {
     renderContent()
