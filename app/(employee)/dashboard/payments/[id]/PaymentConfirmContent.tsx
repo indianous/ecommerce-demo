@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Heading, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { CopyButton } from '@/components/ui/CopyButton'
 import { PaymentConfirmForm } from '@/components/forms/PaymentConfirmForm'
 import type { AdminOrderDetailResponse } from '@/types'
 
@@ -108,7 +109,10 @@ export function PaymentConfirmContent({
           </div>
           <div>
             <p className="text-muted-foreground">Cliente</p>
-            <p className="font-semibold">{order.customerName}</p>
+            <p className="font-semibold inline-flex items-center gap-2">
+              {order.customerName}
+              <CopyButton value={order.customerName} label="nome do cliente" />
+            </p>
           </div>
           <div>
             <p className="text-muted-foreground">Método</p>

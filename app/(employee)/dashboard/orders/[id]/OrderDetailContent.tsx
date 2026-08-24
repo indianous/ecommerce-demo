@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Badge, Button, Heading, Icon, Select, Skeleton, Table, type TableColumn, Text, Textarea, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { CopyButton } from '@/components/ui/CopyButton'
 import type { AdminOrderDetailResponse, Invoice, InvoiceStatus, OrderItemResponse, OrderStatus, PaymentStatus } from '@/types'
 
 type IconName = ComponentProps<typeof Icon>['name']
@@ -221,8 +222,14 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
         <div className="mb-6 flex flex-wrap gap-6">
           <div>
             <p className="text-sm text-muted-foreground">Cliente</p>
-            <p className="font-semibold">{order.customerName}</p>
-            <p className="text-sm">{order.customerEmail}</p>
+            <p className="font-semibold inline-flex items-center gap-2">
+              {order.customerName}
+              <CopyButton value={order.customerName} label="nome do cliente" />
+            </p>
+            <p className="text-sm inline-flex items-center gap-2">
+              {order.customerEmail}
+              <CopyButton value={order.customerEmail} label="e-mail do cliente" />
+            </p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Status</p>

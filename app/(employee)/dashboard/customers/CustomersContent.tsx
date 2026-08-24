@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button, Heading, Icon, SearchField, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { CopyButton } from '@/components/ui/CopyButton'
 import { sortTableData } from '@/lib/sortTableData'
 import type { CustomerResponse } from '@/types'
 
@@ -45,8 +46,27 @@ export function CustomersContent({ basePath = '/dashboard/customers' }: { basePa
   const sortedCustomers = sort ? sortTableData(customers, sort.key as keyof CustomerResponse, sort.direction, 'string') : customers
 
   const columns: TableColumn<CustomerResponse>[] = [
-    { key: 'name', header: 'Nome', sortable: true, render: (c) => c.name },
-    { key: 'email', header: 'E-mail', render: (c) => c.email },
+    {
+      key: 'name',
+      header: 'Nome',
+      sortable: true,
+      render: (c) => (
+        <span className="inline-flex items-center gap-2">
+          {c.name}
+          <CopyButton value={c.name} label="nome" />
+        </span>
+      ),
+    },
+    {
+      key: 'email',
+      header: 'E-mail',
+      render: (c) => (
+        <span className="inline-flex items-center gap-2">
+          {c.email}
+          <CopyButton value={c.email} label="e-mail" />
+        </span>
+      ),
+    },
     {
       key: 'actions',
       header: 'Ações',

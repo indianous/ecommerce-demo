@@ -141,3 +141,12 @@ describe('OrderDetailContent — nota fiscal', () => {
     expect(screen.queryByText(/nota fiscal/i)).not.toBeInTheDocument()
   })
 })
+
+describe('OrderDetailContent — dados de contato do cliente', () => {
+  it('exibe botão de copiar ao lado do nome e do e-mail do cliente', async () => {
+    renderPage()
+    await screen.findByText('Ana Lima')
+    expect(screen.getByRole('button', { name: 'Copiar nome do cliente' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Copiar e-mail do cliente' })).toBeInTheDocument()
+  })
+})

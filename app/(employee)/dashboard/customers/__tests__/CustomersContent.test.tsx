@@ -71,6 +71,13 @@ describe('CustomersContent', () => {
     expect(screen.getByRole('cell', { name: 'ana@test.com' })).toBeInTheDocument()
   })
 
+  it('exibe botão de copiar ao lado do nome e do e-mail', async () => {
+    renderContent()
+    await screen.findByRole('cell', { name: 'Bruno Souza' })
+    expect(screen.getAllByRole('button', { name: 'Copiar nome' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: 'Copiar e-mail' }).length).toBeGreaterThan(0)
+  })
+
   it('botão "Ver detalhe" navega para basePath/{id} (default)', async () => {
     renderContent()
     await screen.findByRole('cell', { name: 'Bruno Souza' })

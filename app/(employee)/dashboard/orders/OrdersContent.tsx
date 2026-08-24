@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Badge, Button, FilterDropdown, Heading, Icon, SearchField, Skeleton, Table, type TableColumn, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { CopyButton } from '@/components/ui/CopyButton'
 import { formatBRL } from '@/lib/format'
 import { sortTableData } from '@/lib/sortTableData'
 import type { AdminOrderResponse, AdminOrderPage, OrderStatus } from '@/types'
@@ -72,8 +73,26 @@ export function OrdersContent({ orderBasePath = '/dashboard/orders' }: { orderBa
 
   const columns: TableColumn<AdminOrderResponse>[] = [
     { key: 'orderNumber', header: 'Nº', sortable: true, render: (o) => o.orderNumber },
-    { key: 'customerName', header: 'Cliente', render: (o) => o.customerName },
-    { key: 'customerEmail', header: 'Email', render: (o) => o.customerEmail },
+    {
+      key: 'customerName',
+      header: 'Cliente',
+      render: (o) => (
+        <span className="inline-flex items-center gap-2">
+          {o.customerName}
+          <CopyButton value={o.customerName} label="nome do cliente" />
+        </span>
+      ),
+    },
+    {
+      key: 'customerEmail',
+      header: 'Email',
+      render: (o) => (
+        <span className="inline-flex items-center gap-2">
+          {o.customerEmail}
+          <CopyButton value={o.customerEmail} label="e-mail do cliente" />
+        </span>
+      ),
+    },
     {
       key: 'status',
       header: 'Status',

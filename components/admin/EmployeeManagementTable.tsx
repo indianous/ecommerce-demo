@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button, Dialog, Icon, Skeleton, Table, type TableColumn, Text } from 'base-ds'
 import type { Employee, EmployeeFormData } from '@/types'
 import { EmployeeForm } from '@/components/forms/EmployeeForm'
+import { CopyButton } from '@/components/ui/CopyButton'
 import { sortTableData } from '@/lib/sortTableData'
 
 interface Props {
@@ -23,8 +24,28 @@ export function EmployeeManagementTable({ employees, loading, onCreate, onDelete
     : employees
 
   const columns: TableColumn<Employee>[] = [
-    { key: 'name', header: 'Nome', sortable: true },
-    { key: 'email', header: 'E-mail', sortable: true },
+    {
+      key: 'name',
+      header: 'Nome',
+      sortable: true,
+      render: (row) => (
+        <span className="inline-flex items-center gap-2">
+          {row.name}
+          <CopyButton value={row.name} label="nome" />
+        </span>
+      ),
+    },
+    {
+      key: 'email',
+      header: 'E-mail',
+      sortable: true,
+      render: (row) => (
+        <span className="inline-flex items-center gap-2">
+          {row.email}
+          <CopyButton value={row.email} label="e-mail" />
+        </span>
+      ),
+    },
     {
       key: 'actions',
       header: 'Ações',

@@ -45,6 +45,12 @@ describe('EmployeeManagementTable', () => {
     expect(screen.getByText('bruno@test.com')).toBeInTheDocument()
   })
 
+  it('exibe botão de copiar ao lado do nome e do e-mail', () => {
+    renderTable()
+    expect(screen.getAllByRole('button', { name: 'Copiar nome' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: 'Copiar e-mail' }).length).toBeGreaterThan(0)
+  })
+
   it('exibe Skeleton quando loading=true', () => {
     renderTable({ loading: true })
     expect(screen.queryByText('Ana Costa')).not.toBeInTheDocument()

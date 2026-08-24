@@ -90,6 +90,12 @@ describe('ShippingContent', () => {
     expect(await screen.findByRole('cell', { name: 'Bruno Souza' })).toBeInTheDocument()
   })
 
+  it('exibe botão de copiar ao lado do nome do cliente', async () => {
+    renderContent()
+    await screen.findByRole('cell', { name: 'Bruno Souza' })
+    expect(screen.getAllByRole('button', { name: 'Copiar nome do cliente' })).toHaveLength(2)
+  })
+
   it('botão "Ver pedido" navega para orderBasePath/{id}', async () => {
     renderContent()
     await screen.findByRole('cell', { name: 'Bruno Souza' })

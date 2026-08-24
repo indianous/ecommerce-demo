@@ -126,6 +126,14 @@ describe('CustomerDetailContent', () => {
     expect(screen.getByText('joao@test.com')).toBeInTheDocument()
   })
 
+  it('exibe botão de copiar ao lado do nome, e-mail e telefone', async () => {
+    renderDetail()
+    await screen.findByText('João Silva')
+    expect(screen.getByRole('button', { name: 'Copiar nome' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Copiar e-mail' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Copiar telefone' })).toBeInTheDocument()
+  })
+
   it('exibe endereço com rua, número, bairro, cidade, estado e CEP', async () => {
     renderDetail()
     await screen.findByText('João Silva')

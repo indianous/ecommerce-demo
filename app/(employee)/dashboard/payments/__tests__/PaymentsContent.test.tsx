@@ -95,6 +95,13 @@ describe('PaymentsContent — listagem', () => {
     expect(screen.getByText('42')).toBeInTheDocument()
   })
 
+  it('exibe botão de copiar ao lado do nome e do e-mail do cliente', async () => {
+    renderContent()
+    await screen.findByText('Ana Lima')
+    expect(screen.getAllByRole('button', { name: 'Copiar nome do cliente' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: 'Copiar e-mail do cliente' }).length).toBeGreaterThan(0)
+  })
+
   it('botão "Confirmar" navega para basePath/{id}/confirm (default)', async () => {
     renderContent()
     await screen.findByText('Ana Lima')

@@ -93,6 +93,12 @@ describe('PaymentConfirmContent — dados do pedido', () => {
     expect(screen.getByText(/R\$\s*150/)).toBeInTheDocument()
   })
 
+  it('exibe botão de copiar ao lado do nome do cliente', async () => {
+    renderContent()
+    await screen.findByText('Ana Lima')
+    expect(screen.getByRole('button', { name: 'Copiar nome do cliente' })).toBeInTheDocument()
+  })
+
   it('exibe mensagem quando pedido não é encontrado', async () => {
     server.use(http.get('/api/admin/orders/:id', () => new HttpResponse(null, { status: 404 })))
     renderContent('nao-existe')

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Avatar, Badge, Button, Heading, Icon, Skeleton, TransferList, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
+import { CopyButton } from '@/components/ui/CopyButton'
 import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions'
 import type { AuditLogResponse, EmployeeDetailResponse, EmployeePermission } from '@/types'
 
@@ -73,9 +74,15 @@ export function EmployeeDetailPage({ id }: { id: string }) {
         <Avatar src={employee.photoUrl} alt={employee.name} size="lg" />
         <div>
           <Heading as="h1" size="2xl">
-            {employee.name}
+            <span className="inline-flex items-center gap-2">
+              {employee.name}
+              <CopyButton value={employee.name} label="nome" />
+            </span>
           </Heading>
-          <p className="text-muted-foreground">{employee.email}</p>
+          <p className="text-muted-foreground inline-flex items-center gap-2">
+            {employee.email}
+            <CopyButton value={employee.email} label="e-mail" />
+          </p>
           <Badge variant="secondary">{employee.role}</Badge>
         </div>
       </div>

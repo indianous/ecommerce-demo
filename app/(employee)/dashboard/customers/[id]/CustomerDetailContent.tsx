@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Badge, Heading, Image, Rating, Skeleton, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { CopyButton } from '@/components/ui/CopyButton'
 import { calculateAge } from '@/lib/age'
 import { formatBRL } from '@/lib/format'
 import type { CustomerDetailResponse, Gender, OrderStatus } from '@/types'
@@ -87,16 +88,33 @@ export function CustomerDetailContent({ id, backPath = '/dashboard/customers' }:
           <Link href={backPath} className="text-sm text-muted-foreground hover:underline">
             ← Voltar
           </Link>
-          <Heading as="h1" size="2xl">{customer.name}</Heading>
+          <Heading as="h1" size="2xl">
+            <span className="inline-flex items-center gap-2">
+              {customer.name}
+              <CopyButton value={customer.name} label="nome" />
+            </span>
+          </Heading>
         </div>
 
-        <p className="text-sm text-muted-foreground mb-6">{customer.email}</p>
+        <p className="text-sm text-muted-foreground mb-6 inline-flex items-center gap-2">
+          {customer.email}
+          <CopyButton value={customer.email} label="e-mail" />
+        </p>
 
         <Heading as="h2" size="xl" className="mb-3">Dados pessoais</Heading>
         <dl className="mb-6 grid grid-cols-2 gap-3 text-sm">
           <div>
             <dt className="text-muted-foreground">Telefone</dt>
-            <dd>{customer.phone ?? 'Não informado'}</dd>
+            <dd>
+              {customer.phone ? (
+                <span className="inline-flex items-center gap-2">
+                  {customer.phone}
+                  <CopyButton value={customer.phone} label="telefone" />
+                </span>
+              ) : (
+                'Não informado'
+              )}
+            </dd>
           </div>
           <div>
             <dt className="text-muted-foreground">Data de nascimento</dt>

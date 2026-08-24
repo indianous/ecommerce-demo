@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Badge, Button, Heading, Icon, Skeleton, Table, type TableColumn, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { CopyButton } from '@/components/ui/CopyButton'
 import { sortTableData } from '@/lib/sortTableData'
 import type { AdminOrderPage, AdminOrderResponse } from '@/types'
 
@@ -40,7 +41,16 @@ export function ShippingContent({ orderBasePath = '/dashboard/orders' }: { order
 
   const columns: TableColumn<AdminOrderResponse>[] = [
     { key: 'orderNumber', header: 'Nº', sortable: true, render: (o) => o.orderNumber },
-    { key: 'customerName', header: 'Cliente', render: (o) => o.customerName },
+    {
+      key: 'customerName',
+      header: 'Cliente',
+      render: (o) => (
+        <span className="inline-flex items-center gap-2">
+          {o.customerName}
+          <CopyButton value={o.customerName} label="nome do cliente" />
+        </span>
+      ),
+    },
     { key: 'totalAmount', header: 'Total', sortable: true, render: (o) => formatBRL(o.totalAmount) },
     { key: 'status', header: 'Status', render: () => <Badge variant="default">Confirmado</Badge> },
     {

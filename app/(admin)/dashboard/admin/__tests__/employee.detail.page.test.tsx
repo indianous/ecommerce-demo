@@ -74,6 +74,13 @@ describe('Employee Detail Page', () => {
     expect(screen.getByText('carlos@test.com')).toBeInTheDocument()
   })
 
+  it('exibe botão de copiar ao lado do nome e do e-mail', async () => {
+    renderPage()
+    await screen.findByText('Carlos Dias')
+    expect(screen.getByRole('button', { name: 'Copiar nome' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Copiar e-mail' })).toBeInTheDocument()
+  })
+
   it('exibe Avatar com src do photoUrl', async () => {
     renderPage()
     await screen.findByText('Carlos Dias')
