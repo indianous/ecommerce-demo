@@ -4,15 +4,21 @@ import { useState } from 'react'
 import { Button, Icon, Table, type TableColumn } from 'base-ds'
 import type { Employee } from '@/types'
 import { CopyButton } from '@/components/ui/CopyButton'
+import { makeSelectionColumn } from '@/components/layout/selectionColumn'
 import { sortTableData } from '@/lib/sortTableData'
 
 interface Props {
   employees: Employee[]
   onDelete: (id: string) => void
   onManagePermissions?: (employee: Employee) => void
+  selection?: {
+    selectedIds: Set<string>
+    onToggle: (id: string) => void
+    onToggleAll: (ids: string[]) => void
+  }
 }
 
-export function EmployeeManagementTable({ employees, onDelete, onManagePermissions }: Props) {
+export function EmployeeManagementTable({ employees, onDelete, onManagePermissions, selection }: Props) {
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const sortedEmployees = sort
@@ -20,6 +26,9 @@ export function EmployeeManagementTable({ employees, onDelete, onManagePermissio
     : employees
 
   const columns: TableColumn<Employee>[] = [
+    ...(selection
+      ? [makeSelectionColumn(sortedEmployees, (e) => e.id, (e) => e.name, selection.selectedIds, selection.onToggle, selection.onToggleAll)]
+      : []),
     {
       key: 'name',
       header: 'Nome',

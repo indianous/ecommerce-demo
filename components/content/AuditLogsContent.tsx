@@ -7,7 +7,10 @@ import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
 import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
 import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
 import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
+import { SelectionBar } from '@/components/layout/SelectionBar'
+import { makeSelectionColumn } from '@/components/layout/selectionColumn'
 import { sortTableData } from '@/lib/sortTableData'
+import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { AuditAction, AuditEntityType, AuditLogResponse } from '@/types'
 
@@ -87,6 +90,15 @@ export function AuditLogsContent() {
     reload()
   }
 
+  const selection = useRowSelection()
+  const sortedLogs = sort
+    ? sortTableData(logs, sort.key as keyof AuditLogResponse, sort.direction, sort.key === 'createdAt' ? 'date' : 'string')
+    : logs
+  const tableColumns: TableColumn<AuditLogResponse>[] = [
+    makeSelectionColumn(sortedLogs, (l) => String(l.id), (l) => `log ${l.entityType} ${l.entityId}`, selection.selectedIds, selection.toggle, selection.selectAll),
+    ...columns,
+  ]
+
   return (
     <div>
       <ManagementPageHeader title="Auditoria" />
@@ -114,24 +126,17 @@ export function AuditLogsContent() {
           }
         />
 
+        <SelectionBar selectedCount={selection.selectedCount} onClear={selection.clear} />
+
         <ManagementContentBody loading={loading} empty={logs.length === 0} emptyMessage="Nenhum log encontrado." loadingLabel="Carregando logs">
           <Table
-            columns={columns}
-            data={
-              sort
-                ? sortTableData(
-                    logs,
-                    sort.key as keyof AuditLogResponse,
-                    sort.direction,
-                    sort.key === 'createdAt' ? 'date' : 'string',
-                  )
-                : logs
-            }
+            columns={tableColumns}
+            data={sortedLogs}
             onSort={(key, direction) => setSort({ key, direction })}
           />
         </ManagementContentBody>
 
-        <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+        <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
       </ManagementPageBody>
     </div>
   )

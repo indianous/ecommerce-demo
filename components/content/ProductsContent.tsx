@@ -6,12 +6,17 @@ import { Badge, Button, Dialog, FilterDropdown, Icon, Table, type TableColumn, u
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CategoryForm } from '@/components/forms/CategoryForm'
+import { ProductImportDialog } from '@/components/product/ProductImportDialog'
+import { downloadBlob } from '@/lib/downloadBlob'
 import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
 import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
 import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
 import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
 import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
+import { SelectionBar } from '@/components/layout/SelectionBar'
+import { makeSelectionColumn } from '@/components/layout/selectionColumn'
 import { sortTableData } from '@/lib/sortTableData'
+import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { Category, Product } from '@/types'
 
@@ -35,6 +40,9 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
   const [categoryName, setCategoryName] = useState('')
   const [categorySaving, setCategorySaving] = useState(false)
+
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
@@ -89,6 +97,23 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
     }
   }
 
+  const handleExport = async () => {
+    if (!accessToken) return
+    setExporting(true)
+    try {
+      const res = await fetch('/api/admin/products/export', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      if (!res.ok) throw new Error()
+      const blob = await res.blob()
+      downloadBlob(blob, 'produtos.csv')
+    } catch {
+      toast({ variant: 'destructive', description: 'Erro ao exportar produtos.' })
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const sortedProducts = sort
     ? sortTableData(
         products,
@@ -98,7 +123,10 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
       )
     : products
 
+  const selection = useRowSelection()
+
   const columns: TableColumn<Product>[] = [
+    makeSelectionColumn(sortedProducts, (p) => p.id, (p) => p.name, selection.selectedIds, selection.toggle, selection.selectAll),
     { key: 'name', header: 'Nome', sortable: true, render: (p) => p.name },
     { key: 'categoryName', header: 'Categoria', render: (p) => p.categories[0]?.name ?? '—' },
     { key: 'price', header: 'Preço', sortable: true, render: (p) => formatBRL(p.price) },
@@ -141,6 +169,8 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
             canManageProducts && (
               <>
                 <Button iconOnly leftIcon={<Icon name="FolderPlus" size="sm" />} aria-label="Nova categoria" variant="outline" onClick={() => setCategoryDialogOpen(true)} />
+                <Button iconOnly leftIcon={<Icon name="Download" size="sm" />} aria-label="Exportar CSV" variant="outline" isLoading={exporting} onClick={handleExport} />
+                <Button iconOnly leftIcon={<Icon name="Upload" size="sm" />} aria-label="Importar CSV" variant="outline" onClick={() => setImportDialogOpen(true)} />
                 <Button iconOnly leftIcon={<Icon name="Plus" size="sm" />} aria-label="Novo produto" variant="primary" onClick={() => router.push(`${basePath}/new`)} />
               </>
             )
@@ -172,6 +202,8 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
             }
           />
 
+          <SelectionBar selectedCount={selection.selectedCount} onClear={selection.clear} />
+
           <ManagementContentBody loading={loading} empty={products.length === 0} emptyMessage="Nenhum produto encontrado." loadingLabel="Carregando produtos">
             <Table
               columns={columns}
@@ -180,11 +212,17 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
             />
           </ManagementContentBody>
 
-          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
 
           <Dialog open={categoryDialogOpen} onClose={() => setCategoryDialogOpen(false)} title="Nova categoria">
             <CategoryForm name={categoryName} onChange={setCategoryName} onSave={handleCategorySave} saving={categorySaving} />
           </Dialog>
+
+          <ProductImportDialog
+            open={importDialogOpen}
+            onClose={() => setImportDialogOpen(false)}
+            onImported={reload}
+          />
         </ManagementPageBody>
       </main>
     </PermissionGuard>

@@ -49,12 +49,17 @@ function makePage(reviews: ProductReview[]): ProductReviewPage {
 }
 
 let deleteHeaders: Headers | null = null
+let lastBulkDeleteBody: { ids: string[] } | null = null
 
 const server = setupServer(
   http.get(`/api/products/${productId}/reviews`, () => HttpResponse.json(makePage([makeReview()]))),
   http.delete(`/api/admin/products/${productId}/reviews/review-1`, ({ request }) => {
     deleteHeaders = request.headers
     return new HttpResponse(null, { status: 204 })
+  }),
+  http.post(`/api/admin/products/${productId}/reviews/bulk-delete`, async ({ request }) => {
+    lastBulkDeleteBody = (await request.json()) as { ids: string[] }
+    return HttpResponse.json({ successCount: lastBulkDeleteBody.ids.length, failures: [] })
   }),
 )
 
@@ -65,6 +70,7 @@ afterEach(async () => {
   pushMock.mockClear()
   mockSearch = ''
   deleteHeaders = null
+  lastBulkDeleteBody = null
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
   })
@@ -223,5 +229,44 @@ describe('ProductReviewsModerationContent — paginação', () => {
     await user.click(screen.getByRole('button', { name: /next page/i }))
 
     expect(pushMock).toHaveBeenCalledWith('/dashboard/products/prod-1/reviews?page=2')
+  })
+})
+
+describe('ProductReviewsModerationContent — seleção em massa', () => {
+  beforeEach(async () => {
+    server.use(
+      http.get(`/api/products/${productId}/reviews`, () =>
+        HttpResponse.json(makePage([makeReview(), makeReview({ id: 'review-2', userName: 'João' })])),
+      ),
+    )
+    await act(async () => {
+      useAuthStore.setState({
+        accessToken: 'mock-token',
+        isAuthenticated: true,
+        user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null },
+      })
+    })
+  })
+
+  it('sem seleção, botão "Excluir selecionadas" não aparece', async () => {
+    renderModeration()
+    await screen.findByText('Maria')
+    expect(screen.queryByRole('button', { name: /excluir selecionad/i })).not.toBeInTheDocument()
+  })
+
+  it('confirmar exclusão em massa chama o bulk-delete e remove as selecionadas', async () => {
+    const user = userEvent.setup()
+    renderModeration()
+    await screen.findByText('Maria')
+
+    await user.click(screen.getByRole('checkbox', { name: /selecionar.*maria/i }))
+    await user.click(screen.getByRole('checkbox', { name: /selecionar.*joão/i }))
+    await user.click(screen.getByRole('button', { name: /excluir selecionad/i }))
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: /^confirmar$/i }))
+
+    expect(lastBulkDeleteBody?.ids.sort()).toEqual(['review-1', 'review-2'])
+    expect(screen.queryByText('Maria')).not.toBeInTheDocument()
+    expect(screen.queryByText('João')).not.toBeInTheDocument()
   })
 })

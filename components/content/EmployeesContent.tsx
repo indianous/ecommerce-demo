@@ -11,10 +11,12 @@ import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
 import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
 import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
 import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
+import { SelectionBar } from '@/components/layout/SelectionBar'
 import { useConfirmDelete } from '@/lib/useConfirmDelete'
+import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions'
-import type { Employee, EmployeeFormData, EmployeePermission } from '@/types'
+import type { BulkOperationResult, Employee, EmployeeFormData, EmployeePermission } from '@/types'
 
 export function EmployeesContent() {
   const { accessToken } = useAuthStore()
@@ -91,6 +93,41 @@ export function EmployeesContent() {
 
   const deleteTargetEmployee = employees.find((e) => e.id === deleteTarget)
 
+  const selection = useRowSelection()
+
+  const handleBulkDelete = async (ids: string[]) => {
+    if (!accessToken) return
+    const res = await fetch('/api/admin/employees/bulk-delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({ ids }),
+    })
+    if (!res.ok) {
+      toast({ variant: 'destructive', description: 'Erro ao excluir funcionários selecionados.' })
+      throw new Error()
+    }
+    const result: BulkOperationResult = await res.json()
+    const failedIds = new Set(result.failures.map((f) => f.id))
+    setEmployees((prev) => prev.filter((e) => !ids.includes(e.id) || failedIds.has(e.id)))
+    selection.clear()
+    if (result.failures.length > 0) {
+      toast({
+        variant: 'destructive',
+        description: `${result.successCount} excluído(s). Não foi possível excluir: ${result.failures.map((f) => f.reason).join('; ')}`,
+      })
+    } else {
+      toast({ variant: 'success', description: `${result.successCount} funcionário(s) excluído(s).` })
+    }
+  }
+
+  const {
+    target: bulkDeleteTarget,
+    setTarget: setBulkDeleteTarget,
+    deleting: bulkDeleting,
+    confirm: confirmBulkDelete,
+    cancel: cancelBulkDelete,
+  } = useConfirmDelete(handleBulkDelete)
+
   const openPermissionsDialog = (employee: Employee) => {
     setSelectedEmployee(employee)
     setEditedPerms([...(employee.permissions ?? [])])
@@ -149,15 +186,31 @@ export function EmployeesContent() {
           }
         />
 
+        <SelectionBar
+          selectedCount={selection.selectedCount}
+          onClear={selection.clear}
+          actions={
+            <Button
+              leftIcon={<Icon name="Trash2" size="sm" />}
+              variant="danger"
+              size="sm"
+              onClick={() => setBulkDeleteTarget(Array.from(selection.selectedIds))}
+            >
+              Excluir selecionados
+            </Button>
+          }
+        />
+
         <ManagementContentBody loading={loading} empty={employees.length === 0} emptyMessage="Nenhum funcionário cadastrado." loadingLabel="Carregando funcionários">
           <EmployeeManagementTable
             employees={employees}
             onDelete={setDeleteTarget}
             onManagePermissions={openPermissionsDialog}
+            selection={{ selectedIds: selection.selectedIds, onToggle: selection.toggle, onToggleAll: selection.selectAll }}
           />
         </ManagementContentBody>
 
-        <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+        <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
 
         <Dialog
           open={createDialogOpen}
@@ -202,6 +255,15 @@ export function EmployeesContent() {
           deleting={deleting}
           title="Excluir funcionário"
           description={deleteTargetEmployee ? `Remover "${deleteTargetEmployee.name}"? Essa ação não pode ser desfeita.` : undefined}
+        />
+
+        <ConfirmDeleteDialog
+          open={bulkDeleteTarget !== null}
+          onClose={cancelBulkDelete}
+          onConfirm={confirmBulkDelete}
+          deleting={bulkDeleting}
+          title="Excluir funcionários"
+          description={bulkDeleteTarget ? `Remover ${bulkDeleteTarget.length} funcionário(s) selecionado(s)? Essa ação não pode ser desfeita.` : undefined}
         />
       </ManagementPageBody>
     </PermissionGuard>

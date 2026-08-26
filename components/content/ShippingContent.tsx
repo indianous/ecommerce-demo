@@ -11,7 +11,10 @@ import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
 import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
 import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
 import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
+import { SelectionBar } from '@/components/layout/SelectionBar'
+import { makeSelectionColumn } from '@/components/layout/selectionColumn'
 import { sortTableData } from '@/lib/sortTableData'
+import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { AdminOrderResponse } from '@/types'
 
@@ -71,7 +74,10 @@ export function ShippingContent({ orderBasePath = '/dashboard/orders' }: { order
     ? sortTableData(orders, sort.key as keyof AdminOrderResponse, sort.direction, sort.key === 'orderNumber' || sort.key === 'totalAmount' ? 'number' : 'string')
     : orders
 
+  const selection = useRowSelection()
+
   const columns: TableColumn<AdminOrderResponse>[] = [
+    makeSelectionColumn(sortedOrders, (o) => o.id, (o) => `pedido ${o.orderNumber}`, selection.selectedIds, selection.toggle, selection.selectAll),
     { key: 'orderNumber', header: 'Nº', sortable: true, render: (o) => o.orderNumber },
     {
       key: 'customerName',
@@ -125,11 +131,13 @@ export function ShippingContent({ orderBasePath = '/dashboard/orders' }: { order
             onSearch={handleSearch}
           />
 
+          <SelectionBar selectedCount={selection.selectedCount} onClear={selection.clear} />
+
           <ManagementContentBody loading={loading} empty={orders.length === 0} emptyMessage="Nenhum pedido aguardando envio." loadingLabel="Carregando pedidos">
             <Table columns={columns} data={sortedOrders} onSort={(key, direction) => setSort({ key, direction })} />
           </ManagementContentBody>
 
-          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
         </ManagementPageBody>
       </main>
     </PermissionGuard>

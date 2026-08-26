@@ -9,7 +9,10 @@ import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
 import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
 import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
 import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
+import { SelectionBar } from '@/components/layout/SelectionBar'
+import { makeSelectionColumn } from '@/components/layout/selectionColumn'
 import { sortTableData } from '@/lib/sortTableData'
+import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { StockLot } from '@/types'
 
@@ -41,7 +44,10 @@ export function ExpiringLotsContent() {
     ? sortTableData(lots, sort.key as keyof StockLot, sort.direction, sort.key === 'quantity' ? 'number' : sort.key === 'expiryDate' ? 'date' : 'string')
     : lots
 
+  const selection = useRowSelection()
+
   const columns: TableColumn<StockLot>[] = [
+    makeSelectionColumn(sortedLots, (lot) => lot.id, (lot) => `lote ${lot.productName}`, selection.selectedIds, selection.toggle, selection.selectAll),
     { key: 'productName', header: 'Produto', sortable: true, render: (lot) => lot.productName },
     { key: 'lotNumber', header: 'Lote', render: (lot) => lot.lotNumber ?? lot.id.slice(0, 8) },
     { key: 'quantity', header: 'Saldo', sortable: true, render: (lot) => lot.quantity },
@@ -72,6 +78,8 @@ export function ExpiringLotsContent() {
             }
           />
 
+          <SelectionBar selectedCount={selection.selectedCount} onClear={selection.clear} />
+
           <ManagementContentBody loading={loading} empty={lots.length === 0} emptyMessage="Nenhum lote vencendo nesse período." loadingLabel="Carregando lotes">
             <Table
               columns={columns}
@@ -80,7 +88,7 @@ export function ExpiringLotsContent() {
             />
           </ManagementContentBody>
 
-          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
         </ManagementPageBody>
       </main>
     </PermissionGuard>

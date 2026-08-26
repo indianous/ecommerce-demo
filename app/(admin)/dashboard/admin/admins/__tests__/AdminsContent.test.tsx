@@ -19,13 +19,15 @@ import type { Employee } from '@/types'
 
 const mockAdmins: Employee[] = [
   { id: 'admin-1', name: 'Ana Costa', email: 'ana@test.com', role: 'ADMIN', permissions: [] },
+  { id: 'admin-2', name: 'Bruno Lima', email: 'bruno@test.com', role: 'ADMIN', permissions: [] },
 ]
 
-const newAdmin: Employee = { id: 'admin-2', name: 'Carlos Melo', email: 'carlos@test.com', role: 'ADMIN', permissions: [] }
+const newAdmin: Employee = { id: 'admin-3', name: 'Carlos Melo', email: 'carlos@test.com', role: 'ADMIN', permissions: [] }
 
 let lastDeletedId = ''
 let lastListUrl = ''
 let deleteResponse: { status: number; body?: Record<string, unknown> } = { status: 204 }
+let lastBulkDeleteBody: { ids: string[] } | null = null
 const mockPage = { content: mockAdmins, page: 0, size: 20, totalElements: mockAdmins.length, totalPages: 1, last: true }
 
 const server = setupServer(
@@ -39,6 +41,10 @@ const server = setupServer(
     if (deleteResponse.status === 204) return new HttpResponse(null, { status: 204 })
     return HttpResponse.json(deleteResponse.body, { status: deleteResponse.status })
   }),
+  http.post('/api/admin/admins/bulk-delete', async ({ request }) => {
+    lastBulkDeleteBody = (await request.json()) as { ids: string[] }
+    return HttpResponse.json({ successCount: lastBulkDeleteBody.ids.length, failures: [] })
+  }),
 )
 
 beforeAll(() => server.listen())
@@ -47,6 +53,7 @@ afterEach(async () => {
   lastDeletedId = ''
   lastListUrl = ''
   deleteResponse = { status: 204 }
+  lastBulkDeleteBody = null
   pushMock.mockClear()
   mockSearch = ''
   await act(async () => {
@@ -206,5 +213,45 @@ describe('AdminsContent — paginação', () => {
     await user.click(screen.getByRole('button', { name: /next page/i }))
 
     expect(pushMock).toHaveBeenCalledWith('/dashboard/admin/admins?page=2')
+  })
+})
+
+describe('AdminsContent — seleção em massa', () => {
+  it('confirmar exclusão em massa chama o bulk-delete e remove os selecionados da lista', async () => {
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByText('Ana Costa')
+
+    await user.click(screen.getByRole('checkbox', { name: /selecionar ana costa/i }))
+    await user.click(screen.getByRole('checkbox', { name: /selecionar bruno lima/i }))
+    await user.click(screen.getByRole('button', { name: /excluir selecionados/i }))
+    await user.click(screen.getByRole('button', { name: /^confirmar$/i }))
+
+    expect(lastBulkDeleteBody?.ids.sort()).toEqual(['admin-1', 'admin-2'])
+    expect(screen.queryByText('Ana Costa')).not.toBeInTheDocument()
+    expect(screen.queryByText('Bruno Lima')).not.toBeInTheDocument()
+  })
+
+  it('lote incluindo o último admin: sucesso parcial mantém o que falhou e mostra o motivo', async () => {
+    server.use(
+      http.post('/api/admin/admins/bulk-delete', () =>
+        HttpResponse.json({
+          successCount: 1,
+          failures: [{ id: 'admin-2', reason: 'Não é possível excluir o último administrador do sistema' }],
+        }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByText('Ana Costa')
+
+    await user.click(screen.getByRole('checkbox', { name: /selecionar ana costa/i }))
+    await user.click(screen.getByRole('checkbox', { name: /selecionar bruno lima/i }))
+    await user.click(screen.getByRole('button', { name: /excluir selecionados/i }))
+    await user.click(screen.getByRole('button', { name: /^confirmar$/i }))
+
+    expect(screen.queryByText('Ana Costa')).not.toBeInTheDocument()
+    expect(await screen.findByText('Bruno Lima')).toBeInTheDocument()
+    expect(await screen.findByText(/último administrador/i)).toBeInTheDocument()
   })
 })
