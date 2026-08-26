@@ -11,9 +11,12 @@ import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
 import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
 import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
 import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
+import { SelectionBar } from '@/components/layout/SelectionBar'
+import { makeSelectionColumn } from '@/components/layout/selectionColumn'
 import { useConfirmDelete } from '@/lib/useConfirmDelete'
+import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
-import type { ProductReview } from '@/types'
+import type { BulkOperationResult, ProductReview } from '@/types'
 
 interface Props {
   id: string
@@ -61,7 +64,43 @@ export function ProductReviewsModerationContent({ id, basePath = '/dashboard/pro
     cancel: cancelDelete,
   } = useConfirmDelete(handleDeleteReview)
 
+  const selection = useRowSelection()
+
+  const handleBulkDelete = async (ids: string[]) => {
+    if (!accessToken) return
+    const res = await fetch(`/api/admin/products/${id}/reviews/bulk-delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({ ids }),
+    })
+    if (!res.ok) {
+      toast({ variant: 'destructive', description: 'Erro ao remover avaliações selecionadas.' })
+      throw new Error()
+    }
+    const result: BulkOperationResult = await res.json()
+    const failedIds = new Set(result.failures.map((f) => f.id))
+    setReviews((prev) => prev.filter((r) => !ids.includes(r.id) || failedIds.has(r.id)))
+    selection.clear()
+    if (result.failures.length > 0) {
+      toast({
+        variant: 'destructive',
+        description: `${result.successCount} removida(s). Não foi possível remover: ${result.failures.map((f) => f.reason).join('; ')}`,
+      })
+    } else {
+      toast({ variant: 'success', description: `${result.successCount} avaliação(ões) removida(s).` })
+    }
+  }
+
+  const {
+    target: bulkDeleteTarget,
+    setTarget: setBulkDeleteTarget,
+    deleting: bulkDeleting,
+    confirm: confirmBulkDelete,
+    cancel: cancelBulkDelete,
+  } = useConfirmDelete(handleBulkDelete)
+
   const columns: TableColumn<ProductReview>[] = [
+    makeSelectionColumn(reviews, (r) => r.id, (r) => `avaliação de ${r.userName}`, selection.selectedIds, selection.toggle, selection.selectAll),
     { key: 'userName', header: 'Nome', sortable: true, render: (r) => r.userName },
     { key: 'rating', header: 'Nota', sortable: true, render: (r) => <Rating value={r.rating} readOnly size="sm" /> },
     {
@@ -113,11 +152,26 @@ export function ProductReviewsModerationContent({ id, basePath = '/dashboard/pro
             onSearch={handleSearch}
           />
 
+          <SelectionBar
+            selectedCount={selection.selectedCount}
+            onClear={selection.clear}
+            actions={
+              <Button
+                leftIcon={<Icon name="Trash2" size="sm" />}
+                variant="danger"
+                size="sm"
+                onClick={() => setBulkDeleteTarget(Array.from(selection.selectedIds))}
+              >
+                Excluir selecionadas
+              </Button>
+            }
+          />
+
           <ManagementContentBody loading={loading} empty={reviews.length === 0} emptyMessage="Nenhuma avaliação para este produto." loadingLabel="Carregando avaliações">
             <Table columns={columns} data={reviews} />
           </ManagementContentBody>
 
-          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
         </ManagementPageBody>
 
         <ConfirmDeleteDialog
@@ -127,6 +181,15 @@ export function ProductReviewsModerationContent({ id, basePath = '/dashboard/pro
           deleting={deleting}
           title="Remover avaliação"
           description="Essa ação não pode ser desfeita."
+        />
+
+        <ConfirmDeleteDialog
+          open={bulkDeleteTarget !== null}
+          onClose={cancelBulkDelete}
+          onConfirm={confirmBulkDelete}
+          deleting={bulkDeleting}
+          title="Excluir avaliações"
+          description={bulkDeleteTarget ? `Remover ${bulkDeleteTarget.length} avaliação(ões) selecionada(s)? Essa ação não pode ser desfeita.` : undefined}
         />
       </main>
     </PermissionGuard>

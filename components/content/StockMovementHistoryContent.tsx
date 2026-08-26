@@ -10,7 +10,10 @@ import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
 import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
 import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
 import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
+import { SelectionBar } from '@/components/layout/SelectionBar'
+import { makeSelectionColumn } from '@/components/layout/selectionColumn'
 import { sortTableData } from '@/lib/sortTableData'
+import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { StockMovement } from '@/types'
 
@@ -69,7 +72,10 @@ export function StockMovementHistoryContent({ productId, stockBasePath = '/dashb
     ? sortTableData(movements, sort.key as keyof StockMovement, sort.direction, sort.key === 'quantity' ? 'number' : sort.key === 'createdAt' ? 'date' : 'string')
     : movements
 
+  const selection = useRowSelection()
+
   const columns: TableColumn<StockMovement>[] = [
+    makeSelectionColumn(sortedMovements, (m) => m.id, (m) => `movimentação ${m.type} #${m.id.slice(0, 8)}`, selection.selectedIds, selection.toggle, selection.selectAll),
     { key: 'type', header: 'Tipo', render: (m) => m.type },
     { key: 'reason', header: 'Motivo', render: (m) => m.reason },
     { key: 'quantity', header: 'Quantidade', sortable: true, render: (m) => m.quantity },
@@ -131,6 +137,8 @@ export function StockMovementHistoryContent({ productId, stockBasePath = '/dashb
             }
           />
 
+          <SelectionBar selectedCount={selection.selectedCount} onClear={selection.clear} />
+
           <ManagementContentBody loading={loading} empty={movements.length === 0} emptyMessage="Nenhuma movimentação encontrada." loadingLabel="Carregando movimentações">
             <Table
               columns={columns}
@@ -139,7 +147,7 @@ export function StockMovementHistoryContent({ productId, stockBasePath = '/dashb
             />
           </ManagementContentBody>
 
-          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
         </ManagementPageBody>
       </main>
     </PermissionGuard>

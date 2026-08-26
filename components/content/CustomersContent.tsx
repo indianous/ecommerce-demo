@@ -11,7 +11,10 @@ import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
 import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
 import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
 import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
+import { SelectionBar } from '@/components/layout/SelectionBar'
+import { makeSelectionColumn } from '@/components/layout/selectionColumn'
 import { sortTableData } from '@/lib/sortTableData'
+import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { CustomerResponse } from '@/types'
 
@@ -46,7 +49,10 @@ export function CustomersContent({ basePath = '/dashboard/customers' }: { basePa
 
   const sortedCustomers = sort ? sortTableData(customers, sort.key as keyof CustomerResponse, sort.direction, 'string') : customers
 
+  const selection = useRowSelection()
+
   const columns: TableColumn<CustomerResponse>[] = [
+    makeSelectionColumn(sortedCustomers, (c) => c.id, (c) => c.name, selection.selectedIds, selection.toggle, selection.selectAll),
     {
       key: 'name',
       header: 'Nome',
@@ -96,6 +102,8 @@ export function CustomersContent({ basePath = '/dashboard/customers' }: { basePa
             onSearch={handleSearch}
           />
 
+          <SelectionBar selectedCount={selection.selectedCount} onClear={selection.clear} />
+
           <ManagementContentBody loading={loading} empty={customers.length === 0} emptyMessage="Nenhum cliente encontrado." loadingLabel="Carregando clientes">
             <Table
               columns={columns}
@@ -104,7 +112,7 @@ export function CustomersContent({ basePath = '/dashboard/customers' }: { basePa
             />
           </ManagementContentBody>
 
-          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
         </ManagementPageBody>
       </main>
     </PermissionGuard>

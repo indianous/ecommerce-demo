@@ -9,7 +9,10 @@ import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
 import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
 import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
 import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
+import { SelectionBar } from '@/components/layout/SelectionBar'
+import { makeSelectionColumn } from '@/components/layout/selectionColumn'
 import { sortTableData } from '@/lib/sortTableData'
+import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { OrderChangeRequest, OrderChangeRequestStatus, OrderStatus } from '@/types'
 
@@ -62,6 +65,7 @@ export function SolicitacoesContent() {
   }, [accessToken, statusFilter, toast])
 
   const { page, items: requests, setItems: setRequests, totalPages, loading, goToPage, reload } = usePaginatedFetch(fetchPage)
+  const selection = useRowSelection()
 
   const handleSearch = (value: string) => {
     searchRef.current = value
@@ -198,6 +202,7 @@ export function SolicitacoesContent() {
   const sortedRequests = sort ? sortTableData(requests, sort.key as keyof OrderChangeRequest, sort.direction, sort.key === 'orderNumber' ? 'number' : 'string') : requests
 
   const changeRequestColumns: TableColumn<OrderChangeRequest>[] = [
+    makeSelectionColumn(sortedRequests, (r) => r.id, (r) => `pedido ${r.orderNumber}`, selection.selectedIds, selection.toggle, selection.selectAll),
     { key: 'orderNumber', header: 'Pedido', sortable: true, render: (req) => `#${req.orderNumber}` },
     {
       key: 'transition',
@@ -244,6 +249,8 @@ export function SolicitacoesContent() {
             }
           />
 
+          <SelectionBar selectedCount={selection.selectedCount} onClear={selection.clear} />
+
           <ManagementContentBody loading={loading} empty={requests.length === 0} emptyMessage="Nenhuma solicitação encontrada." loadingLabel="Carregando solicitações">
             <Table
               columns={changeRequestColumns}
@@ -252,7 +259,7 @@ export function SolicitacoesContent() {
             />
           </ManagementContentBody>
 
-          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
         </ManagementPageBody>
       </main>
     </PermissionGuard>

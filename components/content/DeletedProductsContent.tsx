@@ -9,7 +9,10 @@ import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
 import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
 import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
 import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
+import { SelectionBar } from '@/components/layout/SelectionBar'
+import { makeSelectionColumn } from '@/components/layout/selectionColumn'
 import { sortTableData } from '@/lib/sortTableData'
+import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { Product } from '@/types'
 
@@ -58,7 +61,10 @@ export function DeletedProductsContent() {
 
   const sortedProducts = sort ? sortTableData(products, sort.key as keyof Product, sort.direction, sort.key === 'updatedAt' ? 'date' : 'string') : products
 
+  const selection = useRowSelection()
+
   const columns: TableColumn<Product>[] = [
+    makeSelectionColumn(sortedProducts, (p) => p.id, (p) => p.name, selection.selectedIds, selection.toggle, selection.selectAll),
     { key: 'name', header: 'Nome', sortable: true, render: (p) => p.name },
     { key: 'categoryName', header: 'Categoria', render: (p) => p.categories[0]?.name },
     { key: 'updatedAt', header: 'Excluído em', sortable: true, render: (p) => formatDate(p.updatedAt) },
@@ -83,11 +89,13 @@ export function DeletedProductsContent() {
             onSearch={handleSearch}
           />
 
+          <SelectionBar selectedCount={selection.selectedCount} onClear={selection.clear} />
+
           <ManagementContentBody loading={loading} empty={products.length === 0} emptyMessage="Nenhum produto excluído." loadingLabel="Carregando produtos excluídos">
             <Table columns={columns} data={sortedProducts} onSort={(key, direction) => setSort({ key, direction })} />
           </ManagementContentBody>
 
-          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
         </ManagementPageBody>
       </main>
     </PermissionGuard>

@@ -205,6 +205,11 @@ export interface AdminProductPage {
   last: boolean
 }
 
+export interface BulkOperationResult {
+  successCount: number
+  failures: { id: string; reason: string }[]
+}
+
 export interface ProductImportReport {
   createdCount: number
   created: { name: string; slug: string; renamed: boolean }[]
