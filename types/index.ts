@@ -42,6 +42,8 @@ export interface SiteSettings {
   fiscalCompanyCity: string | null
   fiscalCompanyState: string | null
   fiscalCompanyZipCode: string | null
+  fiscalCompanyEmail: string | null
+  fiscalCompanyPhone: string | null
 }
 
 export interface FiscalCompanyData {
@@ -56,6 +58,8 @@ export interface FiscalCompanyData {
   city: string
   state: string
   zipCode: string
+  email: string
+  phone: string
 }
 
 export type PaymentGatewayProvider = 'MOCK' | 'STRIPE' | 'PAGSEGURO'
@@ -101,6 +105,7 @@ export interface User {
   phone: string | null
   birthDate: string | null
   gender: Gender
+  cpf: string | null
 }
 
 export interface Address {
@@ -156,6 +161,11 @@ export interface Product {
   promotionalPrice?: number
   promotionStartDate?: string
   promotionEndDate?: string
+  weight?: number
+  height?: number
+  width?: number
+  length?: number
+  freeShipping: boolean
   effectivePrice?: number
   onPromotion?: boolean
   viewCount?: number
@@ -267,6 +277,24 @@ export interface OrderResponse {
   createdAt: string
   items: OrderItemResponse[]
   checkoutUrl?: string
+  shippingCost?: number
+  shippingCarrierName?: string
+  shippingServiceName?: string
+  trackingCode?: string
+  shippingLabelUrl?: string
+}
+
+export interface ShippingQuote {
+  serviceId: string
+  carrierName: string
+  serviceName: string
+  price: number
+  deliveryDays: number
+}
+
+export interface ShippingQuoteResponse {
+  options: ShippingQuote[]
+  freeShipping: boolean
 }
 
 export interface CartItem {
@@ -291,6 +319,11 @@ export interface AdminOrderResponse {
   paymentRejectionReason?: string
   createdAt: string
   itemCount: number
+  shippingCost?: number
+  shippingCarrierName?: string
+  shippingServiceName?: string
+  trackingCode?: string
+  shippingLabelUrl?: string
 }
 
 export interface AdminOrderPage {

@@ -75,7 +75,7 @@ beforeEach(() => {
       email: 'func@test.com',
       role: 'EMPLOYEE' as const,
       permissions: ['MANAGE_ORDER_STATUS_REQUESTS' as const],
-     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
   })
 })
 

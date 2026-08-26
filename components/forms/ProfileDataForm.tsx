@@ -11,17 +11,37 @@ const GENDER_OPTIONS: { value: Gender; label: string }[] = [
   { value: 'PREFIRO_NAO_DIZER', label: 'Prefiro não dizer' },
 ]
 
+export function isValidCpf(rawCpf: string): boolean {
+  const cpf = rawCpf.replace(/\D/g, '')
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false
+
+  const calculateDigit = (base: string, weightStart: number) => {
+    const sum = base
+      .split('')
+      .reduce((acc, digit, i) => acc + Number(digit) * (weightStart - i), 0)
+    const remainder = (sum * 10) % 11
+    return remainder === 10 ? 0 : remainder
+  }
+
+  const firstDigit = calculateDigit(cpf.slice(0, 9), 10)
+  const secondDigit = calculateDigit(cpf.slice(0, 9) + firstDigit, 11)
+
+  return cpf === cpf.slice(0, 9) + String(firstDigit) + String(secondDigit)
+}
+
 type Props = {
   name: string
   email: string
   phone: string
   birthDate: string
   gender: Gender
+  cpf: string
   onNameChange: (value: string) => void
   onEmailChange: (value: string) => void
   onPhoneChange: (value: string) => void
   onBirthDateChange: (value: string) => void
   onGenderChange: (value: Gender) => void
+  onCpfChange: (value: string) => void
   onSubmit: (e: React.FormEvent) => void
   saving: boolean
 }
@@ -32,15 +52,18 @@ export function ProfileDataForm({
   phone,
   birthDate,
   gender,
+  cpf,
   onNameChange,
   onEmailChange,
   onPhoneChange,
   onBirthDateChange,
   onGenderChange,
+  onCpfChange,
   onSubmit,
   saving,
 }: Props) {
   const [birthDateError, setBirthDateError] = useState('')
+  const [cpfError, setCpfError] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,6 +72,11 @@ export function ProfileDataForm({
       return
     }
     setBirthDateError('')
+    if (cpf && !isValidCpf(cpf)) {
+      setCpfError('CPF inválido')
+      return
+    }
+    setCpfError('')
     onSubmit(e)
   }
 
@@ -84,6 +112,14 @@ export function ProfileDataForm({
           onChange={(e) => onGenderChange(e.target.value as Gender)}
           options={GENDER_OPTIONS}
         />
+      </FormField>
+      <FormField
+        label="CPF"
+        id="profile-cpf"
+        hint={cpfError ? undefined : 'Opcional — necessário pra gerar a etiqueta de envio dos seus pedidos'}
+        error={cpfError || undefined}
+      >
+        <Input id="profile-cpf" value={cpf} onChange={(e) => onCpfChange(e.target.value)} />
       </FormField>
       <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label="Salvar" type="submit" variant="primary" isLoading={saving} className="self-start" />
     </form>

@@ -7,6 +7,7 @@ import { ProductImageGallery } from '@/components/product/ProductImageGallery'
 import { ProductRatingSummary } from '@/components/product/ProductRatingSummary'
 import { ProductReviewsSection } from '@/components/product/ProductReviewsSection'
 import { ProductViewTracker } from '@/components/product/ProductViewTracker'
+import { ShippingPreview } from '@/components/product/ShippingPreview'
 import type { Product, ProductReviewPage } from '@/types'
 
 const API = process.env.API_INTERNAL_URL ?? 'http://localhost:8080/api/v1'
@@ -144,6 +145,8 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
             </div>
             <AddToCartButton product={product} />
           </div>
+
+          <ShippingPreview productId={product.id} />
         </div>
       </div>
 

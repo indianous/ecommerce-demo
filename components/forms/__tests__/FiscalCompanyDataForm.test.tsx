@@ -49,6 +49,8 @@ describe('FiscalCompanyDataForm', () => {
     expect(screen.getByLabelText(/cidade/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/^estado$/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/cep/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^e-mail$/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^telefone$/i)).toBeInTheDocument()
   })
 
   it('CNPJ com dígito verificador inválido bloqueia o submit', async () => {
@@ -64,6 +66,8 @@ describe('FiscalCompanyDataForm', () => {
       city: 'SP',
       state: 'SP',
       zipCode: '01000000',
+      email: 'contato@empresa.com',
+      phone: '11999999999',
     }
     renderForm({ data, onSave })
 
@@ -86,6 +90,8 @@ describe('FiscalCompanyDataForm', () => {
       city: 'SP',
       state: 'SP',
       zipCode: '01000000',
+      email: 'contato@empresa.com',
+      phone: '11999999999',
     }
     renderForm({ data, onSave })
 

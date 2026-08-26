@@ -104,8 +104,10 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
   const [retroJustification, setRetroJustification] = useState('')
   const [saving, setSaving] = useState(false)
   const [issuingInvoice, setIssuingInvoice] = useState(false)
+  const [buyingLabel, setBuyingLabel] = useState(false)
 
   const canManageInvoice = user?.role === 'ADMIN' || !!user?.permissions?.includes('MANAGE_PAYMENTS')
+  const canManageShipping = user?.role === 'ADMIN' || !!user?.permissions?.includes('MANAGE_SHIPPING')
 
   const fetchOrder = useCallback(async () => {
     if (!accessToken) return
@@ -165,6 +167,28 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
       toast({ variant: 'destructive', description: 'Erro ao enviar solicitação.' })
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleBuyShippingLabel = async () => {
+    if (!accessToken) return
+    setBuyingLabel(true)
+    try {
+      const res = await fetch(`/api/admin/orders/${id}/shipping-label`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast({ variant: 'destructive', description: data.message ?? 'Erro ao comprar etiqueta.' })
+        return
+      }
+      setOrder((o) => (o ? { ...o, trackingCode: data.trackingCode, shippingLabelUrl: data.shippingLabelUrl } : o))
+      toast({ variant: 'success', description: 'Etiqueta comprada com sucesso.' })
+    } catch {
+      toast({ variant: 'destructive', description: 'Erro ao comprar etiqueta.' })
+    } finally {
+      setBuyingLabel(false)
     }
   }
 
@@ -275,6 +299,29 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
             ))}
           </ul>
         </div>
+
+        {canManageShipping && (
+          <div className="mb-6">
+            <h2 className="text-sm font-semibold mb-2">Frete</h2>
+            {(order.shippingCarrierName || order.shippingCost !== undefined) && (
+              <p className="text-sm text-muted-foreground">
+                {order.shippingCarrierName && `${order.shippingCarrierName} — ${order.shippingServiceName} — `}
+                {order.shippingCost !== undefined && formatBRL(order.shippingCost)}
+              </p>
+            )}
+            {!order.trackingCode && (
+              <Button iconOnly leftIcon={<Icon name="Package" size="sm" />} aria-label="Comprar etiqueta" variant="primary" size="sm" isLoading={buyingLabel} onClick={handleBuyShippingLabel} />
+            )}
+            {order.trackingCode && (
+              <div className="flex flex-col gap-1">
+                <p className="text-sm">Código de rastreio: {order.trackingCode}</p>
+                {order.shippingLabelUrl && (
+                  <Button iconOnly leftIcon={<Icon name="FileText" size="sm" />} aria-label="Ver etiqueta" as="a" href={order.shippingLabelUrl} target="_blank" rel="noreferrer" size="sm" variant="outline" />
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {canManageInvoice && (
           <div className="mb-6">

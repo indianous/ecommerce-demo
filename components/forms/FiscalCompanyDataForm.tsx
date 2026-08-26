@@ -22,6 +22,8 @@ export const EMPTY_FISCAL_COMPANY_DATA: FiscalCompanyData = {
   city: '',
   state: '',
   zipCode: '',
+  email: '',
+  phone: '',
 }
 
 export function isValidCnpj(rawCnpj: string): boolean {
@@ -162,6 +164,25 @@ export function FiscalCompanyDataForm({ data, onChange, onSave, saving, saveLabe
           id="fiscal-company-zip-code"
           value={data.zipCode}
           onChange={(e) => onChange({ zipCode: e.target.value })}
+          required
+        />
+      </FormField>
+
+      <FormField label="E-mail" id="fiscal-company-email">
+        <Input
+          id="fiscal-company-email"
+          type="email"
+          value={data.email}
+          onChange={(e) => onChange({ email: e.target.value })}
+          required
+        />
+      </FormField>
+
+      <FormField label="Telefone" id="fiscal-company-phone">
+        <Input
+          id="fiscal-company-phone"
+          value={data.phone}
+          onChange={(e) => onChange({ phone: e.target.value })}
           required
         />
       </FormField>

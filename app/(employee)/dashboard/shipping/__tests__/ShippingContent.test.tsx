@@ -50,13 +50,22 @@ const mockPage: AdminOrderPage = {
   last: true,
 }
 
-const server = setupServer(http.get('/api/admin/orders', () => HttpResponse.json(mockPage)))
+let shippingLabelCallCount = 0
+
+const server = setupServer(
+  http.get('/api/admin/orders', () => HttpResponse.json(mockPage)),
+  http.post('/api/admin/orders/:id/shipping-label', () => {
+    shippingLabelCallCount += 1
+    return HttpResponse.json({ trackingCode: 'BR123456789BR', shippingLabelUrl: 'https://label.pdf' })
+  }),
+)
 
 beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
   pushMock.mockClear()
   mockSearch = ''
+  shippingLabelCallCount = 0
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
   })
@@ -74,7 +83,7 @@ beforeEach(() => {
       email: 'func@test.com',
       role: 'EMPLOYEE' as const,
       permissions: ['MANAGE_SHIPPING' as const],
-     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
   })
 })
 
@@ -140,6 +149,30 @@ describe('ShippingContent', () => {
     await userEvent.click(header.querySelector('button')!)
     const rows = screen.getAllByRole('row').slice(1).map((r) => r.textContent)
     expect(rows[0]).toContain('Ana Lima')
+  })
+})
+
+describe('ShippingContent — comprar etiqueta', () => {
+  it('botão "Comprar etiqueta" chama o endpoint admin e, após sucesso, mostra o código de rastreio', async () => {
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByRole('cell', { name: 'Bruno Souza' })
+
+    await user.click(screen.getByRole('button', { name: /comprar etiqueta 42/i }))
+
+    expect(await screen.findByText('BR123456789BR')).toBeInTheDocument()
+    expect(shippingLabelCallCount).toBe(1)
+  })
+
+  it('depois de comprada, a linha não mostra mais o botão "Comprar etiqueta" pra esse pedido', async () => {
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByRole('cell', { name: 'Bruno Souza' })
+
+    await user.click(screen.getByRole('button', { name: /comprar etiqueta 42/i }))
+    await screen.findByText('BR123456789BR')
+
+    expect(screen.queryByRole('button', { name: /comprar etiqueta 42/i })).not.toBeInTheDocument()
   })
 })
 

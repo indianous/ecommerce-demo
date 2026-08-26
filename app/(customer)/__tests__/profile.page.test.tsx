@@ -16,7 +16,7 @@ const mockUser: User = {
   permissions: [],
   phone: null,
   birthDate: null,
-  gender: 'PREFIRO_NAO_DIZER',
+  gender: 'PREFIRO_NAO_DIZER', cpf: null,
 }
 
 const mockAddress: Address = {

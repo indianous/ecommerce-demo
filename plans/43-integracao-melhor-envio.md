@@ -4,6 +4,11 @@ Plano irmão: `backend/plans/43-integracao-melhor-envio.md` (contexto completo,
 decisões de escopo/cobrança/autenticação, e o desenho do backend — este
 arquivo cobre só o frontend).
 
+**REVISADO 2026-08-25**: o plano irmão (backend) mudou a autenticação de "token
+direto do dashboard" pra OAuth2 completo (confirmado contra a doc oficial do
+Melhor Envio) — isso adiciona uma tela nova aqui que não existia na versão
+anterior: um botão "Conectar Melhor Envio" em Gestão do Site.
+
 ## Estado atual
 
 - `CheckoutForm.tsx` (`components/forms/CheckoutForm.tsx`) não tem nenhuma
@@ -53,6 +58,12 @@ arquivo cobre só o frontend).
 - **`ShippingContent.test.tsx`**: botão "Comprar etiqueta" (novo, por linha
   da tabela) chama o endpoint admin e, depois de sucesso, a linha passa a
   mostrar o código de rastreio.
+- **Novo `MelhorEnvioConnectionCard.test.tsx`** (seção de Gestão do Site):
+  não conectado → mostra botão "Conectar Melhor Envio" que busca a URL de
+  autorização (`GET /api/admin/site/melhor-envio/oauth/authorize-url`) e
+  redireciona `window.location` pra ela; conectado (backend informa via
+  `GET /api/admin/site/melhor-envio` se há token válido) → mostra "Conectado"
+  em vez do botão.
 - **`OrderDetailContent.test.tsx`**: seção de frete no detalhe do pedido
   mostra transportadora/serviço/custo quando presentes; botão "Comprar
   etiqueta" (mesmo padrão do "Emitir NF-e" já existente) some depois de
@@ -72,6 +83,8 @@ arquivo cobre só o frontend).
   `/api/v1/shipping/calculate`, repassando `Authorization`).
 - Novo `app/api/admin/orders/[id]/shipping-label/route.ts` (`POST`, proxy pro
   backend `/api/v1/admin/orders/{id}/shipping-label`).
+- Novo `app/api/admin/site/melhor-envio/oauth/authorize-url/route.ts` (`GET`,
+  proxy pro backend).
 
 ### Componentes
 - **`ProductForm.tsx`**: nova seção "Envio" (ao lado da seção fiscal) — peso
@@ -86,6 +99,12 @@ arquivo cobre só o frontend).
 - **`ShippingContent.tsx`**: nova coluna/ação "Comprar etiqueta" — chama o
   BFF novo, mostra código de rastreio depois de comprada (desabilita o botão
   se já tiver `trackingCode`).
+- **Novo `components/admin/MelhorEnvioConnectionCard.tsx`** (Gestão do
+  Site, `Card` do base-ds): botão "Conectar Melhor Envio" chama o BFF novo e
+  redireciona (`window.location.href = authorizeUrl`) — o callback OAuth
+  volta direto pro backend (`redirect_uri` aponta pro backend, não pro
+  frontend), então esse componente só dispara o redirect inicial e depois
+  recarrega o próprio card pra refletir "Conectado".
 - **`OrderDetailContent.tsx`**: nova seção "Frete" (ao lado da seção de nota
   fiscal já existente) — transportadora, serviço, custo; botão "Comprar
   etiqueta" quando ainda não tem `trackingCode`; código de rastreio + link do

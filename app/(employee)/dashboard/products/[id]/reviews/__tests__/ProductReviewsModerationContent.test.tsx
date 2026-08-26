@@ -86,7 +86,7 @@ describe('ProductReviewsModerationContent', () => {
       useAuthStore.setState({
         accessToken: 'mock-token',
         isAuthenticated: true,
-        user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+        user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
       })
     })
     renderModeration()
@@ -100,7 +100,7 @@ describe('ProductReviewsModerationContent', () => {
       useAuthStore.setState({
         accessToken: 'mock-token',
         isAuthenticated: true,
-        user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+        user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
       })
     })
     const user = userEvent.setup()
@@ -121,7 +121,7 @@ describe('ProductReviewsModerationContent', () => {
       useAuthStore.setState({
         accessToken: 'mock-token',
         isAuthenticated: true,
-        user: { id: 'u-2', name: 'Sem Permissão', email: 'no@test.com', role: 'EMPLOYEE', permissions: [] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+        user: { id: 'u-2', name: 'Sem Permissão', email: 'no@test.com', role: 'EMPLOYEE', permissions: [] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
       })
     })
     renderModeration()
@@ -136,7 +136,7 @@ describe('ProductReviewsModerationContent — busca', () => {
       useAuthStore.setState({
         accessToken: 'mock-token',
         isAuthenticated: true,
-        user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const },
+        user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null },
       })
     })
   })
@@ -184,7 +184,7 @@ describe('ProductReviewsModerationContent — paginação', () => {
       useAuthStore.setState({
         accessToken: 'mock-token',
         isAuthenticated: true,
-        user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const },
+        user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null },
       })
     })
   })

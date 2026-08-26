@@ -29,6 +29,7 @@ const mockProduct: Product = {
   imageUrls: [],
   active: true,
   status: 'AVAILABLE',
+  freeShipping: false,
   createdAt: '2024-01-01T00:00:00Z',
   updatedAt: '2024-01-01T00:00:00Z',
 }
@@ -38,6 +39,7 @@ const mockUnavailableProduct: Product = {
   id: 'prod-unavail',
   name: 'Mouse Óptico',
   status: 'UNAVAILABLE',
+  freeShipping: false,
 }
 
 const mockBookProduct: Product = {
@@ -93,7 +95,7 @@ beforeEach(() => {
   useAuthStore.setState({
     accessToken: 'mock-token',
     isAuthenticated: true,
-    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PRODUCTS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
   })
 })
 
@@ -385,7 +387,7 @@ describe('ProductsManagementPage — controle de acesso', () => {
     useAuthStore.setState({
       accessToken: 'tok',
       isAuthenticated: true,
-      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_CUSTOMERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_CUSTOMERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
     })
     await act(async () => {
       render(

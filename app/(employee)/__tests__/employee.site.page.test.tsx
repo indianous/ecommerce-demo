@@ -81,7 +81,7 @@ const authenticatedEmployee = {
     email: 'func@test.com',
     role: 'EMPLOYEE' as const,
     permissions: ['MANAGE_SITE' as const],
-   phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+   phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
 }
 
 function renderContent() {
@@ -99,7 +99,7 @@ describe('SiteContent — acesso', () => {
       isAuthenticated: true,
       accessToken: 'tok',
       role: 'EMPLOYEE' as const,
-      user: { id: '1', name: 'F', email: 'f@test.com', role: 'EMPLOYEE' as const, permissions: ['MANAGE_ORDERS' as const] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+      user: { id: '1', name: 'F', email: 'f@test.com', role: 'EMPLOYEE' as const, permissions: ['MANAGE_ORDERS' as const] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
     })
     await act(async () => { renderContent() })
     expect(replaceMock).toHaveBeenCalledWith('/dashboard')

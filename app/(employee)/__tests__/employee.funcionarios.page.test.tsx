@@ -73,7 +73,7 @@ beforeEach(() => {
       email: 'manager@test.com',
       role: 'EMPLOYEE',
       permissions: ['MANAGE_EMPLOYEES'],
-     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
   })
 })
 
@@ -249,7 +249,7 @@ describe('EmployeeFuncionariosPage — controle de acesso', () => {
     useAuthStore.setState({
       accessToken: 'tok',
       isAuthenticated: true,
-      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
     })
     await act(async () => {
       render(<ToastProvider><EmployeeFuncionariosPage /></ToastProvider>)

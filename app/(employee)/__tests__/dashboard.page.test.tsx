@@ -20,7 +20,7 @@ function makeEmployee(permissions: EmployeePermission[] = []) {
       email: 'ana@test.com',
       role: 'EMPLOYEE' as const,
       permissions,
-     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
   }
 }
 

@@ -13,6 +13,7 @@ describe('Domain types', () => {
       phone: null,
       birthDate: null,
       gender: 'PREFIRO_NAO_DIZER',
+      cpf: null,
     }
     expect(user.role).toBe('CUSTOMER')
   })
@@ -28,6 +29,7 @@ describe('Domain types', () => {
       imageUrls: [],
       active: true,
       status: 'AVAILABLE',
+  freeShipping: false,
       createdAt: '2026-01-01T00:00:00',
       updatedAt: '2026-01-01T00:00:00',
     }
@@ -46,6 +48,7 @@ describe('Domain types', () => {
       imageUrls: [],
       active: true,
       status: 'AVAILABLE',
+  freeShipping: false,
       createdAt: '2026-01-01T00:00:00',
       updatedAt: '2026-01-01T00:00:00',
     }

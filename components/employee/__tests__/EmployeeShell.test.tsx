@@ -28,7 +28,7 @@ function makeEmployee(permissions: EmployeePermission[] = []) {
       permissions,
       phone: null,
       birthDate: null,
-      gender: 'PREFIRO_NAO_DIZER' as const,
+      gender: 'PREFIRO_NAO_DIZER' as const, cpf: null,
     },
   }
 }

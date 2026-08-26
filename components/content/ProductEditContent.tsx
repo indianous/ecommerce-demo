@@ -49,6 +49,11 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
           promotionalPrice: product.promotionalPrice ?? 0,
           promotionStartDate: product.promotionStartDate ?? '',
           promotionEndDate: product.promotionEndDate ?? '',
+          weight: product.weight ?? 0,
+          height: product.height ?? 0,
+          width: product.width ?? 0,
+          length: product.length ?? 0,
+          freeShipping: product.freeShipping ?? false,
         })
       }
       setLoading(false)

@@ -39,6 +39,7 @@ const mockProduct: Product = {
   imageUrls: ['https://example.com/keyboard.jpg'],
   active: true,
   status: 'AVAILABLE',
+  freeShipping: false,
   createdAt: '2026-06-29T00:00:00',
   updatedAt: '2026-06-29T00:00:00',
 }

@@ -20,6 +20,7 @@ const emptySettings = {
   fiscalCompanyStateRegistration: null, fiscalCompanyTaxRegime: null, fiscalCompanyStreet: null,
   fiscalCompanyNumber: null, fiscalCompanyNeighborhood: null, fiscalCompanyCity: null,
   fiscalCompanyState: null, fiscalCompanyZipCode: null,
+  fiscalCompanyEmail: null, fiscalCompanyPhone: null,
 }
 
 const gatewayConfig = {
@@ -73,7 +74,7 @@ const authenticatedWithSite = {
   user: {
     id: '1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE' as const,
     permissions: ['MANAGE_SITE' as const],
-   phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+   phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
 }
 
 const authenticatedWithoutSite = {
@@ -83,7 +84,7 @@ const authenticatedWithoutSite = {
   user: {
     id: '2', name: 'Other', email: 'other@test.com', role: 'EMPLOYEE' as const,
     permissions: ['MANAGE_ORDERS' as const],
-   phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+   phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
 }
 
 function renderContent() {
@@ -171,6 +172,8 @@ describe('SiteContent — Dados fiscais da empresa', () => {
     await user.type(within(dialog).getByLabelText(/cidade/i), 'SP')
     await user.type(within(dialog).getByLabelText(/^estado$/i), 'SP')
     await user.type(within(dialog).getByLabelText(/cep/i), '01000000')
+    await user.type(within(dialog).getByLabelText(/^e-mail$/i), 'contato@empresa.com')
+    await user.type(within(dialog).getByLabelText(/^telefone$/i), '11999999999')
     await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
 
     expect(await screen.findByText(/atualizados com sucesso/i)).toBeInTheDocument()

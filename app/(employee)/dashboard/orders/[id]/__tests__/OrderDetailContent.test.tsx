@@ -32,6 +32,7 @@ const baseDetail: AdminOrderDetailResponse = {
 
 let detailToReturn: AdminOrderDetailResponse = baseDetail
 let lastInvoicePostCount = 0
+let lastShippingLabelPostCount = 0
 
 const server = setupServer(
   http.get('/api/admin/orders/:id', () => HttpResponse.json(detailToReturn)),
@@ -42,6 +43,10 @@ const server = setupServer(
       { status: 201 },
     )
   }),
+  http.post('/api/admin/orders/:id/shipping-label', () => {
+    lastShippingLabelPostCount += 1
+    return HttpResponse.json({ trackingCode: 'BR123456789BR', shippingLabelUrl: 'https://label.pdf' })
+  }),
 )
 
 beforeAll(() => server.listen())
@@ -49,6 +54,7 @@ afterEach(async () => {
   server.resetHandlers()
   detailToReturn = baseDetail
   lastInvoicePostCount = 0
+  lastShippingLabelPostCount = 0
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
   })
@@ -59,7 +65,7 @@ beforeEach(() => {
   useAuthStore.setState({
     accessToken: 'mock-token',
     isAuthenticated: true,
-    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PAYMENTS', 'MANAGE_ORDERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_PAYMENTS', 'MANAGE_ORDERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
   })
 })
 
@@ -133,12 +139,63 @@ describe('OrderDetailContent — nota fiscal', () => {
     useAuthStore.setState({
       accessToken: 'mock-token',
       isAuthenticated: true,
-      user: { id: 'u-2', name: 'Func2', email: 'func2@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+      user: { id: 'u-2', name: 'Func2', email: 'func2@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
     })
     renderPage()
 
     await screen.findByText('Ana Lima')
     expect(screen.queryByText(/nota fiscal/i)).not.toBeInTheDocument()
+  })
+})
+
+describe('OrderDetailContent — frete', () => {
+  beforeEach(() => {
+    useAuthStore.setState({
+      accessToken: 'mock-token',
+      isAuthenticated: true,
+      user: { id: 'u-3', name: 'Func3', email: 'func3@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_SHIPPING'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null },
+    })
+  })
+
+  it('mostra transportadora/serviço/custo quando presentes', async () => {
+    detailToReturn = { ...baseDetail, shippingCarrierName: 'Correios', shippingServiceName: 'PAC', shippingCost: 20 }
+    renderPage()
+
+    expect(await screen.findByText(/correios — pac — r\$\s?20,00/i)).toBeInTheDocument()
+  })
+
+  it('sem trackingCode: botão "Comprar etiqueta" habilitado; ao clicar, compra e mostra rastreio + link', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    const buyButton = await screen.findByRole('button', { name: /comprar etiqueta/i })
+    await user.click(buyButton)
+
+    await waitFor(() => {
+      expect(screen.getByText(/BR123456789BR/)).toBeInTheDocument()
+    })
+    expect(screen.getByRole('link', { name: /ver etiqueta/i })).toHaveAttribute('href', 'https://label.pdf')
+    expect(lastShippingLabelPostCount).toBe(1)
+  })
+
+  it('já tem trackingCode: mostra rastreio sem o botão "Comprar etiqueta"', async () => {
+    detailToReturn = { ...baseDetail, trackingCode: 'BR999', shippingLabelUrl: 'https://label2.pdf' }
+    renderPage()
+
+    expect(await screen.findByText(/BR999/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /comprar etiqueta/i })).not.toBeInTheDocument()
+  })
+
+  it('seção de frete não aparece para quem não tem MANAGE_SHIPPING', async () => {
+    useAuthStore.setState({
+      accessToken: 'mock-token',
+      isAuthenticated: true,
+      user: { id: 'u-4', name: 'Func4', email: 'func4@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null },
+    })
+    renderPage()
+
+    await screen.findByText('Ana Lima')
+    expect(screen.queryByText('Frete')).not.toBeInTheDocument()
   })
 })
 

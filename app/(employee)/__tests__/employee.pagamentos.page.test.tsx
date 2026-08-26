@@ -66,7 +66,7 @@ const authenticatedEmployee = {
     email: 'func@test.com',
     role: 'EMPLOYEE' as const,
     permissions: ['MANAGE_PAYMENTS' as const],
-   phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+   phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
 }
 
 function renderPage() {
@@ -90,7 +90,7 @@ describe('PagamentosPage', () => {
       isAuthenticated: true,
       accessToken: 'tok',
       role: 'EMPLOYEE' as const,
-      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE' as const, permissions: ['MANAGE_ORDERS' as const] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE' as const, permissions: ['MANAGE_ORDERS' as const] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
     })
     await act(async () => { renderPage() })
     expect(replaceMock).toHaveBeenCalledWith('/dashboard')

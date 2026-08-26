@@ -192,6 +192,46 @@ describe('ProductForm — dados fiscais', () => {
   })
 })
 
+describe('ProductForm — envio', () => {
+  it('renderiza os campos de envio: peso, altura, largura, comprimento e frete grátis', () => {
+    renderForm()
+
+    expect(screen.getByLabelText(/peso \(kg\)/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/altura \(cm\)/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/largura \(cm\)/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/comprimento \(cm\)/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/frete grátis/i)).toBeInTheDocument()
+  })
+
+  it('propaga a digitação do peso via onFormChange', async () => {
+    const onFormChange = vi.fn()
+    const user = userEvent.setup()
+    renderForm({ onFormChange })
+
+    await user.clear(screen.getByLabelText(/peso \(kg\)/i))
+    await user.type(screen.getByLabelText(/peso \(kg\)/i), '2')
+
+    expect(onFormChange).toHaveBeenCalledWith({ weight: 2 })
+  })
+
+  it('marcar o checkbox "Frete grátis" propaga freeShipping=true via onFormChange', async () => {
+    const onFormChange = vi.fn()
+    const user = userEvent.setup()
+    renderForm({ onFormChange })
+
+    await user.click(screen.getByLabelText(/frete grátis/i))
+
+    expect(onFormChange).toHaveBeenCalledWith({ freeShipping: true })
+  })
+
+  it('checkbox "Frete grátis" reflete form.freeShipping', () => {
+    const form: ProductFormState = { ...EMPTY_PRODUCT_FORM, freeShipping: true }
+    renderForm({ form })
+
+    expect(screen.getByLabelText(/frete grátis/i)).toBeChecked()
+  })
+})
+
 describe('ProductForm — promoção', () => {
   it('renderiza os campos de preço promocional e datas de início/fim', () => {
     renderForm()

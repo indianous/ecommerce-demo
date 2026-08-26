@@ -24,7 +24,7 @@ describe('Admin ProfilePage', () => {
     useAuthStore.setState({
       isAuthenticated: true,
       accessToken: 'tok',
-      user: { id: '1', name: 'Admin Silva', email: 'admin@test.com', role: 'ADMIN' , permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+      user: { id: '1', name: 'Admin Silva', email: 'admin@test.com', role: 'ADMIN' , permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
     })
     renderPage()
     expect(screen.getByRole('heading', { name: /meu perfil/i })).toBeInTheDocument()
@@ -34,7 +34,7 @@ describe('Admin ProfilePage', () => {
     useAuthStore.setState({
       isAuthenticated: true,
       accessToken: 'tok',
-      user: { id: '1', name: 'Admin Silva', email: 'admin@test.com', role: 'ADMIN' , permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+      user: { id: '1', name: 'Admin Silva', email: 'admin@test.com', role: 'ADMIN' , permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
     })
     renderPage()
     expect(screen.getByText('Admin Silva')).toBeInTheDocument()
@@ -45,7 +45,7 @@ describe('Admin ProfilePage', () => {
     useAuthStore.setState({
       isAuthenticated: true,
       accessToken: 'tok',
-      user: { id: '1', name: 'Admin Silva', email: 'admin@test.com', role: 'ADMIN' , permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+      user: { id: '1', name: 'Admin Silva', email: 'admin@test.com', role: 'ADMIN' , permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
     })
     renderPage()
     expect(screen.getByRole('heading', { name: /trocar senha/i })).toBeInTheDocument()

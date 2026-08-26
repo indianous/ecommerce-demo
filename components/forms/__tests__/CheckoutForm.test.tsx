@@ -43,6 +43,7 @@ const mockOrder: OrderResponse = {
 
 const server = setupServer(
   http.post('/api/orders', () => HttpResponse.json(mockOrder, { status: 201 })),
+  http.post('/api/shipping/calculate', () => HttpResponse.json({ freeShipping: true, options: [] })),
 )
 
 beforeAll(() => server.listen())
@@ -78,6 +79,7 @@ describe('CheckoutForm', () => {
     const user = userEvent.setup()
     renderCheckoutForm({ addresses: [mockAddress] })
 
+    await screen.findByText(/frete grátis/i)
     await user.click(screen.getByRole('button', { name: /finalizar/i }))
 
     expect(await screen.findByTestId('order-success')).toBeInTheDocument()
@@ -95,6 +97,7 @@ describe('CheckoutForm', () => {
     const user = userEvent.setup()
     renderCheckoutForm({ addresses: [mockAddress] })
 
+    await screen.findByText(/frete grátis/i)
     await user.click(screen.getByRole('button', { name: /finalizar/i }))
 
     const alert = await screen.findByRole('alert')
@@ -110,6 +113,7 @@ describe('CheckoutForm', () => {
     const user = userEvent.setup()
     renderCheckoutForm({ addresses: [mockAddress] })
 
+    await screen.findByText(/frete grátis/i)
     await user.click(screen.getByRole('button', { name: /finalizar/i }))
 
     expect(await screen.findByTestId('order-success')).toBeInTheDocument()
@@ -121,6 +125,7 @@ describe('CheckoutForm', () => {
     const user = userEvent.setup()
     renderCheckoutForm({ addresses: [mockAddress] })
 
+    await screen.findByText(/frete grátis/i)
     await user.click(screen.getByRole('button', { name: /finalizar/i }))
 
     expect(await screen.findByTestId('order-success')).toBeInTheDocument()
@@ -140,6 +145,7 @@ describe('CheckoutForm', () => {
     const user = userEvent.setup()
     renderCheckoutForm({ addresses: [mockAddress] })
 
+    await screen.findByText(/frete grátis/i)
     const button = screen.getByRole('button', { name: /finalizar/i })
     const clickDone = user.click(button)
 

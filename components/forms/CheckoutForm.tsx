@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { Button, FormField, Icon, QrCode, Radio, Select, useToast } from 'base-ds'
+import { useEffect, useState } from 'react'
+import { Button, FormField, Icon, QrCode, Radio, Select, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { useCartStore, selectCartTotal } from '@/stores/cart.store'
-import type { Address, OrderResponse, PaymentMethod } from '@/types'
+import type { Address, OrderResponse, PaymentMethod, ShippingQuote } from '@/types'
 
 interface Props {
   addresses: Address[]
@@ -16,10 +16,13 @@ const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   BOLETO: 'Boleto',
 }
 
+const formatBRL = (v: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
+
 export function CheckoutForm({ addresses }: Props) {
   const { accessToken } = useAuthStore()
   const { items, clearCart } = useCartStore()
-  const total = useCartStore(selectCartTotal)
+  const cartTotal = useCartStore(selectCartTotal)
   const { toast } = useToast()
 
   const [selectedAddressId, setSelectedAddressId] = useState(addresses[0]?.id ?? '')
@@ -27,9 +30,63 @@ export function CheckoutForm({ addresses }: Props) {
   const [loading, setLoading] = useState(false)
   const [order, setOrder] = useState<OrderResponse | null>(null)
 
+  const [shippingOptions, setShippingOptions] = useState<ShippingQuote[]>([])
+  const [shippingFree, setShippingFree] = useState(false)
+  const [selectedServiceId, setSelectedServiceId] = useState('')
+  const [shippingLoading, setShippingLoading] = useState(false)
+  const [shippingError, setShippingError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!selectedAddressId || !accessToken) return
+
+    let cancelled = false
+    setShippingLoading(true)
+    setShippingError(null)
+    setShippingOptions([])
+    setShippingFree(false)
+    setSelectedServiceId('')
+
+    fetch('/api/shipping/calculate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ addressId: selectedAddressId }),
+    })
+      .then(async (res) => {
+        const data = await res.json()
+        if (cancelled) return
+        if (!res.ok) {
+          setShippingError(data.message ?? 'Erro ao calcular o frete')
+          return
+        }
+        if (data.freeShipping) {
+          setShippingFree(true)
+        } else {
+          setShippingOptions(data.options ?? [])
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setShippingError('Erro ao calcular o frete')
+      })
+      .finally(() => {
+        if (!cancelled) setShippingLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [selectedAddressId, accessToken])
+
+  const selectedOption = shippingOptions.find((o) => o.serviceId === selectedServiceId)
+  const shippingCost = shippingFree ? 0 : (selectedOption?.price ?? 0)
+  const total = cartTotal + shippingCost
+  const shippingChosen = shippingFree || !!selectedServiceId
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedAddressId || items.length === 0) return
+    if (!selectedAddressId || items.length === 0 || !shippingChosen) return
 
     setLoading(true)
 
@@ -43,6 +100,7 @@ export function CheckoutForm({ addresses }: Props) {
         body: JSON.stringify({
           addressId: selectedAddressId,
           paymentMethod,
+          ...(shippingFree ? {} : { shippingServiceId: selectedServiceId }),
         }),
       })
 
@@ -100,6 +158,28 @@ export function CheckoutForm({ addresses }: Props) {
         <p>Nenhum endereço cadastrado.</p>
       )}
 
+      {selectedAddressId && (
+        <fieldset>
+          <legend>Frete</legend>
+          {shippingLoading && <Text size="sm" color="muted">Calculando frete...</Text>}
+          {shippingError && <Text role="alert" size="sm" color="destructive">{shippingError}</Text>}
+          {!shippingLoading && !shippingError && shippingFree && (
+            <Text size="sm">Frete grátis</Text>
+          )}
+          {!shippingLoading && !shippingError && !shippingFree && shippingOptions.map((option) => (
+            <Radio
+              key={option.serviceId}
+              id={`shipping-${option.serviceId}`}
+              name="shippingServiceId"
+              value={option.serviceId}
+              label={`${option.carrierName} — ${option.serviceName} — ${formatBRL(option.price)} — ${option.deliveryDays} dia(s)`}
+              checked={selectedServiceId === option.serviceId}
+              onChange={() => setSelectedServiceId(option.serviceId)}
+            />
+          ))}
+        </fieldset>
+      )}
+
       <fieldset>
         <legend>Forma de pagamento</legend>
         {(['PIX', 'CREDIT_CARD', 'BOLETO'] as const).map((method) => (
@@ -115,9 +195,9 @@ export function CheckoutForm({ addresses }: Props) {
         ))}
       </fieldset>
 
-      <p>Total: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)}</p>
+      <p>Total: {formatBRL(total)}</p>
 
-      <Button iconOnly leftIcon={<Icon name="Check" size="sm" />} aria-label="Finalizar Pedido" type="submit" variant="primary" disabled={items.length === 0 || !selectedAddressId} isLoading={loading} />
+      <Button iconOnly leftIcon={<Icon name="Check" size="sm" />} aria-label="Finalizar Pedido" type="submit" variant="primary" disabled={items.length === 0 || !selectedAddressId || !shippingChosen} isLoading={loading} />
     </form>
   )
 }

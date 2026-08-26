@@ -16,6 +16,7 @@ import { ContactForm } from "@/components/forms/ContactForm";
 import { SocialLinksForm } from "@/components/forms/SocialLinksForm";
 import { PaymentGatewayForm } from "@/components/forms/PaymentGatewayForm";
 import { FiscalCompanyDataForm, EMPTY_FISCAL_COMPANY_DATA } from "@/components/forms/FiscalCompanyDataForm";
+import { MelhorEnvioConnectionCard } from "@/components/admin/MelhorEnvioConnectionCard";
 import type { Banner, FiscalCompanyData, PaymentGatewayConfig, PaymentGatewayProvider } from "@/types";
 
 type DialogId =
@@ -115,6 +116,8 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
             city: settings.fiscalCompanyCity ?? "",
             state: settings.fiscalCompanyState ?? "",
             zipCode: settings.fiscalCompanyZipCode ?? "",
+            email: settings.fiscalCompanyEmail ?? "",
+            phone: settings.fiscalCompanyPhone ?? "",
           });
         }
         if (Array.isArray(bannersData)) setBanners(bannersData);
@@ -593,6 +596,10 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
                   <span className="text-xs text-muted-foreground">{configured(fiscalCompanyData.cnpj)}</span>
                 </div>
               </Card>
+            </section>
+
+            <section>
+              <MelhorEnvioConnectionCard />
             </section>
 
             <section aria-labelledby="navigation-heading">

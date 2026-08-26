@@ -58,7 +58,7 @@ beforeEach(() => {
   useAuthStore.setState({
     accessToken: 'mock-token',
     isAuthenticated: true,
-    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ANALYTICS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' },
+    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ANALYTICS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER', cpf: null },
   })
 })
 
@@ -112,7 +112,7 @@ describe('AnalyticsContent', () => {
     useAuthStore.setState({
       accessToken: 'tok',
       isAuthenticated: true,
-      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' },
+      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER', cpf: null },
     })
     await act(async () => {
       render(<ToastProvider><AnalyticsContent /></ToastProvider>)

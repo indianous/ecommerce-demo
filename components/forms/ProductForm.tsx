@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
-import { Button, Card, FileUpload, FormField, Icon, Image, Input, MultiSelect, NumberInput, Select, Text } from 'base-ds'
+import { Button, Card, Checkbox, FileUpload, FormField, Icon, Image, Input, MultiSelect, NumberInput, Select, Text } from 'base-ds'
 import type { Category, MerchandiseOrigin } from '@/types'
 
 const MAX_IMAGES = 8
@@ -23,6 +23,11 @@ export type ProductFormState = {
   promotionalPrice: number
   promotionStartDate: string
   promotionEndDate: string
+  weight: number
+  height: number
+  width: number
+  length: number
+  freeShipping: boolean
 }
 
 export const EMPTY_PRODUCT_FORM: ProductFormState = {
@@ -42,6 +47,11 @@ export const EMPTY_PRODUCT_FORM: ProductFormState = {
   promotionalPrice: 0,
   promotionStartDate: '',
   promotionEndDate: '',
+  weight: 0,
+  height: 0,
+  width: 0,
+  length: 0,
+  freeShipping: false,
 }
 
 const MERCHANDISE_ORIGIN_OPTIONS: { value: MerchandiseOrigin; label: string }[] = [
@@ -303,6 +313,57 @@ export function ProductForm({
               options={MERCHANDISE_ORIGIN_OPTIONS}
             />
           </FormField>
+        </div>
+      </Card>
+
+      <Card variant="outlined" header="Envio">
+        <div className="flex flex-col gap-4">
+          <FormField label="Peso (kg)" id="product-weight">
+            <NumberInput
+              id="product-weight"
+              value={form.weight}
+              min={0}
+              step={0.01}
+              onChange={(value) => onFormChange({ weight: value })}
+            />
+          </FormField>
+
+          <FormField label="Altura (cm)" id="product-height">
+            <NumberInput
+              id="product-height"
+              value={form.height}
+              min={0}
+              step={0.1}
+              onChange={(value) => onFormChange({ height: value })}
+            />
+          </FormField>
+
+          <FormField label="Largura (cm)" id="product-width">
+            <NumberInput
+              id="product-width"
+              value={form.width}
+              min={0}
+              step={0.1}
+              onChange={(value) => onFormChange({ width: value })}
+            />
+          </FormField>
+
+          <FormField label="Comprimento (cm)" id="product-length">
+            <NumberInput
+              id="product-length"
+              value={form.length}
+              min={0}
+              step={0.1}
+              onChange={(value) => onFormChange({ length: value })}
+            />
+          </FormField>
+
+          <Checkbox
+            id="product-free-shipping"
+            label="Frete grátis"
+            checked={form.freeShipping}
+            onChange={(e) => onFormChange({ freeShipping: e.target.checked })}
+          />
         </div>
       </Card>
 

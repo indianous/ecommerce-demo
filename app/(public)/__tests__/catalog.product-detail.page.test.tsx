@@ -40,6 +40,7 @@ const mockProduct: Product = {
   imageUrls: [],
   active: true,
   status: 'AVAILABLE',
+  freeShipping: false,
   createdAt: '2026-06-29T00:00:00',
   updatedAt: '2026-06-29T00:00:00',
   averageRating: 4.5,

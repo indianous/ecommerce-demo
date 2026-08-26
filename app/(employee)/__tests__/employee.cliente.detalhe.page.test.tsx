@@ -107,7 +107,7 @@ beforeEach(() => {
   useAuthStore.setState({
     accessToken: 'mock-token',
     isAuthenticated: true,
-    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_CUSTOMERS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' },
+    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_CUSTOMERS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER', cpf: null },
   })
 })
 
@@ -164,7 +164,7 @@ describe('CustomerDetailContent', () => {
   it('exibe "Não informado" para telefone, data de nascimento e idade quando ausentes', async () => {
     server.use(
       http.get('/api/admin/customers/:id', () =>
-        HttpResponse.json({ ...mockDetail, phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' }),
+        HttpResponse.json({ ...mockDetail, phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER', cpf: null }),
       ),
     )
     renderDetail()
@@ -293,7 +293,7 @@ describe('CustomerDetailContent', () => {
     useAuthStore.setState({
       accessToken: 'tok',
       isAuthenticated: true,
-      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' },
+      user: { id: '1', name: 'Func', email: 'f@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER', cpf: null },
     })
     await act(async () => {
       render(<ToastProvider><CustomerDetailContent id="c-1" /></ToastProvider>)

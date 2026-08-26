@@ -30,6 +30,7 @@ const mockPage: AdminProductPage = {
       imageUrls: [],
       active: true,
       status: 'AVAILABLE',
+  freeShipping: false,
       createdAt: '2026-01-02T00:00:00Z',
       updatedAt: '2026-01-02T00:00:00Z',
     },
@@ -43,6 +44,7 @@ const mockPage: AdminProductPage = {
       imageUrls: [],
       active: true,
       status: 'UNAVAILABLE',
+  freeShipping: false,
       createdAt: '2026-01-01T00:00:00Z',
       updatedAt: '2026-01-01T00:00:00Z',
     },
@@ -81,7 +83,7 @@ beforeEach(() => {
       email: 'func@test.com',
       role: 'EMPLOYEE' as const,
       permissions: ['MANAGE_PRODUCTS' as const],
-     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const},
+     phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
   })
 })
 

@@ -17,6 +17,7 @@ export function CustomerProfileContent() {
   const [phone, setPhone] = useState('')
   const [birthDate, setBirthDate] = useState('')
   const [gender, setGender] = useState<Gender>('PREFIRO_NAO_DIZER')
+  const [cpf, setCpf] = useState('')
   const [savingUser, setSavingUser] = useState(false)
 
   const [addresses, setAddresses] = useState<Address[]>([])
@@ -34,6 +35,7 @@ export function CustomerProfileContent() {
           setPhone(data.phone ?? '')
           setBirthDate(data.birthDate ?? '')
           setGender(data.gender)
+          setCpf(data.cpf ?? '')
         }
       })
     fetch('/api/addresses', { headers: { Authorization: `Bearer ${accessToken}` } })
@@ -49,7 +51,9 @@ export function CustomerProfileContent() {
       const res = await fetch('/api/auth/me', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ name, email, phone: phone || null, birthDate: birthDate || null, gender }),
+        body: JSON.stringify({
+          name, email, phone: phone || null, birthDate: birthDate || null, gender, cpf: cpf || null,
+        }),
       })
       if (!res.ok) throw new Error()
       const updated: User = await res.json()
@@ -58,6 +62,7 @@ export function CustomerProfileContent() {
       setPhone(updated.phone ?? '')
       setBirthDate(updated.birthDate ?? '')
       setGender(updated.gender)
+      setCpf(updated.cpf ?? '')
       setUser(updated)
       toast({ variant: 'success', description: 'Dados atualizados com sucesso.' })
     } catch {
@@ -108,11 +113,13 @@ export function CustomerProfileContent() {
           phone={phone}
           birthDate={birthDate}
           gender={gender}
+          cpf={cpf}
           onNameChange={setName}
           onEmailChange={setEmail}
           onPhoneChange={setPhone}
           onBirthDateChange={setBirthDate}
           onGenderChange={setGender}
+          onCpfChange={setCpf}
           onSubmit={handleSaveUser}
           saving={savingUser}
         />
