@@ -16,6 +16,11 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(mockSearch),
 }))
 
+const downloadBlobMock = vi.fn()
+vi.mock('@/lib/downloadBlob', () => ({
+  downloadBlob: (...args: unknown[]) => downloadBlobMock(...args),
+}))
+
 const mockCategories: Category[] = [{ id: 'cat-1', name: 'Camisetas', slug: 'camisetas' }]
 
 const mockPage: AdminProductPage = {
@@ -65,6 +70,7 @@ beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
   pushMock.mockClear()
+  downloadBlobMock.mockClear()
   mockSearch = ''
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
@@ -211,5 +217,134 @@ describe('ProductsContent — paginação', () => {
     await user.click(screen.getByRole('button', { name: /next page/i }))
 
     expect(pushMock).toHaveBeenCalledWith('/dashboard/products?page=2')
+  })
+})
+
+describe('ProductsContent — exportar CSV', () => {
+  it('clicar em "Exportar CSV" chama o endpoint e dispara o download', async () => {
+    let called = false
+    server.use(
+      http.get('/api/admin/products/export', ({ request }) => {
+        called = true
+        expect(request.headers.get('Authorization')).toBe('Bearer mock-token')
+        return new HttpResponse('name,slug\nCamiseta,camiseta', {
+          headers: { 'Content-Type': 'text/csv' },
+        })
+      }),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByRole('cell', { name: 'Camiseta Branca' })
+
+    await user.click(screen.getByRole('button', { name: /exportar csv/i }))
+
+    await vi.waitFor(() => {
+      expect(called).toBe(true)
+      expect(downloadBlobMock).toHaveBeenCalledWith(expect.anything(), 'produtos.csv')
+    })
+  })
+
+  it('erro no export mostra toast sem quebrar a tela', async () => {
+    server.use(
+      http.get('/api/admin/products/export', () => new HttpResponse(null, { status: 500 })),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByRole('cell', { name: 'Camiseta Branca' })
+
+    await user.click(screen.getByRole('button', { name: /exportar csv/i }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/erro ao exportar/i)
+  })
+})
+
+describe('ProductsContent — importar CSV', () => {
+  it('clicar em "Importar CSV" abre o dialog com o campo de arquivo', async () => {
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByRole('cell', { name: 'Camiseta Branca' })
+
+    await user.click(screen.getByRole('button', { name: /importar csv/i }))
+
+    expect(await screen.findByRole('dialog', { name: /importar produtos via csv/i })).toBeInTheDocument()
+  })
+
+  it('selecionar arquivo e confirmar importa via multipart/form-data e mostra o relatório', async () => {
+    let receivedContentType = ''
+    let hasFileField = false
+    server.use(
+      http.post('/api/admin/products/import', async ({ request }) => {
+        receivedContentType = request.headers.get('Content-Type') ?? ''
+        const formData = await request.formData()
+        hasFileField = formData.get('file') !== null
+        return HttpResponse.json({
+          createdCount: 2,
+          created: [
+            { name: 'Camiseta', slug: 'camiseta', renamed: false },
+            { name: 'Camiseta', slug: 'camiseta-2', renamed: true },
+          ],
+          errors: [{ row: 3, message: 'categoria inexistente: tenis' }],
+          warnings: [{ row: 1, message: 'GTIN já usado por outro produto' }],
+        })
+      }),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByRole('cell', { name: 'Camiseta Branca' })
+    await user.click(screen.getByRole('button', { name: /importar csv/i }))
+    await screen.findByRole('dialog', { name: /importar produtos via csv/i })
+
+    const csvFile = new File(['name,slug\nCamiseta,camiseta'], 'produtos.csv', { type: 'text/csv' })
+    await user.upload(screen.getByLabelText(/file upload/i), csvFile)
+    await user.click(screen.getByRole('button', { name: /confirmar importação/i }))
+
+    expect(await screen.findByText(/2 produto\(s\) criado\(s\)/i)).toBeInTheDocument()
+    expect(screen.getByText(/categoria inexistente: tenis/i)).toBeInTheDocument()
+    expect(screen.getByText(/gtin já usado por outro produto/i)).toBeInTheDocument()
+    expect(receivedContentType).toContain('multipart/form-data')
+    expect(hasFileField).toBe(true)
+  })
+
+  it('sucesso no import recarrega a lista de produtos', async () => {
+    let listCallCount = 0
+    server.use(
+      http.get('/api/admin/products', () => {
+        listCallCount += 1
+        return HttpResponse.json(mockPage)
+      }),
+      http.post('/api/admin/products/import', () =>
+        HttpResponse.json({ createdCount: 1, created: [], errors: [], warnings: [] }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByRole('cell', { name: 'Camiseta Branca' })
+    const callsBeforeImport = listCallCount
+    await user.click(screen.getByRole('button', { name: /importar csv/i }))
+    await screen.findByRole('dialog', { name: /importar produtos via csv/i })
+
+    const csvFile = new File(['name,slug\nCamiseta,camiseta'], 'produtos.csv', { type: 'text/csv' })
+    await user.upload(screen.getByLabelText(/file upload/i), csvFile)
+    await user.click(screen.getByRole('button', { name: /confirmar importação/i }))
+
+    await screen.findByText(/1 produto\(s\) criado\(s\)/i)
+    expect(listCallCount).toBeGreaterThan(callsBeforeImport)
+  })
+
+  it('erro de rede no import mostra toast sem quebrar a tela', async () => {
+    server.use(
+      http.post('/api/admin/products/import', () => new HttpResponse(null, { status: 500 })),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByRole('cell', { name: 'Camiseta Branca' })
+    await user.click(screen.getByRole('button', { name: /importar csv/i }))
+    await screen.findByRole('dialog', { name: /importar produtos via csv/i })
+
+    const csvFile = new File(['name,slug\nCamiseta,camiseta'], 'produtos.csv', { type: 'text/csv' })
+    await user.upload(screen.getByLabelText(/file upload/i), csvFile)
+    await user.click(screen.getByRole('button', { name: /confirmar importação/i }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/erro ao importar/i)
   })
 })
