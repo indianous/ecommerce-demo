@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { Button, FormField, Icon, PasswordInput, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -29,11 +30,11 @@ export function ChangePasswordForm() {
 
     setIsLoading(true)
     try {
-      const res = await fetch('/api/auth/me/password', {
+      const res = await authFetch('/api/auth/me/password', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          ...(accessToken ? { } : {}),
         },
         body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
       })

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Badge, Button, Heading, Skeleton, Switch, useToast } from 'base-ds'
@@ -25,9 +26,7 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
     if (!accessToken) return
     Promise.all([
       fetch('/api/categories').then((r) => (r.ok ? (r.json() as Promise<Category[]>) : [])),
-      fetch(`/api/admin/products/${id}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }).then((r) => (r.ok ? (r.json() as Promise<Product>) : null)),
+      authFetch(`/api/admin/products/${id}`).then((r) => (r.ok ? (r.json() as Promise<Product>) : null)),
     ]).then(([cats, product]) => {
       setCategories(cats)
       if (product) {
@@ -77,9 +76,9 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
         promotionStartDate: form.promotionStartDate || null,
         promotionEndDate: form.promotionEndDate || null,
       }
-      const res = await fetch(`/api/admin/products/${id}`, {
+      const res = await authFetch(`/api/admin/products/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        headers: { 'Content-Type': 'application/json', },
         body: JSON.stringify(body),
       })
       if (!res.ok) throw new Error()
@@ -96,9 +95,9 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
     if (!accessToken) return
     const newStatus: ProductStatus = checked ? 'AVAILABLE' : 'UNAVAILABLE'
     try {
-      const res = await fetch(`/api/admin/products/${id}/status`, {
+      const res = await authFetch(`/api/admin/products/${id}/status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        headers: { 'Content-Type': 'application/json', },
         body: JSON.stringify({ status: newStatus }),
       })
       if (!res.ok) throw new Error()
@@ -110,9 +109,8 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
   }
 
   const handleDeleteProduct = async (productId: string) => {
-    const res = await fetch(`/api/admin/products/${productId}`, {
+    const res = await authFetch(`/api/admin/products/${productId}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${accessToken}` },
     })
     if (!res.ok) {
       toast({ variant: 'destructive', description: 'Erro ao excluir produto.' })
@@ -146,7 +144,6 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
           editingId={id}
           saving={saving}
           onSubmit={handleSubmit}
-          accessToken={accessToken}
         />
 
         <section className="mt-8">

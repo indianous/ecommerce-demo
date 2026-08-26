@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
 import { Button, Dialog, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
@@ -47,9 +48,7 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
     if (!accessToken) return null
     params.set('active', 'true')
     if (searchRef.current) params.set('search', searchRef.current)
-    const res = await fetch(`/api/admin/products?${params}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
+    const res = await authFetch(`/api/admin/products?${params}`)
     if (!res.ok) return null
     return await res.json()
   }, [accessToken])
@@ -60,8 +59,6 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
     searchRef.current = value
     reload()
   }
-
-  const authHeader = () => ({ Authorization: `Bearer ${accessToken}` })
 
   const openEntryDialog = (productId: string) => {
     setEntryReason('PURCHASE')
@@ -78,9 +75,9 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
     if (!accessToken || !entryProductId) return
     setEntrySaving(true)
     try {
-      const res = await fetch(`/api/admin/products/${entryProductId}/stock-movements/entries`, {
+      const res = await authFetch(`/api/admin/products/${entryProductId}/stock-movements/entries`, {
         method: 'POST',
-        headers: { ...authHeader(), 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           reason: entryReason,
           quantity: entryQuantity,
@@ -112,9 +109,7 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
     setExitNote('')
     setExitLots([])
     setExitProductId(productId)
-    const res = await fetch(`/api/admin/products/${productId}/stock-lots`, {
-      headers: authHeader(),
-    })
+    const res = await authFetch(`/api/admin/products/${productId}/stock-lots`)
     if (res.ok) {
       const data: StockLotPage = await res.json()
       setExitLots((data.content ?? []).filter((lot) => lot.quantity > 0))
@@ -127,9 +122,9 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
     if (!accessToken || !exitProductId) return
     setExitSaving(true)
     try {
-      const res = await fetch(`/api/admin/products/${exitProductId}/stock-movements/exits`, {
+      const res = await authFetch(`/api/admin/products/${exitProductId}/stock-movements/exits`, {
         method: 'POST',
-        headers: { ...authHeader(), 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           reason: exitReason,
           lotId: exitLotId,

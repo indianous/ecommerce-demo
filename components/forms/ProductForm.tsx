@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { Button, Card, Checkbox, FileUpload, FormField, Icon, Image, Input, MultiSelect, NumberInput, Select, Text } from 'base-ds'
 import type { Category, MerchandiseOrigin } from '@/types'
 
@@ -73,7 +74,6 @@ type ProductFormProps = {
   editingId: string | null
   saving: boolean
   onSubmit: (e: React.FormEvent) => void
-  accessToken: string | null
   saveLabel?: string
 }
 
@@ -83,7 +83,6 @@ export function ProductForm({
   categories,
   saving,
   onSubmit,
-  accessToken,
   saveLabel = 'Salvar',
 }: ProductFormProps) {
   const uploadedFileCountRef = useRef(0)
@@ -118,9 +117,8 @@ export function ProductForm({
     for (const file of filesToUpload) {
       const fd = new FormData()
       fd.append('file', file)
-      const res = await fetch('/api/upload/image', {
+      const res = await authFetch('/api/upload/image', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${accessToken}` },
         body: fd,
       })
       if (res.ok) {

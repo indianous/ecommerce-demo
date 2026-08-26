@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
 import { Badge, Heading, Image, Rating, Skeleton, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
@@ -56,9 +57,7 @@ export function CustomerDetailContent({ id, backPath = '/dashboard/customers' }:
 
   useEffect(() => {
     if (!accessToken) return
-    fetch(`/api/admin/customers/${id}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
+    authFetch(`/api/admin/customers/${id}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         setCustomer(data)

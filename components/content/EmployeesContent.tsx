@@ -1,5 +1,6 @@
 'use client'
 import { useCallback, useRef, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { Button, Checkbox, Dialog, FilterDropdown, Icon, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
@@ -33,9 +34,7 @@ export function EmployeesContent() {
     if (searchRef.current) params.set('search', searchRef.current)
     permissionFilter.forEach((p) => params.append('permission', p))
     try {
-      const res = await fetch(`/api/admin/employees?${params}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
+      const res = await authFetch(`/api/admin/employees?${params}`)
       if (!res.ok) throw new Error()
       return await res.json()
     } catch {
@@ -53,11 +52,10 @@ export function EmployeesContent() {
 
   const handleCreate = async (data: EmployeeFormData) => {
     if (!accessToken) return
-    const res = await fetch('/api/admin/employees', {
+    const res = await authFetch('/api/admin/employees', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify(data),
     })
@@ -70,9 +68,8 @@ export function EmployeesContent() {
 
   const handleDelete = async (id: string) => {
     if (!accessToken) return
-    const res = await fetch(`/api/admin/employees/${id}`, {
+    const res = await authFetch(`/api/admin/employees/${id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${accessToken}` },
     })
     if (!res.ok && res.status !== 204) {
       toast({ variant: 'destructive', description: 'Erro ao excluir funcionário.' })
@@ -105,11 +102,10 @@ export function EmployeesContent() {
 
   const handleSavePermissions = async () => {
     if (!accessToken || !selectedEmployee) return
-    const res = await fetch(`/api/admin/employees/${selectedEmployee.id}/permissions`, {
+    const res = await authFetch(`/api/admin/employees/${selectedEmployee.id}/permissions`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({ permissions: editedPerms }),
     })

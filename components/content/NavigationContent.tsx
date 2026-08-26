@@ -1,8 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
-import { Badge, Button, Card, Dialog, Heading, Icon, Text, useToast } from 'base-ds'
+import { Badge, Button, Card, Dialog, Heading, Icon, Skeleton, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { NavItemForm, EMPTY_NAV_ITEM_FORM, type NavItemFormState } from '@/components/forms/NavItemForm'
@@ -37,9 +38,7 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
   const fetchTree = useCallback(async () => {
     if (!accessToken) return
     try {
-      const res = await fetch('/api/admin/site/nav-items', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
+      const res = await authFetch('/api/admin/site/nav-items')
       if (res.ok) setItems(await res.json())
     } finally {
       setLoading(false)
@@ -79,24 +78,24 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
     setSaving(true)
     try {
       if (dialog.mode === 'new-top-level') {
-        const res = await fetch('/api/admin/site/nav-items', {
+        const res = await authFetch('/api/admin/site/nav-items', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+          headers: { 'Content-Type': 'application/json', },
           body: JSON.stringify({ type: form.type, label: form.label, url: form.url || null, placement: form.placement || null, parentId: null }),
         })
         if (!res.ok) throw new Error()
       } else if (dialog.mode === 'new-child') {
-        const res = await fetch('/api/admin/site/nav-items', {
+        const res = await authFetch('/api/admin/site/nav-items', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+          headers: { 'Content-Type': 'application/json', },
           body: JSON.stringify({ type: 'LINK', label: form.label, url: form.url || null, placement: null, parentId: dialog.collectionId }),
         })
         if (!res.ok) throw new Error()
       } else if (dialog.mode === 'edit' || dialog.mode === 'edit-child') {
         const id = dialog.item.id
-        const res = await fetch(`/api/admin/site/nav-items/${id}`, {
+        const res = await authFetch(`/api/admin/site/nav-items/${id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+          headers: { 'Content-Type': 'application/json', },
           body: JSON.stringify({ label: form.label, url: form.url || null, placement: form.placement || null }),
         })
         if (!res.ok) throw new Error()
@@ -113,9 +112,8 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
 
   const performDelete = async (item: SiteNavItem) => {
     if (!accessToken) return
-    const res = await fetch(`/api/admin/site/nav-items/${item.id}`, {
+    const res = await authFetch(`/api/admin/site/nav-items/${item.id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${accessToken}` },
     })
     if (!res.ok && res.status !== 204) {
       toast({ variant: 'destructive', description: 'Erro ao remover item.' })
@@ -142,9 +140,9 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
     const [moved] = reordered.splice(fromIndex, 1)
     reordered.splice(toIndex, 0, moved)
     setItems(reordered)
-    await fetch('/api/admin/site/nav-items/order', {
+    await authFetch('/api/admin/site/nav-items/order', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      headers: { 'Content-Type': 'application/json', },
       body: JSON.stringify({ orderedIds: reordered.map((i) => i.id) }),
     })
     await fetchTree()
@@ -157,15 +155,23 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
     const reordered = [...children]
     const [moved] = reordered.splice(fromIndex, 1)
     reordered.splice(toIndex, 0, moved)
-    await fetch(`/api/admin/site/nav-items/${collection.id}/children-order`, {
+    await authFetch(`/api/admin/site/nav-items/${collection.id}/children-order`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      headers: { 'Content-Type': 'application/json', },
       body: JSON.stringify({ orderedIds: reordered.map((i) => i.id) }),
     })
     await fetchTree()
   }
 
-  if (loading) return <main className="px-4 py-8"><p>Carregando navegação...</p></main>
+  if (loading) {
+    return (
+      <main className="px-4 py-8" role="status" aria-label="Carregando navegação">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} variant="line" height={40} className="mb-2" />
+        ))}
+      </main>
+    )
+  }
 
   return (
     <PermissionGuard permissions={['MANAGE_SITE']}>

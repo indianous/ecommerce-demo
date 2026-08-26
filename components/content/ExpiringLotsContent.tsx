@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { FormField, Table, type TableColumn } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
@@ -23,9 +24,7 @@ export function ExpiringLotsContent() {
     if (!accessToken) return null
     params.set('days', String(days))
     if (searchRef.current) params.set('search', searchRef.current)
-    const res = await fetch(`/api/admin/stock-lots/expiring?${params}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
+    const res = await authFetch(`/api/admin/stock-lots/expiring?${params}`)
     if (!res.ok) return null
     return await res.json()
   }, [accessToken, days])

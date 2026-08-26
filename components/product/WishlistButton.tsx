@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { Button, Icon, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -10,7 +11,7 @@ interface Props {
 }
 
 export function WishlistButton({ productId, initialWishlisted }: Props) {
-  const { isAuthenticated, accessToken } = useAuthStore()
+  const { isAuthenticated } = useAuthStore()
   const { toast } = useToast()
   const [isWishlisted, setIsWishlisted] = useState(initialWishlisted)
   const [isLoading, setIsLoading] = useState(false)
@@ -22,9 +23,8 @@ export function WishlistButton({ productId, initialWishlisted }: Props) {
     setIsWishlisted(next)
     setIsLoading(true)
     try {
-      const res = await fetch(`/api/wishlist/${productId}`, {
+      const res = await authFetch(`/api/wishlist/${productId}`, {
         method: next ? 'POST' : 'DELETE',
-        headers: { Authorization: `Bearer ${accessToken}` },
       })
       if (!res.ok) throw new Error()
     } catch {

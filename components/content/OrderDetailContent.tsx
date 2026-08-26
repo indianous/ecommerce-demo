@@ -1,5 +1,6 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import type { ComponentProps } from 'react'
 import Link from 'next/link'
 import { Badge, Button, Heading, Icon, Select, Skeleton, Table, type TableColumn, Text, Textarea, useToast } from 'base-ds'
@@ -112,9 +113,7 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
   const fetchOrder = useCallback(async () => {
     if (!accessToken) return
     try {
-      const res = await fetch(`/api/admin/orders/${id}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
+      const res = await authFetch(`/api/admin/orders/${id}`)
       if (!res.ok) throw new Error()
       setOrder(await res.json())
     } catch {
@@ -131,9 +130,9 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
     if (!order || !transitionTarget || !accessToken) return
     setSaving(true)
     try {
-      const res = await fetch(`/api/admin/orders/${id}/status`, {
+      const res = await authFetch(`/api/admin/orders/${id}/status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        headers: { 'Content-Type': 'application/json', },
         body: JSON.stringify({ status: transitionTarget, reason }),
       })
       if (!res.ok) throw new Error()
@@ -153,9 +152,9 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
     if (!order || !retroStatus || !accessToken) return
     setSaving(true)
     try {
-      const res = await fetch(`/api/admin/orders/${id}/change-requests`, {
+      const res = await authFetch(`/api/admin/orders/${id}/change-requests`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        headers: { 'Content-Type': 'application/json', },
         body: JSON.stringify({ toStatus: retroStatus, justification: retroJustification }),
       })
       if (!res.ok) throw new Error()
@@ -174,9 +173,8 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
     if (!accessToken) return
     setBuyingLabel(true)
     try {
-      const res = await fetch(`/api/admin/orders/${id}/shipping-label`, {
+      const res = await authFetch(`/api/admin/orders/${id}/shipping-label`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${accessToken}` },
       })
       const data = await res.json()
       if (!res.ok) {
@@ -196,9 +194,8 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
     if (!accessToken) return
     setIssuingInvoice(true)
     try {
-      const res = await fetch(`/api/admin/orders/${id}/invoice`, {
+      const res = await authFetch(`/api/admin/orders/${id}/invoice`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${accessToken}` },
       })
       const data = await res.json()
       if (!res.ok) {

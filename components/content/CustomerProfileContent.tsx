@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { Heading, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Address, Gender, User } from '@/types'
@@ -26,7 +27,7 @@ export function CustomerProfileContent() {
 
   useEffect(() => {
     if (!accessToken) return
-    fetch('/api/auth/me', { headers: { Authorization: `Bearer ${accessToken}` } })
+    authFetch('/api/auth/me')
       .then((res) => (res.ok ? res.json() : null))
       .then((data: User | null) => {
         if (data) {
@@ -38,7 +39,7 @@ export function CustomerProfileContent() {
           setCpf(data.cpf ?? '')
         }
       })
-    fetch('/api/addresses', { headers: { Authorization: `Bearer ${accessToken}` } })
+    authFetch('/api/addresses')
       .then((res) => (res.ok ? res.json() : []))
       .then(setAddresses)
   }, [accessToken])
@@ -48,9 +49,9 @@ export function CustomerProfileContent() {
     if (!accessToken) return
     setSavingUser(true)
     try {
-      const res = await fetch('/api/auth/me', {
+      const res = await authFetch('/api/auth/me', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        headers: { 'Content-Type': 'application/json', },
         body: JSON.stringify({
           name, email, phone: phone || null, birthDate: birthDate || null, gender, cpf: cpf || null,
         }),
@@ -77,9 +78,9 @@ export function CustomerProfileContent() {
     if (!accessToken) return
     setSavingAddress(true)
     try {
-      const res = await fetch('/api/addresses', {
+      const res = await authFetch('/api/addresses', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        headers: { 'Content-Type': 'application/json', },
         body: JSON.stringify(newAddress),
       })
       if (!res.ok) throw new Error()

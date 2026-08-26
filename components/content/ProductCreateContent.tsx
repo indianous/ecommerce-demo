@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Heading, useToast } from 'base-ds'
@@ -39,9 +40,9 @@ export function ProductCreateContent({ backPath = '/dashboard/products' }: { bac
         promotionStartDate: form.promotionStartDate || null,
         promotionEndDate: form.promotionEndDate || null,
       }
-      const res = await fetch('/api/admin/products', {
+      const res = await authFetch('/api/admin/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        headers: { 'Content-Type': 'application/json', },
         body: JSON.stringify(body),
       })
       if (!res.ok) throw new Error()
@@ -70,7 +71,6 @@ export function ProductCreateContent({ backPath = '/dashboard/products' }: { bac
           editingId={null}
           saving={saving}
           onSubmit={handleSubmit}
-          accessToken={accessToken}
         />
       </main>
     </PermissionGuard>

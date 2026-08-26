@@ -29,7 +29,7 @@ describe('ProductViewTracker', () => {
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
     expect(url).toBe('/api/products/prod-1/views')
     expect(init.method).toBe('POST')
-    expect((init.headers as Record<string, string> | undefined)?.['Authorization']).toBeUndefined()
+    expect(new Headers(init.headers).get('Authorization')).toBeNull()
   })
 
   it('autenticado, dispara POST /api/products/{id}/views com Authorization', () => {
@@ -38,7 +38,7 @@ describe('ProductViewTracker', () => {
     render(<ProductViewTracker productId="prod-1" />)
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
-    expect((init.headers as Record<string, string>)['Authorization']).toBe('Bearer token-123')
+    expect(new Headers(init.headers).get('Authorization')).toBe('Bearer token-123')
   })
 
   it('remontar (nova navegação) dispara o registro de novo', () => {

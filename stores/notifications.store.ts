@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { useAuthStore } from '@/stores/auth.store'
+import { authFetch } from '@/lib/authFetch'
 import type { AppNotification } from '@/types'
 
 const POLL_INTERVAL_MS = 60_000
@@ -15,9 +16,8 @@ interface NotificationsState {
   stopPolling: () => void
 }
 
-function authHeaders(): HeadersInit | undefined {
-  const { accessToken } = useAuthStore.getState()
-  return accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined
+function hasToken(): boolean {
+  return !!useAuthStore.getState().accessToken
 }
 
 let pollingInterval: ReturnType<typeof setInterval> | null = null
@@ -27,9 +27,8 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
   items: [],
 
   fetchUnreadCount: async () => {
-    const headers = authHeaders()
-    if (!headers) return
-    const res = await fetch('/api/notifications/unread-count', { headers })
+    if (!hasToken()) return
+    const res = await authFetch('/api/notifications/unread-count')
     if (res.ok) {
       const data = await res.json()
       set({ unreadCount: data.count })
@@ -37,9 +36,8 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
   },
 
   fetchList: async () => {
-    const headers = authHeaders()
-    if (!headers) return
-    const res = await fetch('/api/notifications', { headers })
+    if (!hasToken()) return
+    const res = await authFetch('/api/notifications')
     if (res.ok) {
       const data = await res.json()
       set({ items: data.content })
@@ -47,8 +45,7 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
   },
 
   markAsRead: async (id) => {
-    const headers = authHeaders()
-    if (!headers) return
+    if (!hasToken()) return
     const previousItems = get().items
     const previousCount = get().unreadCount
     const wasUnread = previousItems.some((n) => n.id === id && !n.readAt)
@@ -59,7 +56,7 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
     })
 
     try {
-      const res = await fetch(`/api/notifications/${id}/read`, { method: 'PATCH', headers })
+      const res = await authFetch(`/api/notifications/${id}/read`, { method: 'PATCH' })
       if (!res.ok) throw new Error('Erro ao marcar notificação como lida')
     } catch {
       set({ items: previousItems, unreadCount: previousCount })
@@ -67,8 +64,7 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
   },
 
   markAllAsRead: async () => {
-    const headers = authHeaders()
-    if (!headers) return
+    if (!hasToken()) return
     const previousItems = get().items
     const previousCount = get().unreadCount
 
@@ -78,7 +74,7 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
     })
 
     try {
-      const res = await fetch('/api/notifications/read-all', { method: 'PATCH', headers })
+      const res = await authFetch('/api/notifications/read-all', { method: 'PATCH' })
       if (!res.ok) throw new Error('Erro ao marcar notificações como lidas')
     } catch {
       set({ items: previousItems, unreadCount: previousCount })

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { Button, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
@@ -27,9 +28,7 @@ export function DeletedProductsContent() {
     if (!accessToken) return null
     params.set('active', 'false')
     if (searchRef.current) params.set('search', searchRef.current)
-    const res = await fetch(`/api/admin/products?${params}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
+    const res = await authFetch(`/api/admin/products?${params}`)
     if (!res.ok) return null
     return await res.json()
   }, [accessToken])
@@ -44,9 +43,8 @@ export function DeletedProductsContent() {
   const handleRestore = async (product: Product) => {
     if (!accessToken) return
     try {
-      const res = await fetch(`/api/admin/products/${product.id}/restore`, {
+      const res = await authFetch(`/api/admin/products/${product.id}/restore`, {
         method: 'PATCH',
-        headers: { Authorization: `Bearer ${accessToken}` },
       })
       if (!res.ok) throw new Error()
       setProducts((prev) => prev.filter((p) => p.id !== product.id))

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { FormField, Heading } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
@@ -27,10 +28,9 @@ export function AnalyticsContent() {
     setLoading(true)
     try {
       const params = new URLSearchParams({ from: range.from, to: range.to })
-      const headers = { Authorization: `Bearer ${accessToken}` }
       const [funnelRes, channelsRes] = await Promise.all([
-        fetch(`/api/admin/analytics/funnel?${params.toString()}`, { headers }),
-        fetch(`/api/admin/analytics/channels?${params.toString()}`, { headers }),
+        authFetch(`/api/admin/analytics/funnel?${params.toString()}`),
+        authFetch(`/api/admin/analytics/channels?${params.toString()}`),
       ])
       if (funnelRes.ok) setFunnel(await funnelRes.json())
       if (channelsRes.ok) setChannels(await channelsRes.json())

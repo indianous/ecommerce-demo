@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { CartItem } from '@/types'
 import { useAuthStore } from '@/stores/auth.store'
+import { authFetch } from '@/lib/authFetch'
 
 interface ServerCartItem {
   productId: string
@@ -27,13 +28,8 @@ function mapServerCart(cart: ServerCart): CartItem[] {
   }))
 }
 
-function authHeaders(): HeadersInit {
-  const { accessToken } = useAuthStore.getState()
-  return { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` }
-}
-
 async function fetchServerCart(path: string, init?: RequestInit): Promise<ServerCart> {
-  const res = await fetch(path, { ...init, headers: authHeaders() })
+  const res = await authFetch(path, { ...init, headers: { 'Content-Type': 'application/json' } })
   if (!res.ok) throw new Error('Erro ao atualizar o carrinho')
   return res.json()
 }

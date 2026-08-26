@@ -33,6 +33,7 @@ const fullSettings = {
 const server = setupServer(
   http.get('/api/site/settings', () => HttpResponse.json(fullSettings)),
   http.get('/api/site/banners', () => HttpResponse.json([])),
+  http.get('/api/admin/site/melhor-envio', () => HttpResponse.json({ connected: false })),
   http.get('/api/site/payment-gateway', () =>
     HttpResponse.json({
       active: 'MOCK',

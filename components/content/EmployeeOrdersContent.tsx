@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { useRouter } from 'next/navigation'
 import { Badge, Button, FilterDropdown, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
@@ -49,9 +50,7 @@ export function EmployeeOrdersContent({ orderBasePath = '/dashboard/orders' }: {
     if (searchRef.current) params.set('search', searchRef.current)
     statusFilter.forEach((s) => params.append('status', s))
     try {
-      const res = await fetch(`/api/admin/orders?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
+      const res = await authFetch(`/api/admin/orders?${params.toString()}`)
       if (!res.ok) throw new Error()
       return await res.json()
     } catch {

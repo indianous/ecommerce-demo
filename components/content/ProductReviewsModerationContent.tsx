@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useRef } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
 import { Button, Icon, Image, Rating, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
@@ -41,9 +42,8 @@ export function ProductReviewsModerationContent({ id, basePath = '/dashboard/pro
 
   const handleDeleteReview = async (review: ProductReview) => {
     if (!accessToken) return
-    const res = await fetch(`/api/admin/products/${id}/reviews/${review.id}`, {
+    const res = await authFetch(`/api/admin/products/${id}/reviews/${review.id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${accessToken}` },
     })
     if (!res.ok) {
       toast({ variant: 'destructive', description: 'Erro ao remover avaliação.' })

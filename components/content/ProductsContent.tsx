@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { useRouter } from 'next/navigation'
 import { Badge, Button, Dialog, FilterDropdown, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
@@ -44,9 +45,7 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
     if (searchRef.current) params.set('search', searchRef.current)
     categoryIds.forEach((id) => params.append('categoryId', id))
     statusFilter.forEach((s) => params.append('status', s))
-    const res = await fetch(`/api/admin/products?${params}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
+    const res = await authFetch(`/api/admin/products?${params}`)
     if (!res.ok) return null
     return await res.json()
   }, [accessToken, categoryIds, statusFilter])
@@ -67,9 +66,9 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
     if (!categoryName.trim() || !accessToken) return
     setCategorySaving(true)
     try {
-      const res = await fetch('/api/admin/categories', {
+      const res = await authFetch('/api/admin/categories', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        headers: { 'Content-Type': 'application/json', },
         body: JSON.stringify({
           name: categoryName,
           slug: categoryName.toLowerCase().replace(/\s+/g, '-'),

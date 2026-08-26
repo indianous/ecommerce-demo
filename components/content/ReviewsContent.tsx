@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Button, Dialog, Heading, Icon, Image, Text, useToast } from 'base-ds'
+import { authFetch } from '@/lib/authFetch'
+import { Button, Dialog, Heading, Icon, Image, Skeleton, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { ReviewForm } from '@/components/forms/ReviewForm'
 import { ProductReviewCard } from '@/components/product/ProductReviewCard'
@@ -9,14 +10,13 @@ import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 import { useConfirmDelete } from '@/lib/useConfirmDelete'
 import type { MyReviewableProduct } from '@/types'
 
-async function uploadImages(files: File[], accessToken: string): Promise<string[]> {
+async function uploadImages(files: File[]): Promise<string[]> {
   const urls: string[] = []
   for (const file of files) {
     const formData = new FormData()
     formData.append('file', file)
-    const res = await fetch('/api/upload/image', {
+    const res = await authFetch('/api/upload/image', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${accessToken}` },
       body: formData,
     })
     if (!res.ok) throw new Error('Erro ao enviar uma das fotos.')
@@ -42,7 +42,7 @@ export function ReviewsContent() {
 
   useEffect(() => {
     if (!accessToken) return
-    fetch('/api/reviews/me', { headers: { Authorization: `Bearer ${accessToken}` } })
+    authFetch('/api/reviews/me')
       .then((res) => (res.ok ? res.json() : []))
       .then(setItems)
       .finally(() => setLoading(false))
@@ -73,15 +73,15 @@ export function ReviewsContent() {
     try {
       const isEditing = Boolean(formTarget.review)
       const imageUrls =
-        images.length > 0 ? await uploadImages(images, accessToken) : (formTarget.review?.imageUrls ?? [])
+        images.length > 0 ? await uploadImages(images) : (formTarget.review?.imageUrls ?? [])
 
       const url = isEditing
         ? `/api/products/${formTarget.productId}/reviews/${formTarget.review!.id}`
         : `/api/products/${formTarget.productId}/reviews`
 
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method: isEditing ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        headers: { 'Content-Type': 'application/json', },
         body: JSON.stringify({ rating, comment, imageUrls }),
       })
 
@@ -106,9 +106,8 @@ export function ReviewsContent() {
 
   const handleDeleteReview = async (item: MyReviewableProduct) => {
     if (!accessToken || !item.review) return
-    const res = await fetch(`/api/products/${item.productId}/reviews/${item.review.id}`, {
+    const res = await authFetch(`/api/products/${item.productId}/reviews/${item.review.id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${accessToken}` },
     })
     if (!res.ok) {
       toast({ variant: 'destructive', description: 'Erro ao excluir avaliação.' })
@@ -129,8 +128,10 @@ export function ReviewsContent() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <Text color="muted">Carregando...</Text>
+      <main className="mx-auto max-w-3xl px-4 py-8" role="status" aria-label="Carregando avaliações">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} variant="line" height={40} className="mb-2" />
+        ))}
       </main>
     )
   }

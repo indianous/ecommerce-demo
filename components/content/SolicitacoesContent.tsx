@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { Badge, Button, Dialog, FilterDropdown, Heading, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
@@ -50,9 +51,7 @@ export function SolicitacoesContent() {
     statusFilter.forEach((s) => params.append('status', s))
     if (searchRef.current) params.set('search', searchRef.current)
     try {
-      const res = await fetch(`/api/admin/orders/change-requests?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
+      const res = await authFetch(`/api/admin/orders/change-requests?${params.toString()}`)
       if (!res.ok) throw new Error()
       return await res.json()
     } catch {
@@ -72,9 +71,8 @@ export function SolicitacoesContent() {
     if (!selected) return
     setActioning(true)
     try {
-      const res = await fetch(`/api/admin/orders/change-requests/${selected.id}/approve`, {
+      const res = await authFetch(`/api/admin/orders/change-requests/${selected.id}/approve`, {
         method: 'PATCH',
-        headers: { Authorization: `Bearer ${accessToken}` },
       })
       if (!res.ok) throw new Error()
       const updated: OrderChangeRequest = await res.json()
@@ -92,9 +90,8 @@ export function SolicitacoesContent() {
     if (!selected) return
     setActioning(true)
     try {
-      const res = await fetch(`/api/admin/orders/change-requests/${selected.id}/reject`, {
+      const res = await authFetch(`/api/admin/orders/change-requests/${selected.id}/reject`, {
         method: 'PATCH',
-        headers: { Authorization: `Bearer ${accessToken}` },
       })
       if (!res.ok) throw new Error()
       const updated: OrderChangeRequest = await res.json()

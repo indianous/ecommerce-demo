@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Heading, Skeleton, useToast } from 'base-ds'
@@ -37,9 +38,7 @@ export function PaymentConfirmContent({
 
   useEffect(() => {
     if (!accessToken) return
-    fetch(`/api/admin/orders/${id}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
+    authFetch(`/api/admin/orders/${id}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         setOrder(data)
@@ -53,17 +52,16 @@ export function PaymentConfirmContent({
     try {
       const fd = new FormData()
       fd.append('file', file)
-      const uploadRes = await fetch('/api/upload/payment-receipt', {
+      const uploadRes = await authFetch('/api/upload/payment-receipt', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${accessToken}` },
         body: fd,
       })
       if (!uploadRes.ok) throw new Error('upload')
       const { url } = await uploadRes.json()
 
-      const patchRes = await fetch(`/api/admin/orders/${id}/payment-status`, {
+      const patchRes = await authFetch(`/api/admin/orders/${id}/payment-status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        headers: { 'Content-Type': 'application/json', },
         body: JSON.stringify({ status: 'PAID', receiptUrl: url }),
       })
       if (!patchRes.ok) throw new Error('patch')

@@ -21,7 +21,6 @@ function renderForm(overrides: Partial<React.ComponentProps<typeof ProductForm>>
     editingId: null,
     saving: false,
     onSubmit: vi.fn((e) => e.preventDefault()),
-    accessToken: 'mock-token',
     ...overrides,
   }
   return { ...render(<ProductForm {...props} />), props }
@@ -37,7 +36,6 @@ function ControlledProductForm() {
       editingId={null}
       saving={false}
       onSubmit={(e) => e.preventDefault()}
-      accessToken="mock-token"
     />
   )
 }

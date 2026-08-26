@@ -38,6 +38,7 @@ let lastDeletedBannerId = ''
 const server = setupServer(
   http.get('/api/site/settings', () => HttpResponse.json(emptySettings)),
   http.get('/api/site/banners', () => HttpResponse.json(banners)),
+  http.get('/api/admin/site/melhor-envio', () => HttpResponse.json({ connected: false })),
   http.delete('/api/site/banners/:id', ({ params }) => {
     lastDeletedBannerId = params.id as string
     return new HttpResponse(null, { status: 204 })

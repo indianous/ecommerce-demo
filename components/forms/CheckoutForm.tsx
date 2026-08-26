@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { Button, FormField, Icon, QrCode, Radio, Select, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { useCartStore, selectCartTotal } from '@/stores/cart.store'
@@ -46,11 +47,10 @@ export function CheckoutForm({ addresses }: Props) {
     setShippingFree(false)
     setSelectedServiceId('')
 
-    fetch('/api/shipping/calculate', {
+    authFetch('/api/shipping/calculate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({ addressId: selectedAddressId }),
     })
@@ -91,11 +91,11 @@ export function CheckoutForm({ addresses }: Props) {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/orders', {
+      const res = await authFetch('/api/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          ...(accessToken ? { } : {}),
         },
         body: JSON.stringify({
           addressId: selectedAddressId,
