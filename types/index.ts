@@ -205,6 +205,11 @@ export interface AdminProductPage {
   last: boolean
 }
 
+export interface BulkOperationResult {
+  successCount: number
+  failures: { id: string; reason: string }[]
+}
+
 export type StockMovementType = 'ENTRY' | 'EXIT'
 export type StockMovementReason = 'PURCHASE' | 'ADJUSTMENT' | 'LOSS_DAMAGE' | 'RETURN' | 'SALE' | 'OTHER'
 

@@ -10,9 +10,11 @@ import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
 import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
 import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
 import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
+import { SelectionBar } from '@/components/layout/SelectionBar'
 import { useConfirmDelete } from '@/lib/useConfirmDelete'
+import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
-import type { Employee, EmployeeFormData } from '@/types'
+import type { BulkOperationResult, Employee, EmployeeFormData } from '@/types'
 
 export function AdminsContent() {
   const { accessToken } = useAuthStore()
@@ -87,6 +89,41 @@ export function AdminsContent() {
 
   const deleteTargetAdmin = admins.find((a) => a.id === deleteTarget)
 
+  const selection = useRowSelection()
+
+  const handleBulkDelete = async (ids: string[]) => {
+    if (!accessToken) return
+    const res = await fetch('/api/admin/admins/bulk-delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({ ids }),
+    })
+    if (!res.ok) {
+      toast({ variant: 'destructive', description: 'Erro ao excluir administradores selecionados.' })
+      throw new Error()
+    }
+    const result: BulkOperationResult = await res.json()
+    const failedIds = new Set(result.failures.map((f) => f.id))
+    setAdmins((prev) => prev.filter((a) => !ids.includes(a.id) || failedIds.has(a.id)))
+    selection.clear()
+    if (result.failures.length > 0) {
+      toast({
+        variant: 'destructive',
+        description: `${result.successCount} excluído(s). Não foi possível excluir: ${result.failures.map((f) => f.reason).join('; ')}`,
+      })
+    } else {
+      toast({ variant: 'success', description: `${result.successCount} administrador(es) excluído(s).` })
+    }
+  }
+
+  const {
+    target: bulkDeleteTarget,
+    setTarget: setBulkDeleteTarget,
+    deleting: bulkDeleting,
+    confirm: confirmBulkDelete,
+    cancel: cancelBulkDelete,
+  } = useConfirmDelete(handleBulkDelete)
+
   return (
     <>
       <ManagementPageHeader title="Gestão de Administradores" />
@@ -102,14 +139,30 @@ export function AdminsContent() {
           onSearch={handleSearch}
         />
 
+        <SelectionBar
+          selectedCount={selection.selectedCount}
+          onClear={selection.clear}
+          actions={
+            <Button
+              leftIcon={<Icon name="Trash2" size="sm" />}
+              variant="danger"
+              size="sm"
+              onClick={() => setBulkDeleteTarget(Array.from(selection.selectedIds))}
+            >
+              Excluir selecionados
+            </Button>
+          }
+        />
+
         <ManagementContentBody loading={loading} empty={admins.length === 0} emptyMessage="Nenhum administrador cadastrado." loadingLabel="Carregando administradores">
           <EmployeeManagementTable
             employees={admins}
             onDelete={setDeleteTarget}
+            selection={{ selectedIds: selection.selectedIds, onToggle: selection.toggle, onToggleAll: selection.selectAll }}
           />
         </ManagementContentBody>
 
-        <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+        <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
 
         <Dialog
           open={createDialogOpen}
@@ -129,6 +182,15 @@ export function AdminsContent() {
           deleting={deleting}
           title="Excluir administrador"
           description={deleteTargetAdmin ? `Remover "${deleteTargetAdmin.name}"? Essa ação não pode ser desfeita.` : undefined}
+        />
+
+        <ConfirmDeleteDialog
+          open={bulkDeleteTarget !== null}
+          onClose={cancelBulkDelete}
+          onConfirm={confirmBulkDelete}
+          deleting={bulkDeleting}
+          title="Excluir administradores"
+          description={bulkDeleteTarget ? `Remover ${bulkDeleteTarget.length} administrador(es) selecionado(s)? Essa ação não pode ser desfeita.` : undefined}
         />
       </ManagementPageBody>
     </>

@@ -15,6 +15,11 @@ function renderTable(props: {
   employees?: Employee[]
   onDelete?: (id: string) => void
   onManagePermissions?: (employee: Employee) => void
+  selection?: {
+    selectedIds: Set<string>
+    onToggle: (id: string) => void
+    onToggleAll: (ids: string[]) => void
+  }
 } = {}) {
   return render(
     <ToastProvider>
@@ -22,6 +27,7 @@ function renderTable(props: {
         employees={props.employees ?? mockEmployees}
         onDelete={props.onDelete ?? vi.fn()}
         onManagePermissions={props.onManagePermissions}
+        selection={props.selection}
       />
     </ToastProvider>,
   )
@@ -102,5 +108,24 @@ describe('EmployeeManagementTable', () => {
     renderTable()
     const header = screen.getByRole('columnheader', { name: /e-mail/i })
     expect(header.querySelector('button')).toBeInTheDocument()
+  })
+
+  it('sem selection, não mostra checkbox de seleção', () => {
+    renderTable()
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+  })
+
+  it('com selection, mostra checkbox por linha e "selecionar todos" no cabeçalho', async () => {
+    const user = userEvent.setup()
+    const onToggle = vi.fn()
+    const onToggleAll = vi.fn()
+    renderTable({ selection: { selectedIds: new Set(), onToggle, onToggleAll } })
+
+    expect(screen.getByRole('checkbox', { name: /selecionar todos/i })).toBeInTheDocument()
+    await user.click(screen.getByRole('checkbox', { name: /selecionar ana costa/i }))
+    expect(onToggle).toHaveBeenCalledWith('emp-1')
+
+    await user.click(screen.getByRole('checkbox', { name: /selecionar todos/i }))
+    expect(onToggleAll).toHaveBeenCalledWith(['emp-1', 'emp-2'])
   })
 })

@@ -11,7 +11,10 @@ import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
 import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
 import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
 import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
+import { SelectionBar } from '@/components/layout/SelectionBar'
+import { makeSelectionColumn } from '@/components/layout/selectionColumn'
 import { sortTableData } from '@/lib/sortTableData'
+import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { Category, Product } from '@/types'
 
@@ -98,7 +101,10 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
       )
     : products
 
+  const selection = useRowSelection()
+
   const columns: TableColumn<Product>[] = [
+    makeSelectionColumn(sortedProducts, (p) => p.id, (p) => p.name, selection.selectedIds, selection.toggle, selection.selectAll),
     { key: 'name', header: 'Nome', sortable: true, render: (p) => p.name },
     { key: 'categoryName', header: 'Categoria', render: (p) => p.categories[0]?.name ?? '—' },
     { key: 'price', header: 'Preço', sortable: true, render: (p) => formatBRL(p.price) },
@@ -172,6 +178,8 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
             }
           />
 
+          <SelectionBar selectedCount={selection.selectedCount} onClear={selection.clear} />
+
           <ManagementContentBody loading={loading} empty={products.length === 0} emptyMessage="Nenhum produto encontrado." loadingLabel="Carregando produtos">
             <Table
               columns={columns}
@@ -180,7 +188,7 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
             />
           </ManagementContentBody>
 
-          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
 
           <Dialog open={categoryDialogOpen} onClose={() => setCategoryDialogOpen(false)} title="Nova categoria">
             <CategoryForm name={categoryName} onChange={setCategoryName} onSave={handleCategorySave} saving={categorySaving} />

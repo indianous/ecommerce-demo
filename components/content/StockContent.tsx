@@ -12,7 +12,10 @@ import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
 import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
 import { ManagementContentBody } from '@/components/layout/ManagementContentBody'
 import { ManagementContentFooter } from '@/components/layout/ManagementContentFooter'
+import { SelectionBar } from '@/components/layout/SelectionBar'
+import { makeSelectionColumn } from '@/components/layout/selectionColumn'
 import { sortTableData } from '@/lib/sortTableData'
+import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import type { Product, StockLot, StockLotPage, StockMovementReason } from '@/types'
 
@@ -154,7 +157,10 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
 
   const sortedProducts = sort ? sortTableData(products, sort.key as keyof Product, sort.direction, sort.key === 'stockQuantity' ? 'number' : 'string') : products
 
+  const selection = useRowSelection()
+
   const columns: TableColumn<Product>[] = [
+    makeSelectionColumn(sortedProducts, (p) => p.id, (p) => p.name, selection.selectedIds, selection.toggle, selection.selectAll),
     { key: 'name', header: 'Produto', sortable: true, render: (p) => p.name },
     { key: 'categoryName', header: 'Categoria', render: (p) => p.categories[0]?.name },
     { key: 'stockQuantity', header: 'Quantidade', sortable: true, render: (p) => p.stockQuantity },
@@ -189,6 +195,8 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
             onSearch={handleSearch}
           />
 
+          <SelectionBar selectedCount={selection.selectedCount} onClear={selection.clear} />
+
           <ManagementContentBody loading={loading} empty={products.length === 0} emptyMessage="Nenhum produto encontrado." loadingLabel="Carregando produtos">
             <Table
               columns={columns}
@@ -197,7 +205,7 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
             />
           </ManagementContentBody>
 
-          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={goToPage} />
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
         </ManagementPageBody>
       </main>
 

@@ -19,10 +19,12 @@ import type { Employee } from '@/types'
 
 const mockEmployees: Employee[] = [
   { id: 'emp-1', name: 'Ana Costa', email: 'ana@test.com', role: 'EMPLOYEE', permissions: [] },
+  { id: 'emp-2', name: 'Bruno Lima', email: 'bruno@test.com', role: 'EMPLOYEE', permissions: [] },
 ]
 
 let lastDeletedId = ''
 let lastListUrl = ''
+let lastBulkDeleteBody: { ids: string[] } | null = null
 const mockPage = { content: mockEmployees, page: 0, size: 20, totalElements: mockEmployees.length, totalPages: 1, last: true }
 
 const server = setupServer(
@@ -34,6 +36,10 @@ const server = setupServer(
     lastDeletedId = params.id as string
     return new HttpResponse(null, { status: 204 })
   }),
+  http.post('/api/admin/employees/bulk-delete', async ({ request }) => {
+    lastBulkDeleteBody = (await request.json()) as { ids: string[] }
+    return HttpResponse.json({ successCount: lastBulkDeleteBody.ids.length, failures: [] })
+  }),
 )
 
 beforeAll(() => server.listen())
@@ -41,6 +47,7 @@ afterEach(async () => {
   server.resetHandlers()
   lastDeletedId = ''
   lastListUrl = ''
+  lastBulkDeleteBody = null
   pushMock.mockClear()
   mockSearch = ''
   await act(async () => {
@@ -222,5 +229,67 @@ describe('EmployeesContent — paginação', () => {
     await user.click(screen.getByRole('button', { name: /next page/i }))
 
     expect(pushMock).toHaveBeenCalledWith('/dashboard/employees?page=2')
+  })
+})
+
+describe('EmployeesContent — seleção em massa', () => {
+  it('sem seleção, botão "Excluir selecionados" não aparece', async () => {
+    renderContent()
+    await screen.findByText('Ana Costa')
+
+    expect(screen.queryByRole('button', { name: /excluir selecionados/i })).not.toBeInTheDocument()
+  })
+
+  it('selecionar um funcionário mostra o botão e a contagem', async () => {
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByText('Ana Costa')
+
+    await user.click(screen.getByRole('checkbox', { name: /selecionar ana costa/i }))
+
+    expect(screen.getByText(/1 selecionado/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /excluir selecionados/i })).toBeInTheDocument()
+  })
+
+  it('confirmar exclusão em massa chama o bulk-delete com os ids selecionados e remove da lista', async () => {
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByText('Ana Costa')
+
+    await user.click(screen.getByRole('checkbox', { name: /selecionar ana costa/i }))
+    await user.click(screen.getByRole('checkbox', { name: /selecionar bruno lima/i }))
+    await user.click(screen.getByRole('button', { name: /excluir selecionados/i }))
+
+    const dialog = await screen.findByRole('dialog', { name: /excluir funcionários/i })
+    expect(dialog).toHaveTextContent('2')
+    await user.click(screen.getByRole('button', { name: /^confirmar$/i }))
+
+    expect(lastBulkDeleteBody?.ids.sort()).toEqual(['emp-1', 'emp-2'])
+    expect(screen.queryByText('Ana Costa')).not.toBeInTheDocument()
+    expect(screen.queryByText('Bruno Lima')).not.toBeInTheDocument()
+    expect(screen.queryByText(/selecionado/i)).not.toBeInTheDocument()
+  })
+
+  it('sucesso parcial remove só os bem-sucedidos e mostra os que falharam', async () => {
+    server.use(
+      http.post('/api/admin/employees/bulk-delete', () =>
+        HttpResponse.json({
+          successCount: 1,
+          failures: [{ id: 'emp-2', reason: 'Funcionário não encontrado' }],
+        }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByText('Ana Costa')
+
+    await user.click(screen.getByRole('checkbox', { name: /selecionar ana costa/i }))
+    await user.click(screen.getByRole('checkbox', { name: /selecionar bruno lima/i }))
+    await user.click(screen.getByRole('button', { name: /excluir selecionados/i }))
+    await user.click(screen.getByRole('button', { name: /^confirmar$/i }))
+
+    expect(screen.queryByText('Ana Costa')).not.toBeInTheDocument()
+    expect(await screen.findByText('Bruno Lima')).toBeInTheDocument()
+    expect(await screen.findByText(/não encontrado/i)).toBeInTheDocument()
   })
 })
