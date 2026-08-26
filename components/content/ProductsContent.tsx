@@ -6,6 +6,8 @@ import { Badge, Button, Dialog, FilterDropdown, Icon, Table, type TableColumn, u
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CategoryForm } from '@/components/forms/CategoryForm'
+import { ProductImportDialog } from '@/components/product/ProductImportDialog'
+import { downloadBlob } from '@/lib/downloadBlob'
 import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
 import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
 import { ManagementContentHeader } from '@/components/layout/ManagementContentHeader'
@@ -38,6 +40,9 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
   const [categoryName, setCategoryName] = useState('')
   const [categorySaving, setCategorySaving] = useState(false)
+
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
@@ -89,6 +94,23 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
       toast({ variant: 'destructive', description: 'Erro ao criar categoria.' })
     } finally {
       setCategorySaving(false)
+    }
+  }
+
+  const handleExport = async () => {
+    if (!accessToken) return
+    setExporting(true)
+    try {
+      const res = await fetch('/api/admin/products/export', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      if (!res.ok) throw new Error()
+      const blob = await res.blob()
+      downloadBlob(blob, 'produtos.csv')
+    } catch {
+      toast({ variant: 'destructive', description: 'Erro ao exportar produtos.' })
+    } finally {
+      setExporting(false)
     }
   }
 
@@ -147,6 +169,8 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
             canManageProducts && (
               <>
                 <Button iconOnly leftIcon={<Icon name="FolderPlus" size="sm" />} aria-label="Nova categoria" variant="outline" onClick={() => setCategoryDialogOpen(true)} />
+                <Button iconOnly leftIcon={<Icon name="Download" size="sm" />} aria-label="Exportar CSV" variant="outline" isLoading={exporting} onClick={handleExport} />
+                <Button iconOnly leftIcon={<Icon name="Upload" size="sm" />} aria-label="Importar CSV" variant="outline" onClick={() => setImportDialogOpen(true)} />
                 <Button iconOnly leftIcon={<Icon name="Plus" size="sm" />} aria-label="Novo produto" variant="primary" onClick={() => router.push(`${basePath}/new`)} />
               </>
             )
@@ -193,6 +217,12 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
           <Dialog open={categoryDialogOpen} onClose={() => setCategoryDialogOpen(false)} title="Nova categoria">
             <CategoryForm name={categoryName} onChange={setCategoryName} onSave={handleCategorySave} saving={categorySaving} />
           </Dialog>
+
+          <ProductImportDialog
+            open={importDialogOpen}
+            onClose={() => setImportDialogOpen(false)}
+            onImported={reload}
+          />
         </ManagementPageBody>
       </main>
     </PermissionGuard>
