@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -168,6 +168,72 @@ describe('AdminShell — Sidebar recolhível (desktop)', () => {
     await user.click(screen.getByRole('button', { name: /toggle sidebar/i }))
 
     expect(screen.getByText('Admin')).toHaveClass('sr-only')
+  })
+})
+
+describe('AdminShell — Grupos de navegação', () => {
+  it('cabeçalhos de grupo aparecem na sidebar desktop, na ordem esperada', () => {
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell()
+    const headers = ['Vendas', 'Catálogo', 'Pessoas', 'Sistema'].map((label) => screen.getByText(label))
+    const nav = screen.getByRole('navigation', { name: /sidebar navigation/i })
+    const positions = headers.map((h) => Array.from(nav.querySelectorAll('li')).indexOf(h.closest('li')!))
+    expect(positions).toEqual([...positions].sort((a, b) => a - b))
+  })
+
+  it('ordem no DOM respeita grupo → itens do grupo', () => {
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell()
+    const nav = screen.getByRole('navigation', { name: /sidebar navigation/i })
+    const items = Array.from(nav.querySelectorAll('li')).map((li) => li.textContent?.trim())
+    const vendasIndex = items.indexOf('Vendas')
+    const pedidosIndex = items.findIndex((t) => t?.includes('Pedidos'))
+    const catalogoIndex = items.indexOf('Catálogo')
+    expect(vendasIndex).toBeLessThan(pedidosIndex)
+    expect(pedidosIndex).toBeLessThan(catalogoIndex)
+  })
+
+  it('"Ver site" renderiza fora de qualquer grupo', () => {
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell()
+    const link = screen.getByRole('link', { name: /ver site/i })
+    expect(link.closest('li')?.previousElementSibling?.textContent).not.toBe('Sistema')
+  })
+
+  it('item ativo de "Vendas" continua recebendo aria-current="page"', () => {
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell('/dashboard/admin/orders')
+    expect(screen.getByRole('link', { name: /pedidos/i })).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('item ativo de "Pessoas" continua recebendo aria-current="page"', () => {
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell('/dashboard/admin/customers')
+    expect(screen.getByRole('link', { name: /clientes/i })).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('modo colapsado esconde o texto do cabeçalho de grupo (sr-only)', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell()
+
+    await user.click(screen.getByRole('button', { name: /toggle sidebar/i }))
+
+    expect(screen.getByText('Vendas')).toHaveClass('sr-only')
+  })
+
+  it('drawer mobile mostra a mesma estrutura de grupos que o desktop', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell()
+
+    await user.click(screen.getByRole('button', { name: /abrir menu/i }))
+
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByText('Vendas')).toBeInTheDocument()
+    expect(within(dialog).getByText('Catálogo')).toBeInTheDocument()
+    expect(within(dialog).getByText('Pessoas')).toBeInTheDocument()
+    expect(within(dialog).getByText('Sistema')).toBeInTheDocument()
   })
 })
 

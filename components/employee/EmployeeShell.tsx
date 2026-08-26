@@ -1,26 +1,26 @@
 'use client'
-import { useCallback, useEffect, useMemo, useState, type ComponentProps } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { SidebarAvatar } from '@/components/admin/SidebarAvatar'
 import { Button, Icon, Sidebar } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
+import { DashboardMobileNavList } from '@/components/layout/DashboardMobileNavList'
+import { DASHBOARD_NAV_GROUPS, type DashboardNavItem } from '@/components/layout/dashboard-nav-groups'
 import type { EmployeePermission } from '@/types'
 
-type IconName = ComponentProps<typeof Icon>['name']
-
-const ALL_NAV_ITEMS: { label: string; href: string; icon: IconName; perms: EmployeePermission[]; external?: boolean }[] = [
-  { label: 'Pedidos', href: '/dashboard/orders', icon: 'ClipboardList', perms: ['MANAGE_ORDERS', 'MANAGE_ORDER_STATUS_REQUESTS'] },
-  { label: 'Envios', href: '/dashboard/shipping', icon: 'Truck', perms: ['MANAGE_SHIPPING'] },
-  { label: 'Solicitações', href: '/dashboard/change-requests', icon: 'ListChecks', perms: ['MANAGE_ORDER_STATUS_REQUESTS'] },
-  { label: 'Produtos', href: '/dashboard/products', icon: 'Package', perms: ['MANAGE_PRODUCTS'] },
-  { label: 'Estoque', href: '/dashboard/stock', icon: 'Boxes', perms: ['MANAGE_STOCK'] },
-  { label: 'Excluídos', href: '/dashboard/products/deleted', icon: 'Trash2', perms: ['RESTORE_PRODUCTS'] },
-  { label: 'Clientes', href: '/dashboard/customers', icon: 'Users', perms: ['MANAGE_CUSTOMERS'] },
-  { label: 'Pagamentos', href: '/dashboard/payments', icon: 'CreditCard', perms: ['MANAGE_PAYMENTS'] },
-  { label: 'Funcionários', href: '/dashboard/employees', icon: 'UserCog', perms: ['MANAGE_EMPLOYEES'] },
-  { label: 'Site', href: '/dashboard/site', icon: 'Globe', perms: ['MANAGE_SITE'] },
-  { label: 'Analytics', href: '/dashboard/analytics', icon: 'BarChart3', perms: ['MANAGE_ANALYTICS'] },
+const ALL_NAV_ITEMS: (DashboardNavItem & { perms: EmployeePermission[] })[] = [
+  { label: 'Pedidos', href: '/dashboard/orders', icon: 'ClipboardList', perms: ['MANAGE_ORDERS', 'MANAGE_ORDER_STATUS_REQUESTS'], group: DASHBOARD_NAV_GROUPS.VENDAS },
+  { label: 'Envios', href: '/dashboard/shipping', icon: 'Truck', perms: ['MANAGE_SHIPPING'], group: DASHBOARD_NAV_GROUPS.VENDAS },
+  { label: 'Solicitações', href: '/dashboard/change-requests', icon: 'ListChecks', perms: ['MANAGE_ORDER_STATUS_REQUESTS'], group: DASHBOARD_NAV_GROUPS.VENDAS },
+  { label: 'Pagamentos', href: '/dashboard/payments', icon: 'CreditCard', perms: ['MANAGE_PAYMENTS'], group: DASHBOARD_NAV_GROUPS.VENDAS },
+  { label: 'Produtos', href: '/dashboard/products', icon: 'Package', perms: ['MANAGE_PRODUCTS'], group: DASHBOARD_NAV_GROUPS.CATALOGO },
+  { label: 'Estoque', href: '/dashboard/stock', icon: 'Boxes', perms: ['MANAGE_STOCK'], group: DASHBOARD_NAV_GROUPS.CATALOGO },
+  { label: 'Excluídos', href: '/dashboard/products/deleted', icon: 'Trash2', perms: ['RESTORE_PRODUCTS'], group: DASHBOARD_NAV_GROUPS.CATALOGO },
+  { label: 'Clientes', href: '/dashboard/customers', icon: 'Users', perms: ['MANAGE_CUSTOMERS'], group: DASHBOARD_NAV_GROUPS.PESSOAS },
+  { label: 'Funcionários', href: '/dashboard/employees', icon: 'UserCog', perms: ['MANAGE_EMPLOYEES'], group: DASHBOARD_NAV_GROUPS.PESSOAS },
+  { label: 'Site', href: '/dashboard/site', icon: 'Globe', perms: ['MANAGE_SITE'], group: DASHBOARD_NAV_GROUPS.SISTEMA },
+  { label: 'Analytics', href: '/dashboard/analytics', icon: 'BarChart3', perms: ['MANAGE_ANALYTICS'], group: DASHBOARD_NAV_GROUPS.SISTEMA },
   { label: 'Ver site', href: '/', icon: 'ExternalLink', perms: [], external: true },
 ]
 
@@ -57,6 +57,7 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
             label: item.label,
             icon: <Icon name={item.icon} size="sm" />,
             active: pathname === item.href,
+            group: item.group,
             asChild: (
               <Link
                 href={item.href}
@@ -93,23 +94,7 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
               <div className="mb-4">
                 <SidebarAvatar profileHref="/dashboard/profile" />
               </div>
-              <nav aria-label="Navegação mobile">
-                <ul className="flex flex-col gap-1">
-                  {navItems.map((item) => (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        aria-current={pathname === item.href ? 'page' : undefined}
-                        className="block px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors aria-[current=page]:bg-primary aria-[current=page]:text-primary-foreground"
-                        onClick={closeDrawer}
-                        {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                      >
-                        {item.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
+              <DashboardMobileNavList items={navItems} pathname={pathname} onNavigate={closeDrawer} />
             </div>
           </>
         )}

@@ -1,26 +1,26 @@
 'use client'
-import { useCallback, useEffect, useState, type ComponentProps } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { SidebarAvatar } from './SidebarAvatar'
 import { Button, Icon, Sidebar } from 'base-ds'
+import { DashboardMobileNavList } from '@/components/layout/DashboardMobileNavList'
+import { DASHBOARD_NAV_GROUPS, type DashboardNavItem } from '@/components/layout/dashboard-nav-groups'
 
-type IconName = ComponentProps<typeof Icon>['name']
-
-const navItems: { label: string; href: string; icon: IconName; external?: boolean }[] = [
-  { label: 'Pedidos', href: '/dashboard/admin/orders', icon: 'ClipboardList' },
-  { label: 'Envios', href: '/dashboard/admin/shipping', icon: 'Truck' },
-  { label: 'Solicitações', href: '/dashboard/admin/change-requests', icon: 'ListChecks' },
-  { label: 'Produtos', href: '/dashboard/admin/products', icon: 'Package' },
-  { label: 'Estoque', href: '/dashboard/admin/stock', icon: 'Boxes' },
-  { label: 'Excluídos', href: '/dashboard/admin/products/deleted', icon: 'Trash2' },
-  { label: 'Clientes', href: '/dashboard/admin/customers', icon: 'Users' },
-  { label: 'Funcionários', href: '/dashboard/admin/employees', icon: 'UserCog' },
-  { label: 'Administradores', href: '/dashboard/admin/admins', icon: 'ShieldCheck' },
-  { label: 'Pagamentos', href: '/dashboard/admin/payments', icon: 'CreditCard' },
-  { label: 'Auditoria', href: '/dashboard/admin/audit-logs', icon: 'History' },
-  { label: 'Site', href: '/dashboard/admin/site', icon: 'Globe' },
-  { label: 'Analytics', href: '/dashboard/admin/analytics', icon: 'BarChart3' },
+const navItems: DashboardNavItem[] = [
+  { label: 'Pedidos', href: '/dashboard/admin/orders', icon: 'ClipboardList', group: DASHBOARD_NAV_GROUPS.VENDAS },
+  { label: 'Envios', href: '/dashboard/admin/shipping', icon: 'Truck', group: DASHBOARD_NAV_GROUPS.VENDAS },
+  { label: 'Solicitações', href: '/dashboard/admin/change-requests', icon: 'ListChecks', group: DASHBOARD_NAV_GROUPS.VENDAS },
+  { label: 'Pagamentos', href: '/dashboard/admin/payments', icon: 'CreditCard', group: DASHBOARD_NAV_GROUPS.VENDAS },
+  { label: 'Produtos', href: '/dashboard/admin/products', icon: 'Package', group: DASHBOARD_NAV_GROUPS.CATALOGO },
+  { label: 'Estoque', href: '/dashboard/admin/stock', icon: 'Boxes', group: DASHBOARD_NAV_GROUPS.CATALOGO },
+  { label: 'Excluídos', href: '/dashboard/admin/products/deleted', icon: 'Trash2', group: DASHBOARD_NAV_GROUPS.CATALOGO },
+  { label: 'Clientes', href: '/dashboard/admin/customers', icon: 'Users', group: DASHBOARD_NAV_GROUPS.PESSOAS },
+  { label: 'Funcionários', href: '/dashboard/admin/employees', icon: 'UserCog', group: DASHBOARD_NAV_GROUPS.PESSOAS },
+  { label: 'Administradores', href: '/dashboard/admin/admins', icon: 'ShieldCheck', group: DASHBOARD_NAV_GROUPS.PESSOAS },
+  { label: 'Auditoria', href: '/dashboard/admin/audit-logs', icon: 'History', group: DASHBOARD_NAV_GROUPS.SISTEMA },
+  { label: 'Site', href: '/dashboard/admin/site', icon: 'Globe', group: DASHBOARD_NAV_GROUPS.SISTEMA },
+  { label: 'Analytics', href: '/dashboard/admin/analytics', icon: 'BarChart3', group: DASHBOARD_NAV_GROUPS.SISTEMA },
   { label: 'Ver site', href: '/', icon: 'ExternalLink', external: true },
 ]
 
@@ -49,6 +49,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             label: item.label,
             icon: <Icon name={item.icon} size="sm" />,
             active: pathname === item.href,
+            group: item.group,
             asChild: (
               <Link
                 href={item.href}
@@ -85,23 +86,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <div className="mb-4">
                 <SidebarAvatar profileHref="/dashboard/admin/profile" />
               </div>
-              <nav aria-label="Navegação mobile">
-                <ul className="flex flex-col gap-1">
-                  {navItems.map((item) => (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        aria-current={pathname === item.href ? 'page' : undefined}
-                        className="block px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors aria-[current=page]:bg-primary aria-[current=page]:text-primary-foreground"
-                        onClick={closeDrawer}
-                        {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                      >
-                        {item.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
+              <DashboardMobileNavList items={navItems} pathname={pathname} onNavigate={closeDrawer} />
             </div>
           </>
         )}
