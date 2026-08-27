@@ -303,22 +303,31 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
         {canManageShipping && (
           <div className="mb-6">
             <h2 className="text-sm font-semibold mb-2">Frete</h2>
-            {(order.shippingCarrierName || order.shippingCost !== undefined) && (
+            {order.deliveryMethod === 'PICKUP' ? (
               <p className="text-sm text-muted-foreground">
-                {order.shippingCarrierName && `${order.shippingCarrierName} — ${order.shippingServiceName} — `}
-                {order.shippingCost !== undefined && formatBRL(order.shippingCost)}
+                Retirada em: {order.pickupLocation?.name}
+                {order.pickupLocation && ` — ${order.pickupLocation.street}, ${order.pickupLocation.number} — ${order.pickupLocation.district}, ${order.pickupLocation.city}/${order.pickupLocation.state}`}
               </p>
-            )}
-            {!order.trackingCode && (
-              <Button iconOnly leftIcon={<Icon name="Package" size="sm" />} aria-label="Comprar etiqueta" variant="primary" size="sm" isLoading={buyingLabel} onClick={handleBuyShippingLabel} />
-            )}
-            {order.trackingCode && (
-              <div className="flex flex-col gap-1">
-                <p className="text-sm">Código de rastreio: {order.trackingCode}</p>
-                {order.shippingLabelUrl && (
-                  <Button iconOnly leftIcon={<Icon name="FileText" size="sm" />} aria-label="Ver etiqueta" as="a" href={order.shippingLabelUrl} target="_blank" rel="noreferrer" size="sm" variant="outline" />
+            ) : (
+              <>
+                {(order.shippingCarrierName || order.shippingCost !== undefined) && (
+                  <p className="text-sm text-muted-foreground">
+                    {order.shippingCarrierName && `${order.shippingCarrierName} — ${order.shippingServiceName} — `}
+                    {order.shippingCost !== undefined && formatBRL(order.shippingCost)}
+                  </p>
                 )}
-              </div>
+                {!order.trackingCode && (
+                  <Button iconOnly leftIcon={<Icon name="Package" size="sm" />} aria-label="Comprar etiqueta" variant="primary" size="sm" isLoading={buyingLabel} onClick={handleBuyShippingLabel} />
+                )}
+                {order.trackingCode && (
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm">Código de rastreio: {order.trackingCode}</p>
+                    {order.shippingLabelUrl && (
+                      <Button iconOnly leftIcon={<Icon name="FileText" size="sm" />} aria-label="Ver etiqueta" as="a" href={order.shippingLabelUrl} target="_blank" rel="noreferrer" size="sm" variant="outline" />
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}

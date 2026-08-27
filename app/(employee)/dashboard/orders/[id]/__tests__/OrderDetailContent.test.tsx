@@ -186,6 +186,22 @@ describe('OrderDetailContent — frete', () => {
     expect(screen.queryByRole('button', { name: /comprar etiqueta/i })).not.toBeInTheDocument()
   })
 
+  it('pedido com deliveryMethod=PICKUP mostra o nome/endereço do centro escolhido em vez de transportadora', async () => {
+    detailToReturn = {
+      ...baseDetail,
+      deliveryMethod: 'PICKUP',
+      pickupLocation: {
+        id: 'dc-1', name: 'CD Zona Sul', street: 'Av. das Nações', number: '1000',
+        district: 'Centro', city: 'São Paulo', state: 'SP', zipCode: '01310100', active: true,
+      },
+    }
+    renderPage()
+
+    expect(await screen.findByText(/retirada em: cd zona sul/i)).toBeInTheDocument()
+    expect(screen.getByText(/av\. das nações, 1000/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /comprar etiqueta/i })).not.toBeInTheDocument()
+  })
+
   it('seção de frete não aparece para quem não tem MANAGE_SHIPPING', async () => {
     useAuthStore.setState({
       accessToken: 'mock-token',

@@ -120,6 +120,20 @@ export interface Address {
   isDefault: boolean
 }
 
+export interface DistributionCenter {
+  id: string
+  name: string
+  phone?: string
+  street: string
+  number: string
+  complement?: string
+  district: string
+  city: string
+  state: string
+  zipCode: string
+  active: boolean
+}
+
 export interface Category {
   id: string
   name: string
@@ -269,6 +283,7 @@ export interface StockMovementPage {
 export type PaymentMethod = 'PIX' | 'CREDIT_CARD' | 'BOLETO'
 export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'RETURNED' | 'DELIVERED' | 'CANCELLED'
 export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED'
+export type DeliveryMethod = 'DELIVERY' | 'PICKUP'
 
 export interface OrderItemResponse {
   productId: string
@@ -294,6 +309,8 @@ export interface OrderResponse {
   shippingServiceName?: string
   trackingCode?: string
   shippingLabelUrl?: string
+  deliveryMethod?: DeliveryMethod
+  pickupLocation?: DistributionCenter
 }
 
 export interface ShippingQuote {
@@ -374,6 +391,8 @@ export interface AdminOrderDetailResponse extends AdminOrderResponse {
   address: Address
   statusHistory: OrderStatusHistoryResponse[]
   invoice?: Invoice
+  deliveryMethod?: DeliveryMethod
+  pickupLocation?: DistributionCenter
 }
 
 export type OrderChangeRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
