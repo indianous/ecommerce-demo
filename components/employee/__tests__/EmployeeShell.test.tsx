@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -189,6 +189,67 @@ describe('EmployeeShell — Sidebar (desktop)', () => {
     expect(link).toHaveAttribute('href', '/')
     expect(link).toHaveAttribute('target', '_blank')
     expect(link.getAttribute('rel')).toContain('noopener')
+  })
+})
+
+describe('EmployeeShell — Grupos de navegação', () => {
+  it('com todas as permissões, os 4 cabeçalhos aparecem na ordem certa', () => {
+    useAuthStore.setState(makeEmployee(['MANAGE_ORDERS', 'MANAGE_SHIPPING', 'MANAGE_ORDER_STATUS_REQUESTS', 'MANAGE_PAYMENTS', 'MANAGE_PRODUCTS', 'MANAGE_STOCK', 'RESTORE_PRODUCTS', 'MANAGE_CUSTOMERS', 'MANAGE_EMPLOYEES', 'MANAGE_SITE', 'MANAGE_ANALYTICS']))
+    renderEmployeeShell()
+    const nav = screen.getByRole('navigation', { name: /sidebar navigation/i })
+    const headers = Array.from(nav.querySelectorAll('li')).map((li) => li.textContent?.trim())
+      .filter((t) => ['Vendas', 'Catálogo', 'Pessoas', 'Sistema'].includes(t ?? ''))
+    expect(headers).toEqual(['Vendas', 'Catálogo', 'Pessoas', 'Sistema'])
+  })
+
+  it('grupo vazio some — só MANAGE_ORDERS concedida, só o cabeçalho "Vendas" aparece', () => {
+    useAuthStore.setState(makeEmployee(['MANAGE_ORDERS']))
+    renderEmployeeShell()
+    expect(screen.getByText('Vendas')).toBeInTheDocument()
+    expect(screen.queryByText('Pessoas')).not.toBeInTheDocument()
+    expect(screen.queryByText('Sistema')).not.toBeInTheDocument()
+    expect(screen.queryByText('Catálogo')).not.toBeInTheDocument()
+  })
+
+  it('só MANAGE_CUSTOMERS + MANAGE_EMPLOYEES (ambos de "Pessoas"), só o cabeçalho "Pessoas" aparece', () => {
+    useAuthStore.setState(makeEmployee(['MANAGE_CUSTOMERS', 'MANAGE_EMPLOYEES']))
+    renderEmployeeShell()
+    expect(screen.getByText('Pessoas')).toBeInTheDocument()
+    expect(screen.queryByText('Vendas')).not.toBeInTheDocument()
+    expect(screen.queryByText('Sistema')).not.toBeInTheDocument()
+    expect(screen.queryByText('Catálogo')).not.toBeInTheDocument()
+  })
+
+  it('"Ver site" continua aparecendo sem nenhuma permissão, sem cabeçalho de grupo', () => {
+    useAuthStore.setState(makeEmployee([]))
+    renderEmployeeShell()
+    expect(screen.getByRole('link', { name: /ver site/i })).toBeInTheDocument()
+    expect(screen.queryByText('Vendas')).not.toBeInTheDocument()
+    expect(screen.queryByText('Catálogo')).not.toBeInTheDocument()
+    expect(screen.queryByText('Pessoas')).not.toBeInTheDocument()
+    expect(screen.queryByText('Sistema')).not.toBeInTheDocument()
+  })
+
+  it('drawer mobile replica o mesmo comportamento de esconder grupo vazio', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState(makeEmployee(['MANAGE_ORDERS']))
+    renderEmployeeShell()
+
+    await user.click(screen.getByRole('button', { name: /abrir menu/i }))
+
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByText('Vendas')).toBeInTheDocument()
+    expect(within(dialog).queryByText('Pessoas')).not.toBeInTheDocument()
+  })
+
+  it('modo colapsado esconde texto do cabeçalho de grupo', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState(makeEmployee(['MANAGE_ORDERS']))
+    renderEmployeeShell()
+
+    await user.click(screen.getByRole('button', { name: /toggle sidebar/i }))
+
+    expect(screen.getByText('Vendas')).toHaveClass('sr-only')
   })
 })
 
