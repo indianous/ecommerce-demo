@@ -6,9 +6,12 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import { ToastProvider, ToastViewport } from 'base-ds'
 import { ChangePasswordForm } from '../ChangePasswordForm'
 
+const mockAuthState = { accessToken: 'mock-token' }
 vi.mock('@/stores/auth.store', () => ({
-  useAuthStore: (selector: (s: { accessToken: string | null }) => unknown) =>
-    selector({ accessToken: 'mock-token' }),
+  useAuthStore: Object.assign(
+    (selector: (s: typeof mockAuthState) => unknown) => selector(mockAuthState),
+    { getState: () => mockAuthState },
+  ),
 }))
 
 function renderForm() {

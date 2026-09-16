@@ -9,9 +9,11 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useCartStore } from '@/stores/cart.store'
 
 const pushMock = vi.fn()
+let searchParamsString = ''
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushMock }),
+  useSearchParams: () => new URLSearchParams(searchParamsString),
 }))
 
 const server = setupServer(
@@ -30,6 +32,7 @@ beforeAll(() => server.listen())
 afterEach(() => {
   server.resetHandlers()
   pushMock.mockClear()
+  searchParamsString = ''
   useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
   useCartStore.setState({ items: [] })
 })
@@ -130,5 +133,30 @@ describe('LoginPage', () => {
     await user.click(screen.getByRole('button', { name: /entrar/i }))
 
     await waitFor(() => expect(mergeCalled).toBe(true))
+  })
+
+  it('com callbackUrl na query string: login redireciona pra lá em vez da raiz do dashboard', async () => {
+    searchParamsString = 'callbackUrl=%2Fdashboard%2Forders'
+    const user = userEvent.setup()
+    renderLoginPage()
+
+    await user.type(screen.getByLabelText(/email/i), 'valid@test.com')
+    await user.type(screen.getByLabelText(/senha/i), 'password123')
+    await user.click(screen.getByRole('button', { name: /entrar/i }))
+
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/dashboard/orders'))
+  })
+
+  it('com sessionExpired=1 na query string: mostra aviso de sessão expirada', () => {
+    searchParamsString = 'sessionExpired=1'
+    renderLoginPage()
+
+    expect(screen.getByText(/sessão expirou/i)).toBeInTheDocument()
+  })
+
+  it('sem sessionExpired: não mostra o aviso', () => {
+    renderLoginPage()
+
+    expect(screen.queryByText(/sessão expirou/i)).not.toBeInTheDocument()
   })
 })

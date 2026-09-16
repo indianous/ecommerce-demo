@@ -1,5 +1,6 @@
 'use client'
 import { useCallback, useRef, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { Button, Dialog, Icon, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { EmployeeManagementTable } from '@/components/admin/EmployeeManagementTable'
@@ -26,9 +27,7 @@ export function AdminsContent() {
     if (!accessToken) return null
     if (searchRef.current) params.set('search', searchRef.current)
     try {
-      const res = await fetch(`/api/admin/admins?${params}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
+      const res = await authFetch(`/api/admin/admins?${params}`)
       if (!res.ok) throw new Error()
       return await res.json()
     } catch {
@@ -46,11 +45,10 @@ export function AdminsContent() {
 
   const handleCreate = async (data: EmployeeFormData) => {
     if (!accessToken) return
-    const res = await fetch('/api/admin/admins', {
+    const res = await authFetch('/api/admin/admins', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify(data),
     })
@@ -67,9 +65,8 @@ export function AdminsContent() {
 
   const handleDelete = async (id: string) => {
     if (!accessToken) return
-    const res = await fetch(`/api/admin/admins/${id}`, {
+    const res = await authFetch(`/api/admin/admins/${id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${accessToken}` },
     })
     if (!res.ok && res.status !== 204) {
       const body = await res.json().catch(() => ({ message: 'Erro ao excluir administrador.' }))

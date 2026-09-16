@@ -40,6 +40,7 @@ interface AuthState {
   setAccessToken: (token: string) => void
   setUser: (user: User) => void
   hydrateSession: () => Promise<void>
+  refreshAccessToken: () => Promise<string | null>
 }
 
 async function postAuth(path: string, body: unknown): Promise<AuthTokens> {
@@ -76,7 +77,7 @@ async function mergeCartOnLogin(): Promise<void> {
   }
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
   user: null,
   role: null,
@@ -105,12 +106,25 @@ export const useAuthStore = create<AuthState>((set) => ({
   setUser: (user) => set({ user }),
 
   hydrateSession: async () => {
+    const token = await get().refreshAccessToken()
+    if (!token) return
+    const user = await fetchMe(token)
+    set({ user })
+  },
+
+  refreshAccessToken: async () => {
     try {
       const res = await fetch('/api/auth/refresh', { method: 'POST' })
-      if (!res.ok) return
+      if (!res.ok) {
+        set({ accessToken: null, user: null, role: null, isAuthenticated: false })
+        return null
+      }
       const data = await res.json()
-      const user = await fetchMe(data.accessToken)
-      set({ accessToken: data.accessToken, isAuthenticated: true, role: data.role ?? null, user })
-    } catch { /* sem cookie de sessão — usuário permanece anônimo */ }
+      set({ accessToken: data.accessToken, isAuthenticated: true, role: data.role ?? null })
+      return data.accessToken
+    } catch {
+      set({ accessToken: null, user: null, role: null, isAuthenticated: false })
+      return null
+    }
   },
 }))

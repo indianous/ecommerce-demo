@@ -140,4 +140,25 @@ describe('AuthStore', () => {
       expect(getStore().user?.name).toBe('João Victor')
     })
   })
+
+  describe('refreshAccessToken', () => {
+    it('sucesso: devolve o token novo e atualiza accessToken/role, sem tocar user', async () => {
+      const token = await getStore().refreshAccessToken()
+
+      expect(token).toBe('hydrated-token')
+      expect(getStore().accessToken).toBe('hydrated-token')
+      expect(getStore().isAuthenticated).toBe(true)
+      expect(getStore().user).toBeNull()
+    })
+
+    it('falha (refresh 401): devolve null e limpa o estado de auth', async () => {
+      server.use(http.post('/api/auth/refresh', () => new HttpResponse(null, { status: 401 })))
+
+      const token = await getStore().refreshAccessToken()
+
+      expect(token).toBeNull()
+      expect(getStore().accessToken).toBeNull()
+      expect(getStore().isAuthenticated).toBe(false)
+    })
+  })
 })

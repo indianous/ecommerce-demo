@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
 import { FilterDropdown, FormField, Table, type TableColumn } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
@@ -42,7 +43,7 @@ export function StockMovementHistoryContent({ productId, stockBasePath = '/dashb
 
   useEffect(() => {
     if (!accessToken) return
-    fetch(`/api/admin/products/${productId}`, { headers: { Authorization: `Bearer ${accessToken}` } })
+    authFetch(`/api/admin/products/${productId}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => { if (data) setProductName(data.name) })
       .catch(() => {})
@@ -54,9 +55,7 @@ export function StockMovementHistoryContent({ productId, stockBasePath = '/dashb
     if (from) params.set('from', from)
     if (to) params.set('to', to)
     if (searchRef.current) params.set('search', searchRef.current)
-    const res = await fetch(`/api/admin/products/${productId}/stock-movements?${params.toString()}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
+    const res = await authFetch(`/api/admin/products/${productId}/stock-movements?${params.toString()}`)
     if (!res.ok) return null
     return await res.json()
   }, [accessToken, productId, reason, from, to])

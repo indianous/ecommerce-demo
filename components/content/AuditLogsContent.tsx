@@ -1,5 +1,6 @@
 'use client'
 import { useCallback, useRef, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { FilterDropdown, Table, type TableColumn } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
@@ -73,9 +74,7 @@ export function AuditLogsContent() {
     action.forEach((a) => params.append('action', a))
     if (searchRef.current) params.set('search', searchRef.current)
     try {
-      const res = await fetch(`/api/admin/audit-logs?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
+      const res = await authFetch(`/api/admin/audit-logs?${params.toString()}`)
       if (!res.ok) return null
       return await res.json()
     } catch {

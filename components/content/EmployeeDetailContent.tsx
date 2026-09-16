@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { Avatar, Badge, Button, Heading, Icon, Skeleton, TransferList, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { CopyButton } from '@/components/ui/CopyButton'
@@ -19,12 +20,8 @@ export function EmployeeDetailPage({ id }: { id: string }) {
   useEffect(() => {
     if (!accessToken || !id) return
     Promise.all([
-      fetch(`/api/admin/employees/${id}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }).then((r) => r.json()),
-      fetch(`/api/admin/employees/${id}/audit-logs`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }).then((r) => r.json()),
+      authFetch(`/api/admin/employees/${id}`).then((r) => r.json()),
+      authFetch(`/api/admin/employees/${id}/audit-logs`).then((r) => r.json()),
     ])
       .then(([emp, logs]: [EmployeeDetailResponse, { content: AuditLogResponse[] }]) => {
         setEmployee(emp)
@@ -38,11 +35,10 @@ export function EmployeeDetailPage({ id }: { id: string }) {
     if (!accessToken || !employee) return
     setSaving(true)
     try {
-      const res = await fetch(`/api/admin/employees/${employee.id}/permissions`, {
+      const res = await authFetch(`/api/admin/employees/${employee.id}/permissions`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({ permissions }),
       })

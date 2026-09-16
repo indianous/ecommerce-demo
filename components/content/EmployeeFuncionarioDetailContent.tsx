@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
 import { Avatar, Badge, Button, Heading, Icon, Skeleton, TransferList, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
@@ -21,12 +22,8 @@ export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/em
   useEffect(() => {
     if (!accessToken || !id) return
     Promise.all([
-      fetch(`/api/admin/employees/${id}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }).then((r) => (r.ok ? r.json() : null)),
-      fetch(`/api/admin/employees/${id}/audit-logs`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }).then((r) => (r.ok ? r.json() : { content: [] })),
+      authFetch(`/api/admin/employees/${id}`).then((r) => (r.ok ? r.json() : null)),
+      authFetch(`/api/admin/employees/${id}/audit-logs`).then((r) => (r.ok ? r.json() : { content: [] })),
     ])
       .then(([emp, logs]: [EmployeeDetailResponse | null, { content: AuditLogResponse[] }]) => {
         setEmployee(emp)
@@ -40,9 +37,9 @@ export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/em
     if (!accessToken || !employee) return
     setSaving(true)
     try {
-      const res = await fetch(`/api/admin/employees/${employee.id}/permissions`, {
+      const res = await authFetch(`/api/admin/employees/${employee.id}/permissions`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        headers: { 'Content-Type': 'application/json', },
         body: JSON.stringify({ permissions }),
       })
       if (!res.ok) throw new Error()

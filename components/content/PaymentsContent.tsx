@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { useRouter } from 'next/navigation'
 import { Button, Dialog, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
@@ -44,9 +45,7 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
     params.set('paymentStatus', 'PENDING')
     if (searchRef.current) params.set('search', searchRef.current)
     try {
-      const res = await fetch(`/api/admin/orders?${params}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
+      const res = await authFetch(`/api/admin/orders?${params}`)
       if (!res.ok) throw new Error()
       return await res.json()
     } catch {
@@ -71,9 +70,9 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
     if (!accessToken || !rejectTarget) return
     setRejecting(true)
     try {
-      const res = await fetch(`/api/admin/orders/${rejectTarget.id}/payment-status`, {
+      const res = await authFetch(`/api/admin/orders/${rejectTarget.id}/payment-status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        headers: { 'Content-Type': 'application/json', },
         body: JSON.stringify({ status: 'FAILED', rejectionReason: rejectReason }),
       })
       if (!res.ok) throw new Error()

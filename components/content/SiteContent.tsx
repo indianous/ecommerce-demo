@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { authFetch } from '@/lib/authFetch'
 import { Button, Card, Dialog, Heading, Icon, Image, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from "@/stores/auth.store";
 import { PermissionGuard } from "@/components/employee/PermissionGuard";
@@ -128,7 +129,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
 
   useEffect(() => {
     if (!accessToken) return;
-    fetch("/api/site/payment-gateway", { headers: { Authorization: `Bearer ${accessToken}` } })
+    authFetch("/api/site/payment-gateway")
       .then((r) => (r.ok ? r.json() : null))
       .then((data: PaymentGatewayConfig | null) => {
         if (data) {
@@ -139,7 +140,6 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
       .catch(() => {});
   }, [accessToken]);
 
-  const authHeader = () => ({ Authorization: `Bearer ${accessToken}` });
   const close = () => setOpenDialog(null);
 
   const handleLogoSave = async () => {
@@ -148,7 +148,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
     try {
       const fd = new FormData();
       fd.append("file", logoFile);
-      const res = await fetch("/api/site/settings/logo", { method: "PUT", headers: authHeader(), body: fd });
+      const res = await authFetch("/api/site/settings/logo", { method: "PUT", body: fd });
       if (!res.ok) throw new Error();
       const data = await res.json();
       setLogoUrl(data.logoUrl);
@@ -166,7 +166,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
     try {
       const fd = new FormData();
       fd.append("file", placeholderFile);
-      const res = await fetch("/api/site/settings/placeholder-image", { method: "PUT", headers: authHeader(), body: fd });
+      const res = await authFetch("/api/site/settings/placeholder-image", { method: "PUT", body: fd });
       if (!res.ok) throw new Error();
       const data = await res.json();
       setPlaceholderUrl(data.placeholderImageUrl);
@@ -184,7 +184,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
     try {
       const fd = new FormData();
       fd.append("file", faviconFile);
-      const res = await fetch("/api/site/settings/favicon", { method: "PUT", headers: authHeader(), body: fd });
+      const res = await authFetch("/api/site/settings/favicon", { method: "PUT", body: fd });
       const data = await res.json();
       if (!res.ok) {
         toast({ variant: "destructive", description: data?.message ?? "Erro ao salvar favicon." });
@@ -203,9 +203,9 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
     if (!accessToken) return;
     setMetadataSaving(true);
     try {
-      const res = await fetch("/api/site/settings/metadata", {
+      const res = await authFetch("/api/site/settings/metadata", {
         method: "PUT",
-        headers: { ...authHeader(), "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ siteTitle, defaultDescription }),
       });
       if (!res.ok) throw new Error();
@@ -223,7 +223,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
       const fd = new FormData();
       fd.append("file", bannerFile);
       if (bannerLinkUrl) fd.append("linkUrl", bannerLinkUrl);
-      const res = await fetch("/api/site/banners", { method: "POST", headers: authHeader(), body: fd });
+      const res = await authFetch("/api/site/banners", { method: "POST", body: fd });
       if (!res.ok) throw new Error();
       const newBanner = await res.json();
       setBanners((prev) => [...prev, newBanner]);
@@ -237,7 +237,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
 
   const handleBannerRemove = async (id: string) => {
     if (!accessToken) return;
-    const res = await fetch(`/api/site/banners/${id}`, { method: "DELETE", headers: authHeader() });
+    const res = await authFetch(`/api/site/banners/${id}`, { method: "DELETE" });
     if (!res.ok && res.status !== 204) {
       toast({ variant: "destructive", description: "Erro ao remover banner." });
       throw new Error();
@@ -258,8 +258,8 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
     if (!accessToken) return;
     setAboutUsSaving(true);
     try {
-      const res = await fetch("/api/site/settings/about-us", {
-        method: "PUT", headers: { ...authHeader(), "Content-Type": "application/json" },
+      const res = await authFetch("/api/site/settings/about-us", {
+        method: "PUT", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: aboutUsContent }),
       });
       if (!res.ok) throw new Error();
@@ -274,8 +274,8 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
     if (!accessToken) return;
     setContactSaving(true);
     try {
-      const res = await fetch("/api/site/settings/contact", {
-        method: "PUT", headers: { ...authHeader(), "Content-Type": "application/json" },
+      const res = await authFetch("/api/site/settings/contact", {
+        method: "PUT", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ description: contactDescription, phone: contactPhone, email: contactEmail }),
       });
       if (!res.ok) throw new Error();
@@ -290,8 +290,8 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
     if (!accessToken) return;
     setSocialSaving(true);
     try {
-      const res = await fetch("/api/site/settings/social-links", {
-        method: "PUT", headers: { ...authHeader(), "Content-Type": "application/json" },
+      const res = await authFetch("/api/site/settings/social-links", {
+        method: "PUT", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ instagramUrl, tiktokUrl, facebookUrl }),
       });
       if (!res.ok) throw new Error();
@@ -306,8 +306,8 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
     if (!accessToken) return;
     setPrivacySaving(true);
     try {
-      const res = await fetch("/api/site/settings/privacy-policy", {
-        method: "PUT", headers: { ...authHeader(), "Content-Type": "application/json" },
+      const res = await authFetch("/api/site/settings/privacy-policy", {
+        method: "PUT", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: privacyContent }),
       });
       if (!res.ok) throw new Error();
@@ -322,8 +322,8 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
     if (!accessToken) return;
     setTermsSaving(true);
     try {
-      const res = await fetch("/api/site/settings/terms", {
-        method: "PUT", headers: { ...authHeader(), "Content-Type": "application/json" },
+      const res = await authFetch("/api/site/settings/terms", {
+        method: "PUT", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: termsContent }),
       });
       if (!res.ok) throw new Error();
@@ -338,8 +338,8 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
     if (!accessToken) return;
     setRefundSaving(true);
     try {
-      const res = await fetch("/api/site/settings/refund-policy", {
-        method: "PUT", headers: { ...authHeader(), "Content-Type": "application/json" },
+      const res = await authFetch("/api/site/settings/refund-policy", {
+        method: "PUT", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: refundContent }),
       });
       if (!res.ok) throw new Error();
@@ -355,9 +355,9 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
     setPaymentGatewaySaving(true);
     setPaymentGatewayError(null);
     try {
-      const res = await fetch("/api/site/payment-gateway", {
+      const res = await authFetch("/api/site/payment-gateway", {
         method: "PUT",
-        headers: { ...authHeader(), "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider: paymentGatewaySelected }),
       });
       const data = await res.json();
@@ -385,9 +385,9 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
     if (!accessToken) return;
     setFiscalCompanyDataSaving(true);
     try {
-      const res = await fetch("/api/site/settings/fiscal-company-data", {
+      const res = await authFetch("/api/site/settings/fiscal-company-data", {
         method: "PUT",
-        headers: { ...authHeader(), "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(fiscalCompanyData),
       });
       if (!res.ok) throw new Error();

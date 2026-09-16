@@ -1,8 +1,9 @@
 'use client'
 
 import { useCallback } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
-import { Badge, Heading, Table, type TableColumn, Text } from 'base-ds'
+import { Badge, Heading, Skeleton, Table, type TableColumn, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PaginationBar } from '@/components/ui/PaginationBar'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
@@ -27,7 +28,7 @@ export function CustomerOrdersContent() {
 
   const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<OrderResponse> | null> => {
     if (!accessToken) return null
-    const res = await fetch(`/api/orders?${params}`, { headers: { Authorization: `Bearer ${accessToken}` } })
+    const res = await authFetch(`/api/orders?${params}`)
     if (!res.ok) return null
     return await res.json()
   }, [accessToken])
@@ -36,8 +37,10 @@ export function CustomerOrdersContent() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-4xl px-4 py-16 text-center">
-        <Text color="muted">Carregando pedidos...</Text>
+      <main className="mx-auto max-w-4xl px-4 py-8" role="status" aria-label="Carregando pedidos">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} variant="line" height={40} className="mb-2" />
+        ))}
       </main>
     )
   }

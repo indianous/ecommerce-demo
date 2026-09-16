@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { Button, Card, Heading, Icon, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -14,7 +15,7 @@ export function MelhorEnvioConnectionCard() {
   const fetchStatus = () => {
     if (!accessToken) return
     setLoading(true)
-    fetch('/api/admin/site/melhor-envio', { headers: { Authorization: `Bearer ${accessToken}` } })
+    authFetch('/api/admin/site/melhor-envio')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setConnected(!!data?.connected))
       .catch(() => setConnected(false))
@@ -27,9 +28,7 @@ export function MelhorEnvioConnectionCard() {
     if (!accessToken) return
     setConnecting(true)
     try {
-      const res = await fetch('/api/admin/site/melhor-envio/oauth/authorize-url', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
+      const res = await authFetch('/api/admin/site/melhor-envio/oauth/authorize-url')
       const data = await res.json()
       if (!res.ok || !data?.authorizeUrl) {
         toast({ variant: 'destructive', description: data?.message ?? 'Erro ao conectar com o Melhor Envio.' })

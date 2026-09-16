@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { useRouter } from 'next/navigation'
 import { Button, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
@@ -29,9 +30,7 @@ export function CustomersContent({ basePath = '/dashboard/customers' }: { basePa
     if (!accessToken) return null
     if (searchRef.current) params.set('search', searchRef.current)
     try {
-      const res = await fetch(`/api/admin/customers?${params}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
+      const res = await authFetch(`/api/admin/customers?${params}`)
       if (!res.ok) throw new Error()
       return await res.json()
     } catch {

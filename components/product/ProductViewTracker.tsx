@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { useAuthStore } from '@/stores/auth.store'
 
 interface Props {
@@ -11,9 +12,9 @@ export function ProductViewTracker({ productId }: Props) {
   const accessToken = useAuthStore((s) => s.accessToken)
 
   useEffect(() => {
-    fetch(`/api/products/${productId}/views`, {
+    authFetch(`/api/products/${productId}/views`, {
       method: 'POST',
-      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      headers: accessToken ? { } : undefined,
     }).catch(() => {})
   }, [productId, accessToken])
 

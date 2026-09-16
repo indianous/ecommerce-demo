@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { Button, FormField, Icon, Input, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Address, ShippingQuote } from '@/types'
@@ -65,7 +66,7 @@ export function ShippingPreview({ productId }: Props) {
       return
     }
     setAddressStatus('checking')
-    fetch('/api/addresses', { headers: { Authorization: `Bearer ${accessToken}` } })
+    authFetch('/api/addresses')
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((addresses: Address[]) => {
         const chosen = pickDefaultAddress(addresses)

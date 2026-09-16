@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
+import { authFetch } from '@/lib/authFetch'
 import { useRouter } from 'next/navigation'
 import { Badge, Button, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
@@ -34,9 +35,7 @@ export function ShippingContent({ orderBasePath = '/dashboard/orders' }: { order
     if (!accessToken) return null
     params.set('status', 'CONFIRMED')
     if (searchRef.current) params.set('search', searchRef.current)
-    const res = await fetch(`/api/admin/orders?${params}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
+    const res = await authFetch(`/api/admin/orders?${params}`)
     if (!res.ok) return null
     return await res.json()
   }, [accessToken])
@@ -52,9 +51,8 @@ export function ShippingContent({ orderBasePath = '/dashboard/orders' }: { order
     if (!accessToken) return
     setBuyingId(orderId)
     try {
-      const res = await fetch(`/api/admin/orders/${orderId}/shipping-label`, {
+      const res = await authFetch(`/api/admin/orders/${orderId}/shipping-label`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${accessToken}` },
       })
       const data = await res.json()
       if (!res.ok) {

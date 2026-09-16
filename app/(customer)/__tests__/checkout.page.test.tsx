@@ -86,7 +86,7 @@ function renderCheckoutPage() {
 describe('CheckoutPage', () => {
   it('shows a loading state before addresses load', () => {
     renderCheckoutPage()
-    expect(screen.getByText(/carregando/i)).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: /carregando checkout/i })).toBeInTheDocument()
   })
 
   it('renders the checkout form once addresses load', async () => {
