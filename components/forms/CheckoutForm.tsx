@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Button, FormField, Icon, QrCode, Radio, Select, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { useCartStore, selectCartTotal } from '@/stores/cart.store'
-import type { Address, OrderResponse, PaymentMethod, ShippingQuote } from '@/types'
+import type { Address, DeliveryMethod, DistributionCenter, OrderResponse, PaymentMethod, ShippingQuote } from '@/types'
 
 interface Props {
   addresses: Address[]
@@ -36,8 +36,19 @@ export function CheckoutForm({ addresses }: Props) {
   const [shippingLoading, setShippingLoading] = useState(false)
   const [shippingError, setShippingError] = useState<string | null>(null)
 
+  const [distributionCenters, setDistributionCenters] = useState<DistributionCenter[]>([])
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('DELIVERY')
+  const [selectedPickupLocationId, setSelectedPickupLocationId] = useState('')
+
   useEffect(() => {
-    if (!selectedAddressId || !accessToken) return
+    fetch('/api/site/distribution-centers')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: DistributionCenter[]) => setDistributionCenters(data))
+      .catch(() => setDistributionCenters([]))
+  }, [])
+
+  useEffect(() => {
+    if (deliveryMethod !== 'DELIVERY' || !selectedAddressId || !accessToken) return
 
     let cancelled = false
     setShippingLoading(true)
@@ -77,12 +88,13 @@ export function CheckoutForm({ addresses }: Props) {
     return () => {
       cancelled = true
     }
-  }, [selectedAddressId, accessToken])
+  }, [selectedAddressId, accessToken, deliveryMethod])
 
+  const isPickup = deliveryMethod === 'PICKUP'
   const selectedOption = shippingOptions.find((o) => o.serviceId === selectedServiceId)
-  const shippingCost = shippingFree ? 0 : (selectedOption?.price ?? 0)
+  const shippingCost = isPickup || shippingFree ? 0 : (selectedOption?.price ?? 0)
   const total = cartTotal + shippingCost
-  const shippingChosen = shippingFree || !!selectedServiceId
+  const shippingChosen = isPickup ? !!selectedPickupLocationId : (shippingFree || !!selectedServiceId)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -100,7 +112,9 @@ export function CheckoutForm({ addresses }: Props) {
         body: JSON.stringify({
           addressId: selectedAddressId,
           paymentMethod,
-          ...(shippingFree ? {} : { shippingServiceId: selectedServiceId }),
+          ...(isPickup
+            ? { deliveryMethod: 'PICKUP', pickupLocationId: selectedPickupLocationId }
+            : (shippingFree ? {} : { shippingServiceId: selectedServiceId })),
         }),
       })
 
@@ -158,26 +172,63 @@ export function CheckoutForm({ addresses }: Props) {
         <p>Nenhum endereço cadastrado.</p>
       )}
 
-      {selectedAddressId && (
+      {distributionCenters.length > 0 && (
         <fieldset>
-          <legend>Frete</legend>
-          {shippingLoading && <Text size="sm" color="muted">Calculando frete...</Text>}
-          {shippingError && <Text role="alert" size="sm" color="destructive">{shippingError}</Text>}
-          {!shippingLoading && !shippingError && shippingFree && (
-            <Text size="sm">Frete grátis</Text>
-          )}
-          {!shippingLoading && !shippingError && !shippingFree && shippingOptions.map((option) => (
-            <Radio
-              key={option.serviceId}
-              id={`shipping-${option.serviceId}`}
-              name="shippingServiceId"
-              value={option.serviceId}
-              label={`${option.carrierName} — ${option.serviceName} — ${formatBRL(option.price)} — ${option.deliveryDays} dia(s)`}
-              checked={selectedServiceId === option.serviceId}
-              onChange={() => setSelectedServiceId(option.serviceId)}
-            />
-          ))}
+          <legend>Método de entrega</legend>
+          <Radio
+            id="delivery-method-delivery"
+            name="deliveryMethod"
+            value="DELIVERY"
+            label="Entrega"
+            checked={deliveryMethod === 'DELIVERY'}
+            onChange={() => setDeliveryMethod('DELIVERY')}
+          />
+          <Radio
+            id="delivery-method-pickup"
+            name="deliveryMethod"
+            value="PICKUP"
+            label="Retirar em uma loja"
+            checked={deliveryMethod === 'PICKUP'}
+            onChange={() => setDeliveryMethod('PICKUP')}
+          />
         </fieldset>
+      )}
+
+      {isPickup ? (
+        <FormField label="Centro de distribuição" id="pickup-location-select">
+          <Select
+            id="pickup-location-select"
+            value={selectedPickupLocationId}
+            onChange={(e) => setSelectedPickupLocationId(e.target.value)}
+            required
+            options={distributionCenters.map((center) => ({
+              value: center.id,
+              label: `${center.name} — ${center.city}/${center.state}`,
+            }))}
+          />
+        </FormField>
+      ) : (
+        selectedAddressId && (
+          <fieldset>
+            <legend>Frete</legend>
+            {shippingLoading && <Text size="sm" color="muted">Calculando frete...</Text>}
+            {shippingError && <Text role="alert" size="sm" color="destructive">{shippingError}</Text>}
+            {!shippingLoading && !shippingError && shippingFree && (
+              <Text size="sm">Frete grátis</Text>
+            )}
+            {!shippingLoading && !shippingError && !shippingFree && shippingOptions.map((option) => (
+              <Radio
+                key={option.serviceId}
+                id={`shipping-${option.serviceId}`}
+                name="shippingServiceId"
+                value={option.serviceId}
+                label={`${option.carrierName} — ${option.serviceName} — ${formatBRL(option.price)} — ${option.deliveryDays} dia(s)`}
+                checked={selectedServiceId === option.serviceId}
+                onChange={() => setSelectedServiceId(option.serviceId)}
+              />
+            ))}
+          </fieldset>
+        )
       )}
 
       <fieldset>

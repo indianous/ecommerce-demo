@@ -614,6 +614,18 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
               </Card>
             </section>
 
+            <section aria-labelledby="distribution-centers-heading">
+              <Card variant="outlined" className="h-full">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <Heading as="h2" id="distribution-centers-heading" size="xl">Centros de distribuição</Heading>
+                    <Button iconOnly leftIcon={<Icon name="Warehouse" size="sm" />} aria-label="Gerenciar centros de distribuição" as="a" href={`${basePath}/distribution-centers`} variant="primary" size="sm" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">Pontos onde o cliente pode retirar o pedido em vez de receber em casa.</p>
+                </div>
+              </Card>
+            </section>
+
           </div>
         )}
 
