@@ -95,6 +95,20 @@ describe('OrderDetailContent — nota fiscal', () => {
     expect(lastInvoicePostCount).toBe(1)
   })
 
+  it('com NEXT_PUBLIC_FISCAL_INVOICE_EMISSION_ENABLED=false, a seção de nota fiscal inteira não aparece', async () => {
+    const original = process.env.NEXT_PUBLIC_FISCAL_INVOICE_EMISSION_ENABLED
+    process.env.NEXT_PUBLIC_FISCAL_INVOICE_EMISSION_ENABLED = 'false'
+    try {
+      renderPage()
+
+      await screen.findByText('Teclado')
+      expect(screen.queryByText('Nota fiscal')).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /emitir nf-e/i })).not.toBeInTheDocument()
+    } finally {
+      process.env.NEXT_PUBLIC_FISCAL_INVOICE_EMISSION_ENABLED = original
+    }
+  })
+
   it('pedido com pagamento PENDING: botão desabilitado com explicação', async () => {
     detailToReturn = { ...baseDetail, paymentStatus: 'PENDING' }
     renderPage()

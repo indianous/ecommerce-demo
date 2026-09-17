@@ -329,7 +329,7 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
           </div>
         )}
 
-        {canManageInvoice && (
+        {canManageInvoice && process.env.NEXT_PUBLIC_FISCAL_INVOICE_EMISSION_ENABLED !== 'false' && (
           <div className="mb-6">
             <h2 className="text-sm font-semibold mb-2">Nota fiscal</h2>
             {!order.invoice && (
