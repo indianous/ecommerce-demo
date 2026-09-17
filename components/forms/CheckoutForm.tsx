@@ -44,7 +44,10 @@ export function CheckoutForm({ addresses }: Props) {
   useEffect(() => {
     fetch('/api/site/distribution-centers')
       .then((res) => (res.ok ? res.json() : []))
-      .then((data: DistributionCenter[]) => setDistributionCenters(data))
+      .then((data: DistributionCenter[]) => {
+        setDistributionCenters(data)
+        setSelectedPickupLocationId((current) => current || (data[0]?.id ?? ''))
+      })
       .catch(() => setDistributionCenters([]))
   }, [])
 
