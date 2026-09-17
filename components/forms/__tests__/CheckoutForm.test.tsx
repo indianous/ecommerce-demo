@@ -228,4 +228,14 @@ describe('CheckoutForm — retirada em centro de distribuição', () => {
       expect(sentBody.shippingServiceId).toBeUndefined()
     })
   })
+
+  it('com um único centro ativo, escolher "Retirar em uma loja" já habilita o botão sem reselecionar o Select', async () => {
+    server.use(http.get('/api/site/distribution-centers', () => HttpResponse.json([mockDistributionCenter])))
+    const user = userEvent.setup()
+    renderCheckoutForm({ addresses: [mockAddress] })
+
+    await user.click(await screen.findByLabelText(/retirar em uma loja/i))
+
+    expect(screen.getByRole('button', { name: /finalizar/i })).toBeEnabled()
+  })
 })
