@@ -154,8 +154,8 @@ export function DistributionCentersContent({ backPath = '/dashboard/site' }: { b
                     {center.phone && <Text size="sm" color="muted">{center.phone}</Text>}
                   </div>
                   <div className="flex gap-1">
-                    <Button leftIcon={<Icon name="Pencil" size="sm" />} variant="outline" size="sm" onClick={() => openEdit(center)}>{`Editar ${center.name}`}</Button>
-                    <Button leftIcon={<Icon name="Trash2" size="sm" />} variant="danger" size="sm" onClick={() => setDeleteTarget(center)}>{`Remover ${center.name}`}</Button>
+                    <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label={`Editar ${center.name}`} variant="outline" size="sm" onClick={() => openEdit(center)} />
+                    <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Remover ${center.name}`} variant="danger" size="sm" onClick={() => setDeleteTarget(center)} />
                   </div>
                 </div>
               </Card>
