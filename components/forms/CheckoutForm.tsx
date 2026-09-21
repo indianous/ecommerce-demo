@@ -2,19 +2,23 @@
 
 import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Button, FormField, Icon, QrCode, Radio, Select, Text, useToast } from 'base-ds'
+import { Button, FormField, Icon, Radio, Select, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { useCartStore, selectCartTotal } from '@/stores/cart.store'
-import type { Address, DeliveryMethod, DistributionCenter, OrderResponse, PaymentMethod, ShippingQuote } from '@/types'
+import { ManualPaymentInstructions } from '@/components/payment/ManualPaymentInstructions'
+import { PAYMENT_METHOD_LABELS } from '@/lib/payment-labels'
+import type {
+  Address,
+  DeliveryMethod,
+  DistributionCenter,
+  OrderResponse,
+  PaymentMethod,
+  PaymentMethodsByDelivery,
+  ShippingQuote,
+} from '@/types'
 
 interface Props {
   addresses: Address[]
-}
-
-const PAYMENT_LABELS: Record<PaymentMethod, string> = {
-  PIX: 'Pix',
-  CREDIT_CARD: 'Cartão de Crédito',
-  BOLETO: 'Boleto',
 }
 
 const formatBRL = (v: number) =>
@@ -27,7 +31,9 @@ export function CheckoutForm({ addresses }: Props) {
   const { toast } = useToast()
 
   const [selectedAddressId, setSelectedAddressId] = useState(addresses[0]?.id ?? '')
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('PIX')
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodsByDelivery | null>(null)
+  const [paymentMethodsError, setPaymentMethodsError] = useState(false)
   const [loading, setLoading] = useState(false)
   const [order, setOrder] = useState<OrderResponse | null>(null)
 
@@ -42,6 +48,31 @@ export function CheckoutForm({ addresses }: Props) {
   const [selectedPickupLocationId, setSelectedPickupLocationId] = useState('')
 
   useEffect(() => {
+    fetch('/api/site/payment-methods')
+      .then((res) => {
+        if (!res.ok) throw new Error()
+        return res.json()
+      })
+      .then((data: PaymentMethodsByDelivery) => setPaymentMethods(data))
+      .catch(() => setPaymentMethodsError(true))
+  }, [])
+
+  // As formas de pagamento vêm por tipo de entrega. Sem forma para a entrega (ex.: sem chave PIX,
+  // o cliente só tem "pagar na retirada"), a retirada passa a ser a única opção.
+  const pickupAllowed = distributionCenters.length > 0 && (paymentMethods?.PICKUP.length ?? 0) > 0
+  const deliveryAllowed = (paymentMethods?.DELIVERY.length ?? 0) > 0
+  let effectiveDelivery: DeliveryMethod = deliveryMethod
+  if (paymentMethods) {
+    if (deliveryMethod === 'DELIVERY' && !deliveryAllowed && pickupAllowed) effectiveDelivery = 'PICKUP'
+    else if (deliveryMethod === 'PICKUP' && !pickupAllowed && deliveryAllowed) effectiveDelivery = 'DELIVERY'
+  }
+  const acceptedMethods = paymentMethods?.[effectiveDelivery] ?? []
+  const effectiveMethod: PaymentMethod | null =
+    paymentMethod && acceptedMethods.includes(paymentMethod) ? paymentMethod : (acceptedMethods[0] ?? null)
+  const nothingAvailable = paymentMethods !== null && !deliveryAllowed && !pickupAllowed
+  const paymentMethodsLoaded = paymentMethods !== null
+
+  useEffect(() => {
     fetch('/api/site/distribution-centers')
       .then((res) => (res.ok ? res.json() : []))
       .then((data: DistributionCenter[]) => {
@@ -52,7 +83,7 @@ export function CheckoutForm({ addresses }: Props) {
   }, [])
 
   useEffect(() => {
-    if (deliveryMethod !== 'DELIVERY' || !selectedAddressId || !accessToken) return
+    if (effectiveDelivery !== 'DELIVERY' || !selectedAddressId || !accessToken || !paymentMethodsLoaded) return
 
     let cancelled = false
     setShippingLoading(true)
@@ -91,9 +122,9 @@ export function CheckoutForm({ addresses }: Props) {
     return () => {
       cancelled = true
     }
-  }, [selectedAddressId, accessToken, deliveryMethod])
+  }, [selectedAddressId, accessToken, effectiveDelivery, paymentMethodsLoaded])
 
-  const isPickup = deliveryMethod === 'PICKUP'
+  const isPickup = effectiveDelivery === 'PICKUP'
   const selectedOption = shippingOptions.find((o) => o.serviceId === selectedServiceId)
   const shippingCost = isPickup || shippingFree ? 0 : (selectedOption?.price ?? 0)
   const total = cartTotal + shippingCost
@@ -101,7 +132,7 @@ export function CheckoutForm({ addresses }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedAddressId || items.length === 0 || !shippingChosen) return
+    if (!selectedAddressId || items.length === 0 || !shippingChosen || !effectiveMethod) return
 
     setLoading(true)
 
@@ -114,7 +145,7 @@ export function CheckoutForm({ addresses }: Props) {
         },
         body: JSON.stringify({
           addressId: selectedAddressId,
-          paymentMethod,
+          paymentMethod: effectiveMethod,
           ...(isPickup
             ? { deliveryMethod: 'PICKUP', pickupLocationId: selectedPickupLocationId }
             : (shippingFree ? {} : { shippingServiceId: selectedServiceId })),
@@ -147,11 +178,10 @@ export function CheckoutForm({ addresses }: Props) {
             Código de pagamento: <strong>{order.paymentId}</strong>
           </p>
         )}
-        {order.checkoutUrl ? (
+        {order.checkoutUrl && (
           <Button leftIcon={<Icon name="ArrowRight" size="sm" />} as="a" href={order.checkoutUrl} variant="primary">Continuar para pagamento</Button>
-        ) : (
-          order.paymentMethod === 'PIX' && order.paymentId && <QrCode value={order.paymentId} />
         )}
+        <ManualPaymentInstructions order={order} />
       </div>
     )
   }
@@ -175,7 +205,11 @@ export function CheckoutForm({ addresses }: Props) {
         <p>Nenhum endereço cadastrado.</p>
       )}
 
-      {distributionCenters.length > 0 && (
+      {paymentMethods && !deliveryAllowed && pickupAllowed && (
+        <Text size="sm">No momento, o pagamento é feito somente na retirada.</Text>
+      )}
+
+      {paymentMethods && deliveryAllowed && pickupAllowed && (
         <fieldset>
           <legend>Método de entrega</legend>
           <Radio
@@ -183,7 +217,7 @@ export function CheckoutForm({ addresses }: Props) {
             name="deliveryMethod"
             value="DELIVERY"
             label="Entrega"
-            checked={deliveryMethod === 'DELIVERY'}
+            checked={effectiveDelivery === 'DELIVERY'}
             onChange={() => setDeliveryMethod('DELIVERY')}
           />
           <Radio
@@ -191,7 +225,7 @@ export function CheckoutForm({ addresses }: Props) {
             name="deliveryMethod"
             value="PICKUP"
             label="Retirar em uma loja"
-            checked={deliveryMethod === 'PICKUP'}
+            checked={effectiveDelivery === 'PICKUP'}
             onChange={() => setDeliveryMethod('PICKUP')}
           />
         </fieldset>
@@ -236,22 +270,28 @@ export function CheckoutForm({ addresses }: Props) {
 
       <fieldset>
         <legend>Forma de pagamento</legend>
-        {(['PIX', 'CREDIT_CARD', 'BOLETO'] as const).map((method) => (
-          <Radio
-            key={method}
-            id={`payment-${method}`}
-            name="paymentMethod"
-            value={method}
-            label={PAYMENT_LABELS[method]}
-            checked={paymentMethod === method}
-            onChange={() => setPaymentMethod(method)}
-          />
-        ))}
+        {paymentMethodsError ? (
+          <Text role="alert" size="sm" color="destructive">Não foi possível carregar as formas de pagamento.</Text>
+        ) : nothingAvailable ? (
+          <Text role="alert" size="sm" color="destructive">Nenhuma forma de pagamento disponível no momento.</Text>
+        ) : (
+          acceptedMethods.map((method) => (
+            <Radio
+              key={method}
+              id={`payment-${method}`}
+              name="paymentMethod"
+              value={method}
+              label={PAYMENT_METHOD_LABELS[method]}
+              checked={effectiveMethod === method}
+              onChange={() => setPaymentMethod(method)}
+            />
+          ))
+        )}
       </fieldset>
 
       <p>Total: {formatBRL(total)}</p>
 
-      <Button leftIcon={<Icon name="Check" size="sm" />} type="submit" variant="primary" disabled={items.length === 0 || !selectedAddressId || !shippingChosen} isLoading={loading}>Finalizar Pedido</Button>
+      <Button leftIcon={<Icon name="Check" size="sm" />} type="submit" variant="primary" disabled={items.length === 0 || !selectedAddressId || !shippingChosen || !effectiveMethod} isLoading={loading}>Finalizar Pedido</Button>
     </form>
   )
 }

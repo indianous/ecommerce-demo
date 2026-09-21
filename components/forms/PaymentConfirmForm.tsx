@@ -8,9 +8,18 @@ interface Props {
   onConfirm: () => void
   onCancel: () => void
   confirming: boolean
+  /** Pagar na retirada não exige comprovante (a equipe recebe no balcão). */
+  receiptRequired?: boolean
 }
 
-export function PaymentConfirmForm({ file, onFileChange, onConfirm, onCancel, confirming }: Props) {
+export function PaymentConfirmForm({
+  file,
+  onFileChange,
+  onConfirm,
+  onCancel,
+  confirming,
+  receiptRequired = true,
+}: Props) {
   return (
     <form
       onSubmit={(e) => {
@@ -19,7 +28,7 @@ export function PaymentConfirmForm({ file, onFileChange, onConfirm, onCancel, co
       }}
       className="flex flex-col gap-6"
     >
-      <FormField label="Comprovante de pagamento" id="payment-receipt">
+      <FormField label={receiptRequired ? 'Comprovante de pagamento' : 'Comprovante de pagamento (opcional)'} id="payment-receipt">
         <FileUpload
           accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
           onChange={([f]) => onFileChange(f ?? null)}
@@ -33,7 +42,7 @@ export function PaymentConfirmForm({ file, onFileChange, onConfirm, onCancel, co
       )}
 
       <div className="flex gap-3">
-        <Button leftIcon={<Icon name="Check" size="sm" />} type="submit" variant="primary" disabled={!file} isLoading={confirming}>Confirmar pagamento</Button>
+        <Button leftIcon={<Icon name="Check" size="sm" />} type="submit" variant="primary" disabled={receiptRequired && !file} isLoading={confirming}>Confirmar pagamento</Button>
         <Button leftIcon={<Icon name="X" size="sm" />} type="button" variant="secondary" onClick={onCancel} disabled={confirming}>Cancelar</Button>
       </div>
     </form>

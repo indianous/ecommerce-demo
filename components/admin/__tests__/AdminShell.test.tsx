@@ -272,12 +272,13 @@ const ADMIN_SITE_LINKS: [RegExp, string][] = [
   [/^navegação$/i, '/dashboard/admin/site/navigation'],
   [/^centros de distribuição$/i, '/dashboard/admin/site/distribution-centers'],
   [/^gateway de pagamento$/i, '/dashboard/admin/site/payment-gateway'],
+  [/^pagamento manual$/i, '/dashboard/admin/site/manual-payment'],
   [/^dados fiscais$/i, '/dashboard/admin/site/fiscal-company-data'],
   [/^melhor envio$/i, '/dashboard/admin/site/melhor-envio'],
 ]
 
 describe('AdminShell — Menu do site', () => {
-  it('lista "Visão geral" e as 16 páginas do site com o prefixo /dashboard/admin/site', () => {
+  it('lista "Visão geral" e as 17 páginas do site com o prefixo /dashboard/admin/site', () => {
     useAuthStore.setState(authenticatedAdmin)
     renderAdminShell()
     ADMIN_SITE_LINKS.forEach(([name, href]) => {

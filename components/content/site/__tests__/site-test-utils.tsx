@@ -35,14 +35,17 @@ export const fullSettings = {
   fiscalCompanyZipCode: null,
   fiscalCompanyEmail: null,
   fiscalCompanyPhone: null,
+  pixKey: '52998224725',
+  pixKeyHolder: 'Loja do Jota',
+  pixQrCodeUrl: 'https://cdn.example.com/qr.png',
 }
 
 export const emptySettings = Object.fromEntries(Object.keys(fullSettings).map((k) => [k, null]))
 
 export const gatewayConfig = {
-  active: 'MOCK',
+  active: 'MANUAL',
   available: [
-    { provider: 'MOCK', configured: true },
+    { provider: 'MANUAL', configured: true },
     { provider: 'STRIPE', configured: true },
     { provider: 'PAGSEGURO', configured: false },
   ],

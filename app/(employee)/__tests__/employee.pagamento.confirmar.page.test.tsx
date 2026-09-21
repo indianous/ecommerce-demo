@@ -252,6 +252,55 @@ describe('PaymentConfirmContent — confirmação com arquivo', () => {
   })
 })
 
+describe('PaymentConfirmContent — pagar na retirada', () => {
+  const pickupOrder = { ...mockOrder, paymentMethod: 'PAY_ON_PICKUP' as const }
+
+  it('mostra o rótulo "Pagar na retirada" como método', async () => {
+    server.use(http.get('/api/admin/orders/:id', () => HttpResponse.json(pickupOrder)))
+    renderContent()
+
+    expect(await screen.findByText('Pagar na retirada')).toBeInTheDocument()
+  })
+
+  it('o comprovante é opcional: "Confirmar pagamento" já vem habilitado sem arquivo', async () => {
+    server.use(http.get('/api/admin/orders/:id', () => HttpResponse.json(pickupOrder)))
+    renderContent()
+
+    expect(await screen.findByRole('button', { name: /confirmar pagamento/i })).toBeEnabled()
+  })
+
+  it('confirma sem arquivo: só o PATCH { status: PAID }, sem upload, e navega para backPath', async () => {
+    let uploadCalled = false
+    let patchBody: Record<string, unknown> = {}
+    server.use(
+      http.get('/api/admin/orders/:id', () => HttpResponse.json(pickupOrder)),
+      http.post('/api/upload/payment-receipt', () => {
+        uploadCalled = true
+        return HttpResponse.json({ url: 'x' })
+      }),
+      http.patch('/api/admin/orders/:id/payment-status', async ({ request }) => {
+        patchBody = (await request.json()) as Record<string, unknown>
+        return HttpResponse.json({ ...pickupOrder, paymentStatus: 'PAID' })
+      }),
+    )
+    const user = userEvent.setup()
+    renderContent()
+
+    await user.click(await screen.findByRole('button', { name: /confirmar pagamento/i }))
+
+    expect(await screen.findByText(/pagamento confirmado com sucesso/i)).toBeInTheDocument()
+    expect(uploadCalled).toBe(false)
+    expect(patchBody).toEqual({ status: 'PAID' })
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/payments')
+  })
+
+  it('PIX continua exigindo o comprovante (botão desabilitado sem arquivo)', async () => {
+    renderContent()
+
+    expect(await screen.findByRole('button', { name: /confirmar pagamento/i })).toBeDisabled()
+  })
+})
+
 describe('PaymentConfirmContent — controle de acesso', () => {
   it('redireciona para /dashboard quando usuário não tem MANAGE_PAYMENTS', async () => {
     useAuthStore.setState({

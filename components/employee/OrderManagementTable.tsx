@@ -2,6 +2,7 @@
 
 import { Badge, Select, Table, type TableColumn } from 'base-ds'
 import { formatBRL } from '@/lib/format'
+import { paymentMethodLabel } from '@/lib/payment-labels'
 import type { AdminOrderResponse, OrderStatus } from '@/types'
 
 interface Props {
@@ -65,7 +66,7 @@ export function OrderManagementTable({ orders, onStatusChange }: Props) {
       header: 'Pagamento',
       render: (order) => (
         <div>
-          <div>{order.paymentMethod}</div>
+          <div>{paymentMethodLabel(order.paymentMethod)}</div>
           <div>{order.paymentStatus}</div>
         </div>
       ),

@@ -16,6 +16,7 @@ const EXPECTED_SLUGS = [
   'terms',
   'refund-policy',
   'payment-gateway',
+  'manual-payment',
   'fiscal-company-data',
   'melhor-envio',
 ]
@@ -25,11 +26,11 @@ const emptySettings = {
   defaultDescription: null, aboutUsContent: null, contactDescription: null,
   contactPhone: null, contactEmail: null, instagramUrl: null, tiktokUrl: null,
   facebookUrl: null, privacyPolicyContent: null, termsContent: null, refundPolicyContent: null,
-  fiscalCompanyCnpj: null,
+  fiscalCompanyCnpj: null, pixKey: null,
 } as unknown as SiteSettings
 
 describe('SITE_SECTIONS', () => {
-  it('tem exatamente as 14 seções esperadas, com slugs únicos em kebab-case', () => {
+  it('tem exatamente as 15 seções esperadas, com slugs únicos em kebab-case', () => {
     const slugs = SITE_SECTIONS.map((s) => s.slug)
 
     expect([...slugs].sort()).toEqual([...EXPECTED_SLUGS].sort())
@@ -75,13 +76,14 @@ describe('isConfigured', () => {
     ['terms', { termsContent: 'texto' }],
     ['refund-policy', { refundPolicyContent: 'texto' }],
     ['fiscal-company-data', { fiscalCompanyCnpj: '11444777000161' }],
+    ['manual-payment', { pixKey: '52998224725' }],
   ])('%s: true quando há valor', (slug, patch) => {
     expect(bySlug(slug)({ ...emptySettings, ...patch })).toBe(true)
   })
 
   it.each([
     'logo', 'placeholder-image', 'favicon', 'metadata', 'about-us', 'contact',
-    'social-links', 'privacy-policy', 'terms', 'refund-policy', 'fiscal-company-data',
+    'social-links', 'privacy-policy', 'terms', 'refund-policy', 'fiscal-company-data', 'manual-payment',
   ])('%s: false com null e com string vazia', (slug) => {
     expect(bySlug(slug)(emptySettings)).toBe(false)
     const blank = Object.fromEntries(Object.keys(emptySettings).map((k) => [k, ''])) as unknown as SiteSettings
@@ -98,7 +100,7 @@ describe('isConfigured', () => {
 describe('siteNavItems', () => {
   const items = siteNavItems('/dashboard/site')
 
-  it('começa em "Visão geral" e lista as 16 páginas do site, na ordem', () => {
+  it('começa em "Visão geral" e lista as 17 páginas do site, na ordem', () => {
     expect(items[0]).toMatchObject({ label: 'Visão geral', href: '/dashboard/site' })
     expect(items.slice(1).map((i) => i.href)).toEqual([
       '/dashboard/site/logo',
@@ -115,6 +117,7 @@ describe('siteNavItems', () => {
       '/dashboard/site/navigation',
       '/dashboard/site/distribution-centers',
       '/dashboard/site/payment-gateway',
+      '/dashboard/site/manual-payment',
       '/dashboard/site/fiscal-company-data',
       '/dashboard/site/melhor-envio',
     ])

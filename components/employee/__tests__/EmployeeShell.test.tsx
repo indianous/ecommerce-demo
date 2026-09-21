@@ -370,12 +370,13 @@ const SITE_LINKS: [RegExp, string][] = [
   [/^navegação$/i, '/dashboard/site/navigation'],
   [/^centros de distribuição$/i, '/dashboard/site/distribution-centers'],
   [/^gateway de pagamento$/i, '/dashboard/site/payment-gateway'],
+  [/^pagamento manual$/i, '/dashboard/site/manual-payment'],
   [/^dados fiscais$/i, '/dashboard/site/fiscal-company-data'],
   [/^melhor envio$/i, '/dashboard/site/melhor-envio'],
 ]
 
 describe('EmployeeShell — Menu do site (MANAGE_SITE)', () => {
-  it('com MANAGE_SITE lista "Visão geral" e as 16 páginas do site, cada uma com o href certo', () => {
+  it('com MANAGE_SITE lista "Visão geral" e as 17 páginas do site, cada uma com o href certo', () => {
     useAuthStore.setState(makeEmployee(['MANAGE_SITE']))
     renderEmployeeShell()
     SITE_LINKS.forEach(([name, href]) => {

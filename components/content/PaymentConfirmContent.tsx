@@ -9,16 +9,11 @@ import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { PaymentConfirmForm } from '@/components/forms/PaymentConfirmForm'
+import { paymentMethodLabel } from '@/lib/payment-labels'
 import type { AdminOrderDetailResponse } from '@/types'
 
 const formatBRL = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
-
-const PAYMENT_METHOD_LABELS: Record<string, string> = {
-  PIX: 'PIX',
-  CREDIT_CARD: 'Cartão de Crédito',
-  BOLETO: 'Boleto',
-}
 
 export function PaymentConfirmContent({
   id,
@@ -46,23 +41,29 @@ export function PaymentConfirmContent({
       })
   }, [accessToken, id])
 
+  // Na retirada a equipe recebe no balcão: o comprovante é opcional
+  const receiptRequired = order?.paymentMethod !== 'PAY_ON_PICKUP'
+
   const handleConfirm = async () => {
-    if (!file || !accessToken) return
+    if ((receiptRequired && !file) || !accessToken) return
     setConfirming(true)
     try {
-      const fd = new FormData()
-      fd.append('file', file)
-      const uploadRes = await authFetch('/api/upload/payment-receipt', {
-        method: 'POST',
-        body: fd,
-      })
-      if (!uploadRes.ok) throw new Error('upload')
-      const { url } = await uploadRes.json()
+      let receiptUrl: string | undefined
+      if (file) {
+        const fd = new FormData()
+        fd.append('file', file)
+        const uploadRes = await authFetch('/api/upload/payment-receipt', {
+          method: 'POST',
+          body: fd,
+        })
+        if (!uploadRes.ok) throw new Error('upload')
+        receiptUrl = (await uploadRes.json()).url
+      }
 
       const patchRes = await authFetch(`/api/admin/orders/${id}/payment-status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', },
-        body: JSON.stringify({ status: 'PAID', receiptUrl: url }),
+        body: JSON.stringify({ status: 'PAID', ...(receiptUrl ? { receiptUrl } : {}) }),
       })
       if (!patchRes.ok) throw new Error('patch')
 
@@ -114,7 +115,7 @@ export function PaymentConfirmContent({
           </div>
           <div>
             <p className="text-muted-foreground">Método</p>
-            <p>{PAYMENT_METHOD_LABELS[order.paymentMethod] ?? order.paymentMethod}</p>
+            <p>{paymentMethodLabel(order.paymentMethod)}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Total</p>
@@ -128,6 +129,7 @@ export function PaymentConfirmContent({
           onConfirm={handleConfirm}
           onCancel={() => router.push(backPath)}
           confirming={confirming}
+          receiptRequired={receiptRequired}
         />
       </main>
     </PermissionGuard>

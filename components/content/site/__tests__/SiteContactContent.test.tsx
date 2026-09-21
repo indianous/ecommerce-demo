@@ -44,4 +44,11 @@ describe('SiteContactContent', () => {
 
     expect(await screen.findByText(/erro ao salvar contato/i)).toBeInTheDocument()
   })
+
+  it('o campo Telefone avisa que o número também será usado como WhatsApp para comprovantes', async () => {
+    renderSection(<SiteContactContent backPath="/dashboard/site" />)
+
+    expect(await screen.findByText(/também será usado como whatsapp/i)).toBeInTheDocument()
+    expect(screen.getByText(/comprovantes de pagamento/i)).toBeInTheDocument()
+  })
 })

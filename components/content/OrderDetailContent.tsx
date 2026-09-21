@@ -7,6 +7,7 @@ import { Badge, Button, Heading, Icon, Select, Skeleton, Table, type TableColumn
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
+import { paymentMethodLabel } from '@/lib/payment-labels'
 import type { AdminOrderDetailResponse, Invoice, InvoiceStatus, OrderItemResponse, OrderStatus, PaymentStatus } from '@/types'
 
 type IconName = ComponentProps<typeof Icon>['name']
@@ -262,7 +263,7 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Pagamento</p>
-            <p>{order.paymentMethod}</p>
+            <p>{paymentMethodLabel(order.paymentMethod)}</p>
             <Badge variant={PAYMENT_STATUS_BADGE_VARIANT[order.paymentStatus]}>
               {PAYMENT_STATUS_LABELS[order.paymentStatus]}
             </Badge>

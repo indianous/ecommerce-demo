@@ -13,7 +13,7 @@ export function SitePaymentGatewayContent({ backPath }: { backPath: string }) {
   const { toast } = useToast()
   const [config, setConfig] = useState<PaymentGatewayConfig | null>(null)
   const [failed, setFailed] = useState(false)
-  const [selected, setSelected] = useState<PaymentGatewayProvider>('MOCK')
+  const [selected, setSelected] = useState<PaymentGatewayProvider>('MANUAL')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -46,7 +46,7 @@ export function SitePaymentGatewayContent({ backPath }: { backPath: string }) {
       if (!res.ok) {
         const message = data?.message ?? 'Erro ao trocar gateway de pagamento.'
         setError(message)
-        setSelected(config?.active ?? 'MOCK')
+        setSelected(config?.active ?? 'MANUAL')
         toast({ variant: 'destructive', description: message })
         return
       }
@@ -55,7 +55,7 @@ export function SitePaymentGatewayContent({ backPath }: { backPath: string }) {
       toast({ variant: 'success', description: 'Gateway de pagamento atualizado com sucesso.' })
     } catch {
       setError('Erro ao trocar gateway de pagamento.')
-      setSelected(config?.active ?? 'MOCK')
+      setSelected(config?.active ?? 'MANUAL')
       toast({ variant: 'destructive', description: 'Erro ao trocar gateway de pagamento.' })
     } finally {
       setSaving(false)

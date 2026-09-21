@@ -54,11 +54,11 @@ describe('SiteContent — índice da gestão do site', () => {
     }
   })
 
-  it('tem um card por página (14 seções + navegação + centros), cada um com link "Gerenciar" para /dashboard/site/<slug>', async () => {
+  it('tem um card por página (15 seções + navegação + centros), cada um com link "Gerenciar" para /dashboard/site/<slug>', async () => {
     await signIn(employeeWithSite)
     renderHub()
 
-    expect(allPages).toHaveLength(16)
+    expect(allPages).toHaveLength(17)
     for (const page of allPages) {
       const card = (await screen.findByRole('heading', { level: 3, name: page.title })).closest('section') as HTMLElement
       expect(within(card).getByRole('link', { name: `Gerenciar ${page.title}` })).toHaveAttribute(

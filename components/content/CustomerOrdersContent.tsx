@@ -7,6 +7,8 @@ import { Badge, Heading, Skeleton, Table, type TableColumn, Text } from 'base-ds
 import { useAuthStore } from '@/stores/auth.store'
 import { PaginationBar } from '@/components/ui/PaginationBar'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
+import { paymentMethodLabel } from '@/lib/payment-labels'
+import { ManualPaymentInstructions } from '@/components/payment/ManualPaymentInstructions'
 import type { OrderItemResponse, OrderResponse, OrderStatus } from '@/types'
 
 const STATUS_BADGE_VARIANT: Record<OrderStatus, 'warning' | 'info' | 'primary' | 'success' | 'danger'> = {
@@ -60,7 +62,7 @@ export function CustomerOrdersContent() {
     { key: 'orderNumber', header: 'Pedido', render: (order) => `#${order.orderNumber}` },
     { key: 'createdAt', header: 'Data', render: (order) => formatDate(order.createdAt) },
     { key: 'totalAmount', header: 'Total', render: (order) => formatBRL(order.totalAmount) },
-    { key: 'paymentMethod', header: 'Pagamento', render: (order) => order.paymentMethod },
+    { key: 'paymentMethod', header: 'Pagamento', render: (order) => paymentMethodLabel(order.paymentMethod) },
     {
       key: 'status',
       header: 'Status',
@@ -92,7 +94,12 @@ export function CustomerOrdersContent() {
       <Table
         columns={columns}
         data={orders}
-        renderExpandedRow={(order) => <Table columns={itemColumns} data={order.items} className="text-xs" />}
+        renderExpandedRow={(order) => (
+          <>
+            <ManualPaymentInstructions order={order} />
+            <Table columns={itemColumns} data={order.items} className="text-xs" />
+          </>
+        )}
       />
 
       <div className="mt-6 flex justify-center">

@@ -144,3 +144,62 @@ describe('CustomerOrdersContent (cliente) — paginação', () => {
     expect(pushMock).toHaveBeenCalledWith('/orders?page=2')
   })
 })
+
+describe('CustomerOrdersContent — como pagar (pagamento manual)', () => {
+  beforeEach(() => {
+    server.use(
+      http.get('/api/site/settings', () =>
+        HttpResponse.json({
+          contactEmail: 'contato@loja.com',
+          contactPhone: '+55 11 99999-9999',
+          pixKey: '52998224725',
+          pixKeyHolder: 'Loja do Jota',
+          pixQrCodeUrl: null,
+        }),
+      ),
+    )
+    useAuthStore.setState({ accessToken: 'mock-token', isAuthenticated: true })
+  })
+
+  it('pedido PIX com pagamento pendente e sem paymentId mostra a chave PIX ao expandir', async () => {
+    ordersResponse = [makeOrder({ status: 'PENDING', paymentStatus: 'PENDING', paymentMethod: 'PIX' })]
+    render(<CustomerOrdersContent />)
+
+    await userEvent.click(await screen.findByRole('button', { name: /expand row/i }))
+
+    expect(await screen.findByText('52998224725')).toBeInTheDocument()
+    expect(screen.getByText(/envie o comprovante/i)).toBeInTheDocument()
+  })
+
+  it('pedido "pagar na retirada" pendente mostra o local de retirada', async () => {
+    ordersResponse = [
+      makeOrder({
+        status: 'PENDING',
+        paymentStatus: 'PENDING',
+        paymentMethod: 'PAY_ON_PICKUP',
+        deliveryMethod: 'PICKUP',
+        pickupLocation: {
+          id: 'dc-1', name: 'CD Zona Sul', street: 'Av. das Nações', number: '1000', district: 'Centro',
+          city: 'São Paulo', state: 'SP', zipCode: '01310100', active: true,
+        },
+      }),
+    ]
+    render(<CustomerOrdersContent />)
+
+    await userEvent.click(await screen.findByRole('button', { name: /expand row/i }))
+
+    expect(await screen.findByText(/pague na retirada em CD Zona Sul/i)).toBeInTheDocument()
+    expect(screen.getByText('Pagar na retirada')).toBeInTheDocument()
+  })
+
+  it('pedido com pagamento já confirmado não mostra "Como pagar"', async () => {
+    ordersResponse = [makeOrder({ paymentStatus: 'PAID', paymentMethod: 'PIX' })]
+    render(<CustomerOrdersContent />)
+
+    await userEvent.click(await screen.findByRole('button', { name: /expand row/i }))
+
+    expect(await screen.findByText('Teclado Mecânico')).toBeInTheDocument()
+    expect(screen.queryByText(/como pagar/i)).not.toBeInTheDocument()
+  })
+})
+

@@ -4,7 +4,7 @@ import type { SiteSettings } from '@/types'
 export type SiteSectionId =
   | 'logo' | 'placeholder-image' | 'favicon' | 'metadata' | 'banners'
   | 'about-us' | 'contact' | 'social-links' | 'privacy-policy' | 'terms' | 'refund-policy'
-  | 'payment-gateway' | 'fiscal-company-data' | 'melhor-envio'
+  | 'payment-gateway' | 'manual-payment' | 'fiscal-company-data' | 'melhor-envio'
 
 /** Agrupamento dos cards no índice `/dashboard/site` (o menu lateral usa um grupo só: SITE). */
 export const SITE_HUB_GROUPS = {
@@ -95,6 +95,11 @@ export const SITE_SECTIONS: SiteSection[] = [
     description: 'Gateway usado para processar pagamentos no checkout.',
   },
   {
+    slug: 'manual-payment', title: 'Pagamento manual', navLabel: 'Pagamento manual', icon: 'QrCode', group: SITE_HUB_GROUPS.PAGAMENTO,
+    description: 'Chave PIX e QR Code exibidos ao cliente no pagamento manual.',
+    isConfigured: (s) => filled(s.pixKey),
+  },
+  {
     slug: 'fiscal-company-data', title: 'Dados fiscais da empresa', navLabel: 'Dados fiscais', icon: 'Building2', group: SITE_HUB_GROUPS.PAGAMENTO,
     description: 'CNPJ, razão social, IE, regime tributário e endereço fiscal usados na emissão de NF-e.',
     isConfigured: (s) => filled(s.fiscalCompanyCnpj),
@@ -132,7 +137,7 @@ const NAV_ORDER: string[] = [
   'logo', 'placeholder-image', 'favicon', 'metadata', 'banners',
   'about-us', 'contact', 'social-links', 'privacy-policy', 'terms', 'refund-policy',
   'navigation', 'distribution-centers',
-  'payment-gateway', 'fiscal-company-data', 'melhor-envio',
+  'payment-gateway', 'manual-payment', 'fiscal-company-data', 'melhor-envio',
 ]
 
 /** Itens do menu lateral: "Visão geral" + as 16 páginas do site, todos sob o grupo SITE. */

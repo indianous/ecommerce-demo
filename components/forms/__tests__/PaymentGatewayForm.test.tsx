@@ -5,28 +5,29 @@ import { PaymentGatewayForm } from '../PaymentGatewayForm'
 import type { PaymentGatewayConfig } from '@/types'
 
 const config: PaymentGatewayConfig = {
-  active: 'MOCK',
+  active: 'MANUAL',
   available: [
-    { provider: 'MOCK', configured: true },
+    { provider: 'MANUAL', configured: true },
     { provider: 'STRIPE', configured: true },
     { provider: 'PAGSEGURO', configured: false },
   ],
 }
 
 describe('PaymentGatewayForm', () => {
-  it('renderiza as 3 opções, marcando a ativa atual', () => {
+  it('renderiza Pagamento manual, Stripe e PagSeguro/PagBank (sem Mock), marcando a ativa atual', () => {
     render(
-      <PaymentGatewayForm config={config} value="MOCK" onChange={vi.fn()} onSave={vi.fn()} saving={false} />,
+      <PaymentGatewayForm config={config} value="MANUAL" onChange={vi.fn()} onSave={vi.fn()} saving={false} />,
     )
 
-    expect(screen.getByRole('radio', { name: /mock/i })).toBeChecked()
+    expect(screen.getByRole('radio', { name: /pagamento manual/i })).toBeChecked()
     expect(screen.getByRole('radio', { name: /stripe/i })).not.toBeChecked()
     expect(screen.getByRole('radio', { name: /pagseguro/i })).toBeInTheDocument()
+    expect(screen.queryByRole('radio', { name: /mock/i })).not.toBeInTheDocument()
   })
 
   it('opção com configured:false aparece desabilitada, com aviso', () => {
     render(
-      <PaymentGatewayForm config={config} value="MOCK" onChange={vi.fn()} onSave={vi.fn()} saving={false} />,
+      <PaymentGatewayForm config={config} value="MANUAL" onChange={vi.fn()} onSave={vi.fn()} saving={false} />,
     )
 
     expect(screen.getByRole('radio', { name: /pagseguro/i })).toBeDisabled()
@@ -37,7 +38,7 @@ describe('PaymentGatewayForm', () => {
     const onChange = vi.fn()
     const user = userEvent.setup()
     render(
-      <PaymentGatewayForm config={config} value="MOCK" onChange={onChange} onSave={vi.fn()} saving={false} />,
+      <PaymentGatewayForm config={config} value="MANUAL" onChange={onChange} onSave={vi.fn()} saving={false} />,
     )
 
     await user.click(screen.getByRole('radio', { name: /stripe/i }))
@@ -61,7 +62,7 @@ describe('PaymentGatewayForm', () => {
     render(
       <PaymentGatewayForm
         config={config}
-        value="MOCK"
+        value="MANUAL"
         onChange={vi.fn()}
         onSave={vi.fn()}
         saving={false}

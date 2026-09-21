@@ -33,6 +33,9 @@ let shippingStatus = 200
 
 const server = setupServer(
   http.get('/api/addresses', () => HttpResponse.json([mockAddress])),
+  http.get('/api/site/payment-methods', () => HttpResponse.json({ DELIVERY: ['PIX'], PICKUP: ['PIX', 'PAY_ON_PICKUP'] })),
+  http.get('/api/site/distribution-centers', () => HttpResponse.json([])),
+  http.get('/api/site/settings', () => HttpResponse.json({ pixKey: '52998224725' })),
   http.post('/api/cart/items', () =>
     HttpResponse.json({
       items: [{ productId: 'prod-1', productName: 'Laptop', imageUrl: null, unitPrice: 2999, quantity: 1, subtotal: 2999 }],

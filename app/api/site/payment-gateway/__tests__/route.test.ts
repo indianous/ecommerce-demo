@@ -29,7 +29,7 @@ function makePutRequest(body: unknown, opts: { authorization?: string } = {}) {
 describe('GET /api/site/payment-gateway (BFF route)', () => {
   it('forwards the Authorization header and status from the backend', async () => {
     fetchMock.mockResolvedValueOnce(
-      Response.json({ active: 'MOCK', available: [] }, { status: 200 }),
+      Response.json({ active: 'MANUAL', available: [] }, { status: 200 }),
     )
 
     const response = await GET(makeGetRequest({ authorization: 'Bearer tok' }))
@@ -40,7 +40,7 @@ describe('GET /api/site/payment-gateway (BFF route)', () => {
     expect(url).toContain('/site/payment-gateway')
     expect((init.headers as Record<string, string>)['Authorization']).toBe('Bearer tok')
     expect(response.status).toBe(200)
-    expect(data.active).toBe('MOCK')
+    expect(data.active).toBe('MANUAL')
   })
 
   it('passes through the backend error status', async () => {

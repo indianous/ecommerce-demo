@@ -12,7 +12,7 @@ interface Props {
 }
 
 const LABELS: Record<PaymentGatewayProvider, string> = {
-  MOCK: 'Mock (dev/demo)',
+  MANUAL: 'Pagamento manual',
   STRIPE: 'Stripe',
   PAGSEGURO: 'PagSeguro/PagBank',
 }

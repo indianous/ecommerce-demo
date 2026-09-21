@@ -44,6 +44,9 @@ export function ContactForm({
       <FormField label="Telefone" id="contact-phone">
         <Input id="contact-phone" type="tel" value={phone} onChange={(e) => onPhone(e.target.value)} />
       </FormField>
+      <p className="-mt-2 text-sm text-muted-foreground">
+        Este telefone também será usado como WhatsApp para os clientes enviarem comprovantes de pagamento.
+      </p>
 
       <FormField label="E-mail de contato" id="contact-email">
         <Input id="contact-email" type="email" value={email} onChange={(e) => onEmail(e.target.value)} />

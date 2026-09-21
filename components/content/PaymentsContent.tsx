@@ -18,13 +18,8 @@ import { makeSelectionColumn } from '@/components/layout/selectionColumn'
 import { sortTableData } from '@/lib/sortTableData'
 import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
+import { paymentMethodLabel } from '@/lib/payment-labels'
 import type { AdminOrderResponse } from '@/types'
-
-const PAYMENT_METHOD_LABELS: Record<string, string> = {
-  PIX: 'PIX',
-  CREDIT_CARD: 'Cartão de Crédito',
-  BOLETO: 'Boleto',
-}
 
 const formatBRL = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
@@ -115,7 +110,7 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
         </span>
       ),
     },
-    { key: 'paymentMethod', header: 'Método', render: (o) => PAYMENT_METHOD_LABELS[o.paymentMethod] ?? o.paymentMethod },
+    { key: 'paymentMethod', header: 'Método', render: (o) => paymentMethodLabel(o.paymentMethod) },
     { key: 'totalAmount', header: 'Total', sortable: true, render: (o) => formatBRL(o.totalAmount) },
     {
       key: 'actions',

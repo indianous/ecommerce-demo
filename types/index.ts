@@ -44,7 +44,13 @@ export interface SiteSettings {
   fiscalCompanyZipCode: string | null
   fiscalCompanyEmail: string | null
   fiscalCompanyPhone: string | null
+  pixKey: string | null
+  pixKeyHolder: string | null
+  pixQrCodeUrl: string | null
 }
+
+/** Formas de pagamento aceitas pelo gateway ativo em cada tipo de entrega (lista vazia = entrega indisponível). */
+export type PaymentMethodsByDelivery = Record<DeliveryMethod, PaymentMethod[]>
 
 export interface FiscalCompanyData {
   cnpj: string
@@ -62,7 +68,7 @@ export interface FiscalCompanyData {
   phone: string
 }
 
-export type PaymentGatewayProvider = 'MOCK' | 'STRIPE' | 'PAGSEGURO'
+export type PaymentGatewayProvider = 'MANUAL' | 'STRIPE' | 'PAGSEGURO'
 
 export interface PaymentGatewayOption {
   provider: PaymentGatewayProvider
@@ -280,7 +286,7 @@ export interface StockMovementPage {
   last: boolean
 }
 
-export type PaymentMethod = 'PIX' | 'CREDIT_CARD' | 'BOLETO'
+export type PaymentMethod = 'PIX' | 'CREDIT_CARD' | 'BOLETO' | 'PAY_ON_PICKUP'
 export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'RETURNED' | 'DELIVERED' | 'CANCELLED'
 export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED'
 export type DeliveryMethod = 'DELIVERY' | 'PICKUP'

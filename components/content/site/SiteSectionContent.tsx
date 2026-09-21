@@ -7,6 +7,7 @@ import { SiteContactContent } from './SiteContactContent'
 import { SiteFaviconContent } from './SiteFaviconContent'
 import { SiteFiscalCompanyDataContent } from './SiteFiscalCompanyDataContent'
 import { SiteLogoContent } from './SiteLogoContent'
+import { SiteManualPaymentContent } from './SiteManualPaymentContent'
 import { SiteMelhorEnvioContent } from './SiteMelhorEnvioContent'
 import { SiteMetadataContent } from './SiteMetadataContent'
 import { SitePaymentGatewayContent } from './SitePaymentGatewayContent'
@@ -29,6 +30,7 @@ const SECTION_COMPONENTS: Record<SiteSectionId, ComponentType<{ backPath: string
   'terms': SiteTermsContent,
   'refund-policy': SiteRefundPolicyContent,
   'payment-gateway': SitePaymentGatewayContent,
+  'manual-payment': SiteManualPaymentContent,
   'fiscal-company-data': SiteFiscalCompanyDataContent,
   'melhor-envio': SiteMelhorEnvioContent,
 }

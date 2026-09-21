@@ -21,7 +21,7 @@ describe('SitePaymentGatewayContent', () => {
     renderSection(<SitePaymentGatewayContent backPath="/dashboard/site" />)
 
     expect(await screen.findByRole('heading', { level: 1, name: /gateway de pagamento/i })).toBeInTheDocument()
-    expect(await screen.findByRole('radio', { name: /mock/i })).toBeChecked()
+    expect(await screen.findByRole('radio', { name: /pagamento manual/i })).toBeChecked()
   })
 
   it('troca de gateway e salva com sucesso', async () => {
@@ -46,6 +46,6 @@ describe('SitePaymentGatewayContent', () => {
     await userEvent.click(screen.getByRole('button', { name: /salvar gateway de pagamento/i }))
 
     await screen.findAllByText(/não está configurado/i)
-    expect(screen.getByRole('radio', { name: /mock/i })).toBeChecked()
+    expect(screen.getByRole('radio', { name: /pagamento manual/i })).toBeChecked()
   })
 })
