@@ -6,6 +6,8 @@ import { SidebarAvatar } from './SidebarAvatar'
 import { Button, Icon, Sidebar } from 'base-ds'
 import { DashboardMobileNavList } from '@/components/layout/DashboardMobileNavList'
 import { DASHBOARD_NAV_GROUPS, type DashboardNavItem } from '@/components/layout/dashboard-nav-groups'
+import { isNavItemActive } from '@/components/layout/dashboard-nav-active'
+import { siteNavItems } from '@/lib/site-sections'
 
 const navItems: DashboardNavItem[] = [
   { label: 'Pedidos', href: '/dashboard/admin/orders', icon: 'ClipboardList', group: DASHBOARD_NAV_GROUPS.VENDAS },
@@ -18,8 +20,8 @@ const navItems: DashboardNavItem[] = [
   { label: 'Clientes', href: '/dashboard/admin/customers', icon: 'Users', group: DASHBOARD_NAV_GROUPS.PESSOAS },
   { label: 'Funcionários', href: '/dashboard/admin/employees', icon: 'UserCog', group: DASHBOARD_NAV_GROUPS.PESSOAS },
   { label: 'Administradores', href: '/dashboard/admin/admins', icon: 'ShieldCheck', group: DASHBOARD_NAV_GROUPS.PESSOAS },
+  ...siteNavItems('/dashboard/admin/site'),
   { label: 'Auditoria', href: '/dashboard/admin/audit-logs', icon: 'History', group: DASHBOARD_NAV_GROUPS.SISTEMA },
-  { label: 'Site', href: '/dashboard/admin/site', icon: 'Globe', group: DASHBOARD_NAV_GROUPS.SISTEMA },
   { label: 'Analytics', href: '/dashboard/admin/analytics', icon: 'BarChart3', group: DASHBOARD_NAV_GROUPS.SISTEMA },
   { label: 'Ver site', href: '/', icon: 'ExternalLink', external: true },
 ]
@@ -43,12 +45,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
       {/* Desktop sidebar — hidden on mobile, visible from md breakpoint, fixo na lateral */}
-      <div className="hidden md:block sticky top-0 h-screen">
+      <div className="hidden md:block sticky top-0 h-screen overflow-y-auto">
         <Sidebar
           items={navItems.map((item) => ({
             label: item.label,
             icon: <Icon name={item.icon} size="sm" />,
-            active: pathname === item.href,
+            active: isNavItemActive(pathname, item, navItems),
             group: item.group,
             asChild: (
               <Link
@@ -81,7 +83,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               role="dialog"
               aria-modal="true"
               aria-label="Menu de navegação"
-              className="fixed inset-y-0 left-0 z-50 w-64 bg-background border-r border-border p-4 flex flex-col gap-2"
+              className="fixed inset-y-0 left-0 z-50 w-64 bg-background border-r border-border p-4 flex flex-col gap-2 overflow-y-auto"
             >
               <div className="mb-4">
                 <SidebarAvatar profileHref="/dashboard/admin/profile" />

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { DashboardNavItem } from './dashboard-nav-groups'
+import { isNavItemActive } from './dashboard-nav-active'
 
 type DashboardNavRow =
   | { type: 'header'; group: string; key: string }
@@ -46,7 +47,7 @@ export function DashboardMobileNavList({ items, pathname, onNavigate }: Dashboar
             <li key={row.key}>
               <Link
                 href={item.href}
-                aria-current={pathname === item.href ? 'page' : undefined}
+                aria-current={isNavItemActive(pathname, item, items) ? 'page' : undefined}
                 className="block px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors aria-[current=page]:bg-primary aria-[current=page]:text-primary-foreground"
                 onClick={onNavigate}
                 {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}

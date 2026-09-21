@@ -40,14 +40,14 @@ describe('groupNavItems', () => {
 
   it('grupo de um item só ainda recebe cabeçalho', () => {
     const items: DashboardNavItem[] = [
-      { label: 'Site', href: '/site', icon: 'Globe', group: DASHBOARD_NAV_GROUPS.SISTEMA },
+      { label: 'Analytics', href: '/analytics', icon: 'BarChart3', group: DASHBOARD_NAV_GROUPS.SISTEMA },
     ]
 
     const rows = groupNavItems(items)
 
     expect(rows).toHaveLength(2)
     expect(rows[0]).toMatchObject({ type: 'header', group: 'Sistema' })
-    expect(rows[1]).toMatchObject({ type: 'item', item: { label: 'Site' } })
+    expect(rows[1]).toMatchObject({ type: 'item', item: { label: 'Analytics' } })
   })
 
   it('lista vazia (todo o grupo filtrado) não gera cabeçalho nenhum', () => {
@@ -95,5 +95,35 @@ describe('DashboardMobileNavList', () => {
     await user.click(screen.getByRole('link', { name: /pedidos/i }))
 
     expect(onNavigate).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('DashboardMobileNavList — menu do site', () => {
+  const items: DashboardNavItem[] = [
+    { label: 'Produtos', href: '/dashboard/products', icon: 'Package', group: DASHBOARD_NAV_GROUPS.CATALOGO },
+    { label: 'Excluídos', href: '/dashboard/products/deleted', icon: 'Trash2', group: DASHBOARD_NAV_GROUPS.CATALOGO },
+    { label: 'Visão geral', href: '/dashboard/site', icon: 'Globe', group: DASHBOARD_NAV_GROUPS.SITE },
+    { label: 'Logo', href: '/dashboard/site/logo', icon: 'Image', group: DASHBOARD_NAV_GROUPS.SITE },
+    { label: 'Ver site', href: '/', icon: 'ExternalLink', external: true },
+  ]
+
+  it('itens do site ficam sob um único cabeçalho "Site"', () => {
+    render(<DashboardMobileNavList items={items} pathname="/dashboard" onNavigate={vi.fn()} />)
+
+    expect(screen.getAllByText('Site')).toHaveLength(1)
+  })
+
+  it('aria-current cai só na página atual: /dashboard/site/logo ativa "Logo", não "Visão geral"', () => {
+    render(<DashboardMobileNavList items={items} pathname="/dashboard/site/logo" onNavigate={vi.fn()} />)
+
+    expect(screen.getByRole('link', { name: /^logo$/i })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: /^visão geral$/i })).not.toHaveAttribute('aria-current')
+  })
+
+  it('/dashboard/products/deleted ativa só "Excluídos" (prefixo mais longo vence)', () => {
+    render(<DashboardMobileNavList items={items} pathname="/dashboard/products/deleted" onNavigate={vi.fn()} />)
+
+    expect(screen.getByRole('link', { name: /^excluídos$/i })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: /^produtos$/i })).not.toHaveAttribute('aria-current')
   })
 })

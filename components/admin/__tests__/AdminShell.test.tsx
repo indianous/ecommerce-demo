@@ -175,7 +175,7 @@ describe('AdminShell — Grupos de navegação', () => {
   it('cabeçalhos de grupo aparecem na sidebar desktop, na ordem esperada', () => {
     useAuthStore.setState(authenticatedAdmin)
     renderAdminShell()
-    const headers = ['Vendas', 'Catálogo', 'Pessoas', 'Sistema'].map((label) => screen.getByText(label))
+    const headers = ['Vendas', 'Catálogo', 'Pessoas', 'Site', 'Sistema'].map((label) => screen.getByText(label))
     const nav = screen.getByRole('navigation', { name: /sidebar navigation/i })
     const positions = headers.map((h) => Array.from(nav.querySelectorAll('li')).indexOf(h.closest('li')!))
     expect(positions).toEqual([...positions].sort((a, b) => a - b))
@@ -233,6 +233,7 @@ describe('AdminShell — Grupos de navegação', () => {
     expect(within(dialog).getByText('Vendas')).toBeInTheDocument()
     expect(within(dialog).getByText('Catálogo')).toBeInTheDocument()
     expect(within(dialog).getByText('Pessoas')).toBeInTheDocument()
+    expect(within(dialog).getByText('Site')).toBeInTheDocument()
     expect(within(dialog).getByText('Sistema')).toBeInTheDocument()
   })
 })
@@ -252,5 +253,71 @@ describe('AdminShell — Acessibilidade', () => {
     await user.click(screen.getByRole('button', { name: /abrir menu/i }))
 
     expect(await axe(container)).toHaveNoViolations()
+  })
+})
+
+const ADMIN_SITE_LINKS: [RegExp, string][] = [
+  [/^visão geral$/i, '/dashboard/admin/site'],
+  [/^logo$/i, '/dashboard/admin/site/logo'],
+  [/^placeholder$/i, '/dashboard/admin/site/placeholder-image'],
+  [/^favicon$/i, '/dashboard/admin/site/favicon'],
+  [/^metadados$/i, '/dashboard/admin/site/metadata'],
+  [/^banners$/i, '/dashboard/admin/site/banners'],
+  [/^sobre nós$/i, '/dashboard/admin/site/about-us'],
+  [/^contato$/i, '/dashboard/admin/site/contact'],
+  [/^redes sociais$/i, '/dashboard/admin/site/social-links'],
+  [/^privacidade$/i, '/dashboard/admin/site/privacy-policy'],
+  [/^termos e condições$/i, '/dashboard/admin/site/terms'],
+  [/^reembolso$/i, '/dashboard/admin/site/refund-policy'],
+  [/^navegação$/i, '/dashboard/admin/site/navigation'],
+  [/^centros de distribuição$/i, '/dashboard/admin/site/distribution-centers'],
+  [/^gateway de pagamento$/i, '/dashboard/admin/site/payment-gateway'],
+  [/^dados fiscais$/i, '/dashboard/admin/site/fiscal-company-data'],
+  [/^melhor envio$/i, '/dashboard/admin/site/melhor-envio'],
+]
+
+describe('AdminShell — Menu do site', () => {
+  it('lista "Visão geral" e as 16 páginas do site com o prefixo /dashboard/admin/site', () => {
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell()
+    ADMIN_SITE_LINKS.forEach(([name, href]) => {
+      expect(screen.getByRole('link', { name })).toHaveAttribute('href', href)
+    })
+  })
+
+  it('as páginas do site ficam sob um único cabeçalho "Site"; "Sistema" fica só com Auditoria e Analytics', () => {
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell()
+    const nav = screen.getByRole('navigation', { name: /sidebar navigation/i })
+    const rows = Array.from(nav.querySelectorAll('li')).map((li) => li.textContent?.trim())
+    expect(rows.filter((t) => t === 'Site')).toHaveLength(1)
+    expect(rows.filter((t) => t === 'Sistema')).toHaveLength(1)
+    const sistema = rows.indexOf('Sistema')
+    expect(rows.slice(sistema + 1, sistema + 3).map((t) => t?.toLowerCase())).toEqual(['auditoria', 'analytics'])
+    expect(rows[rows.indexOf('Site') + 1]).toBe('Visão geral')
+  })
+
+  it('em /dashboard/admin/site/logo só "Logo" fica ativo — "Visão geral" não', () => {
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell('/dashboard/admin/site/logo')
+    expect(screen.getByRole('link', { name: /^logo$/i })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: /^visão geral$/i })).not.toHaveAttribute('aria-current')
+  })
+
+  it('em /dashboard/admin/site/navigation o item "Navegação" fica ativo', () => {
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell('/dashboard/admin/site/navigation')
+    expect(screen.getByRole('link', { name: /^navegação$/i })).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('o menu longo rola: wrapper da sidebar e drawer têm overflow-y-auto', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell()
+    const nav = screen.getByRole('navigation', { name: /sidebar navigation/i })
+    expect(nav.parentElement).toHaveClass('overflow-y-auto')
+
+    await user.click(screen.getByRole('button', { name: /abrir menu/i }))
+    expect(screen.getByRole('dialog')).toHaveClass('overflow-y-auto')
   })
 })

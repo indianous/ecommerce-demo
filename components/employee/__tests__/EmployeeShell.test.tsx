@@ -193,13 +193,13 @@ describe('EmployeeShell — Sidebar (desktop)', () => {
 })
 
 describe('EmployeeShell — Grupos de navegação', () => {
-  it('com todas as permissões, os 4 cabeçalhos aparecem na ordem certa', () => {
+  it('com todas as permissões, os 5 cabeçalhos aparecem na ordem certa', () => {
     useAuthStore.setState(makeEmployee(['MANAGE_ORDERS', 'MANAGE_SHIPPING', 'MANAGE_ORDER_STATUS_REQUESTS', 'MANAGE_PAYMENTS', 'MANAGE_PRODUCTS', 'MANAGE_STOCK', 'RESTORE_PRODUCTS', 'MANAGE_CUSTOMERS', 'MANAGE_EMPLOYEES', 'MANAGE_SITE', 'MANAGE_ANALYTICS']))
     renderEmployeeShell()
     const nav = screen.getByRole('navigation', { name: /sidebar navigation/i })
     const headers = Array.from(nav.querySelectorAll('li')).map((li) => li.textContent?.trim())
-      .filter((t) => ['Vendas', 'Catálogo', 'Pessoas', 'Sistema'].includes(t ?? ''))
-    expect(headers).toEqual(['Vendas', 'Catálogo', 'Pessoas', 'Sistema'])
+      .filter((t) => ['Vendas', 'Catálogo', 'Pessoas', 'Site', 'Sistema'].includes(t ?? ''))
+    expect(headers).toEqual(['Vendas', 'Catálogo', 'Pessoas', 'Site', 'Sistema'])
   })
 
   it('grupo vazio some — só MANAGE_ORDERS concedida, só o cabeçalho "Vendas" aparece', () => {
@@ -208,6 +208,7 @@ describe('EmployeeShell — Grupos de navegação', () => {
     expect(screen.getByText('Vendas')).toBeInTheDocument()
     expect(screen.queryByText('Pessoas')).not.toBeInTheDocument()
     expect(screen.queryByText('Sistema')).not.toBeInTheDocument()
+    expect(screen.queryByText('Site')).not.toBeInTheDocument()
     expect(screen.queryByText('Catálogo')).not.toBeInTheDocument()
   })
 
@@ -350,5 +351,94 @@ describe('EmployeeShell — Acessibilidade', () => {
     await user.click(screen.getByRole('button', { name: /abrir menu/i }))
 
     expect(await axe(container)).toHaveNoViolations()
+  })
+})
+
+const SITE_LINKS: [RegExp, string][] = [
+  [/^visão geral$/i, '/dashboard/site'],
+  [/^logo$/i, '/dashboard/site/logo'],
+  [/^placeholder$/i, '/dashboard/site/placeholder-image'],
+  [/^favicon$/i, '/dashboard/site/favicon'],
+  [/^metadados$/i, '/dashboard/site/metadata'],
+  [/^banners$/i, '/dashboard/site/banners'],
+  [/^sobre nós$/i, '/dashboard/site/about-us'],
+  [/^contato$/i, '/dashboard/site/contact'],
+  [/^redes sociais$/i, '/dashboard/site/social-links'],
+  [/^privacidade$/i, '/dashboard/site/privacy-policy'],
+  [/^termos e condições$/i, '/dashboard/site/terms'],
+  [/^reembolso$/i, '/dashboard/site/refund-policy'],
+  [/^navegação$/i, '/dashboard/site/navigation'],
+  [/^centros de distribuição$/i, '/dashboard/site/distribution-centers'],
+  [/^gateway de pagamento$/i, '/dashboard/site/payment-gateway'],
+  [/^dados fiscais$/i, '/dashboard/site/fiscal-company-data'],
+  [/^melhor envio$/i, '/dashboard/site/melhor-envio'],
+]
+
+describe('EmployeeShell — Menu do site (MANAGE_SITE)', () => {
+  it('com MANAGE_SITE lista "Visão geral" e as 16 páginas do site, cada uma com o href certo', () => {
+    useAuthStore.setState(makeEmployee(['MANAGE_SITE']))
+    renderEmployeeShell()
+    SITE_LINKS.forEach(([name, href]) => {
+      expect(screen.getByRole('link', { name })).toHaveAttribute('href', href)
+    })
+  })
+
+  it('todas as páginas do site ficam sob um único cabeçalho "Site", e não sob "Sistema"', () => {
+    useAuthStore.setState(makeEmployee(['MANAGE_SITE']))
+    renderEmployeeShell()
+    const nav = screen.getByRole('navigation', { name: /sidebar navigation/i })
+    const rows = Array.from(nav.querySelectorAll('li')).map((li) => li.textContent?.trim())
+    expect(rows.filter((t) => t === 'Site')).toHaveLength(1)
+    expect(screen.queryByText('Sistema')).not.toBeInTheDocument()
+    expect(rows[rows.indexOf('Site') + 1]).toBe('Visão geral')
+  })
+
+  it('sem MANAGE_SITE não aparece item nem cabeçalho do site', () => {
+    useAuthStore.setState(makeEmployee(['MANAGE_ORDERS', 'MANAGE_ANALYTICS']))
+    renderEmployeeShell()
+    SITE_LINKS.forEach(([name]) => expect(screen.queryByRole('link', { name })).not.toBeInTheDocument())
+    expect(screen.queryByText('Site')).not.toBeInTheDocument()
+  })
+
+  it('"Sistema" continua com Analytics, junto do menu do site', () => {
+    useAuthStore.setState(makeEmployee(['MANAGE_SITE', 'MANAGE_ANALYTICS']))
+    renderEmployeeShell()
+    expect(screen.getByText('Sistema')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /analytics/i })).toBeInTheDocument()
+  })
+
+  it('em /dashboard/site/logo só "Logo" fica ativo — "Visão geral" não', () => {
+    useAuthStore.setState(makeEmployee(['MANAGE_SITE']))
+    renderEmployeeShell('/dashboard/site/logo')
+    expect(screen.getByRole('link', { name: /^logo$/i })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: /^visão geral$/i })).not.toHaveAttribute('aria-current')
+  })
+
+  it('páginas que já existiam (navegação) também ativam o próprio item', () => {
+    useAuthStore.setState(makeEmployee(['MANAGE_SITE']))
+    renderEmployeeShell('/dashboard/site/navigation')
+    expect(screen.getByRole('link', { name: /^navegação$/i })).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('o menu longo rola: wrapper da sidebar e drawer têm overflow-y-auto', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState(makeEmployee(['MANAGE_SITE']))
+    renderEmployeeShell()
+    const nav = screen.getByRole('navigation', { name: /sidebar navigation/i })
+    expect(nav.parentElement).toHaveClass('overflow-y-auto')
+
+    await user.click(screen.getByRole('button', { name: /abrir menu/i }))
+    expect(screen.getByRole('dialog')).toHaveClass('overflow-y-auto')
+  })
+
+  it('drawer mobile lista o menu do site sob o cabeçalho "Site"', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState(makeEmployee(['MANAGE_SITE']))
+    renderEmployeeShell('/dashboard/site/favicon')
+    await user.click(screen.getByRole('button', { name: /abrir menu/i }))
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByText('Site')).toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: /^favicon$/i })).toHaveAttribute('aria-current', 'page')
+    expect(within(dialog).getByRole('link', { name: /^logo$/i })).not.toHaveAttribute('aria-current')
   })
 })

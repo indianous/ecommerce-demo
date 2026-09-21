@@ -7,6 +7,7 @@ export const DASHBOARD_NAV_GROUPS = {
   VENDAS: 'Vendas',
   CATALOGO: 'Catálogo',
   PESSOAS: 'Pessoas',
+  SITE: 'Site',
   SISTEMA: 'Sistema',
 } as const
 
