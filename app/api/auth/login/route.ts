@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import { forwardedForHeader } from '@/lib/client-ip'
 
 const API = process.env.API_INTERNAL_URL ?? 'http://localhost:8080/api/v1'
 
@@ -8,7 +9,7 @@ export async function POST(req: NextRequest) {
 
   const upstream = await fetch(`${API}/auth/login`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...forwardedForHeader(req.headers) },
     body: JSON.stringify(body),
   })
 

@@ -1,9 +1,10 @@
 import { cookies } from 'next/headers'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { forwardedForHeader } from '@/lib/client-ip'
 
 const API = process.env.API_INTERNAL_URL ?? 'http://localhost:8080/api/v1'
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   const cookieStore = await cookies()
   const refreshToken = cookieStore.get('session')?.value
 
@@ -13,7 +14,7 @@ export async function POST() {
 
   const upstream = await fetch(`${API}/auth/refresh`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...forwardedForHeader(req.headers) },
     body: JSON.stringify({ refreshToken }),
   })
 
@@ -24,13 +25,17 @@ export async function POST() {
 
   const data = await upstream.json()
 
-  cookieStore.set('session', data.refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7,
-    path: '/',
-  })
+  // O backend só devolve um refresh token novo quando rotaciona. Dentro da janela de tolerância
+  // (outra aba acabou de renovar) ele vem nulo — o cookie que a outra aba gravou continua valendo.
+  if (data.refreshToken) {
+    cookieStore.set('session', data.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/',
+    })
+  }
   cookieStore.set('role', data.role ?? 'CUSTOMER', {
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production',
