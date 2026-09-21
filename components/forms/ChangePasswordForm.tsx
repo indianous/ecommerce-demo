@@ -93,7 +93,7 @@ export function ChangePasswordForm() {
         />
       </FormField>
 
-      <Button iconOnly leftIcon={<Icon name="KeyRound" size="sm" />} aria-label="Alterar senha" type="submit" variant="primary" isLoading={isLoading} />
+      <Button leftIcon={<Icon name="KeyRound" size="sm" />} type="submit" variant="primary" isLoading={isLoading}>Alterar senha</Button>
     </form>
   )
 }

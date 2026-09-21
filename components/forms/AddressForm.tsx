@@ -72,7 +72,7 @@ export function AddressForm({ address, onChange, onSubmit, saving }: Props) {
           required
         />
       </FormField>
-      <Button iconOnly leftIcon={<Icon name="Plus" size="sm" />} aria-label="Adicionar endereço" type="submit" variant="primary" isLoading={saving} className="col-span-2 self-start" />
+      <Button leftIcon={<Icon name="Plus" size="sm" />} type="submit" variant="primary" isLoading={saving} className="col-span-2 self-start">Adicionar endereço</Button>
     </form>
   )
 }

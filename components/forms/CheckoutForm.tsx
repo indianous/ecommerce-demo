@@ -148,7 +148,7 @@ export function CheckoutForm({ addresses }: Props) {
           </p>
         )}
         {order.checkoutUrl ? (
-          <Button iconOnly leftIcon={<Icon name="ArrowRight" size="sm" />} aria-label="Continuar para pagamento" as="a" href={order.checkoutUrl} variant="primary" />
+          <Button leftIcon={<Icon name="ArrowRight" size="sm" />} as="a" href={order.checkoutUrl} variant="primary">Continuar para pagamento</Button>
         ) : (
           order.paymentMethod === 'PIX' && order.paymentId && <QrCode value={order.paymentId} />
         )}
@@ -251,7 +251,7 @@ export function CheckoutForm({ addresses }: Props) {
 
       <p>Total: {formatBRL(total)}</p>
 
-      <Button iconOnly leftIcon={<Icon name="Check" size="sm" />} aria-label="Finalizar Pedido" type="submit" variant="primary" disabled={items.length === 0 || !selectedAddressId || !shippingChosen} isLoading={loading} />
+      <Button leftIcon={<Icon name="Check" size="sm" />} type="submit" variant="primary" disabled={items.length === 0 || !selectedAddressId || !shippingChosen} isLoading={loading}>Finalizar Pedido</Button>
     </form>
   )
 }

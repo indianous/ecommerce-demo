@@ -131,7 +131,7 @@ export function RegisterForm({ onSuccess }: Props) {
         />
       </FormField>
 
-      <Button iconOnly leftIcon={<Icon name="UserPlus" size="sm" />} aria-label="Cadastrar" type="submit" variant="primary" isLoading={isLoading} />
+      <Button leftIcon={<Icon name="UserPlus" size="sm" />} type="submit" variant="primary" isLoading={isLoading}>Cadastrar</Button>
     </form>
   )
 }

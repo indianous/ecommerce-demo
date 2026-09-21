@@ -90,7 +90,7 @@ export function StockEntryForm({
       </FormField>
 
       <div>
-        <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={saveLabel} type="submit" variant="primary" disabled={!canSave} isLoading={saving} />
+        <Button leftIcon={<Icon name="Save" size="sm" />} type="submit" variant="primary" disabled={!canSave} isLoading={saving}>{saveLabel}</Button>
       </div>
     </form>
   )

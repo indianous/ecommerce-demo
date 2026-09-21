@@ -314,13 +314,13 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
                   </p>
                 )}
                 {!order.trackingCode && (
-                  <Button iconOnly leftIcon={<Icon name="Package" size="sm" />} aria-label="Comprar etiqueta" variant="primary" size="sm" isLoading={buyingLabel} onClick={handleBuyShippingLabel} />
+                  <Button leftIcon={<Icon name="Package" size="sm" />} variant="primary" size="sm" isLoading={buyingLabel} onClick={handleBuyShippingLabel}>Comprar etiqueta</Button>
                 )}
                 {order.trackingCode && (
                   <div className="flex flex-col gap-1">
                     <p className="text-sm">Código de rastreio: {order.trackingCode}</p>
                     {order.shippingLabelUrl && (
-                      <Button iconOnly leftIcon={<Icon name="FileText" size="sm" />} aria-label="Ver etiqueta" as="a" href={order.shippingLabelUrl} target="_blank" rel="noreferrer" size="sm" variant="outline" />
+                      <Button leftIcon={<Icon name="FileText" size="sm" />} as="a" href={order.shippingLabelUrl} target="_blank" rel="noreferrer" size="sm" variant="outline">Ver etiqueta</Button>
                     )}
                   </div>
                 )}
@@ -334,7 +334,7 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
             <h2 className="text-sm font-semibold mb-2">Nota fiscal</h2>
             {!order.invoice && (
               <div className="flex flex-col gap-2">
-                <Button iconOnly leftIcon={<Icon name="FileText" size="sm" />} aria-label="Emitir NF-e" variant="primary" size="sm" disabled={order.paymentStatus !== 'PAID'} isLoading={issuingInvoice} onClick={handleIssueInvoice} />
+                <Button leftIcon={<Icon name="FileText" size="sm" />} variant="primary" size="sm" disabled={order.paymentStatus !== 'PAID'} isLoading={issuingInvoice} onClick={handleIssueInvoice}>Emitir NF-e</Button>
                 {order.paymentStatus !== 'PAID' && (
                   <p className="text-sm text-muted-foreground">
                     A nota fiscal só pode ser emitida após o pagamento ser aprovado.
@@ -351,7 +351,7 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
 
                 {order.invoice.status === 'ISSUED' && order.invoice.danfeUrl && (
                   <>
-                    <Button iconOnly leftIcon={<Icon name="FileText" size="sm" />} aria-label="Ver nota" as="a" href={order.invoice.danfeUrl} target="_blank" rel="noreferrer" size="sm" variant="outline" />
+                    <Button leftIcon={<Icon name="FileText" size="sm" />} as="a" href={order.invoice.danfeUrl} target="_blank" rel="noreferrer" size="sm" variant="outline">Ver nota</Button>
                     {order.invoice.accessKey && (
                       <p className="text-sm text-muted-foreground">
                         Chave de acesso: {order.invoice.accessKey}
@@ -361,7 +361,7 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
                 )}
 
                 {order.invoice.status === 'PROCESSING' && (
-                  <Button iconOnly leftIcon={<Icon name="RefreshCw" size="sm" />} aria-label="Atualizar status" size="sm" variant="outline" onClick={fetchOrder} />
+                  <Button leftIcon={<Icon name="RefreshCw" size="sm" />} size="sm" variant="outline" onClick={fetchOrder}>Atualizar status</Button>
                 )}
 
                 {order.invoice.status === 'ERROR' && (
@@ -369,7 +369,7 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
                     {order.invoice.errorMessage && (
                       <p className="text-sm text-muted-foreground">{order.invoice.errorMessage}</p>
                     )}
-                    <Button iconOnly leftIcon={<Icon name="RotateCcw" size="sm" />} aria-label="Tentar novamente" variant="primary" size="sm" isLoading={issuingInvoice} onClick={handleIssueInvoice} />
+                    <Button leftIcon={<Icon name="RotateCcw" size="sm" />} variant="primary" size="sm" isLoading={issuingInvoice} onClick={handleIssueInvoice}>Tentar novamente</Button>
                   </>
                 )}
               </div>
@@ -380,7 +380,7 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
         {nextStates.length > 0 && !transitionTarget && !showRetroForm && (
           <div className="mb-4 flex flex-wrap gap-2">
             {nextStates.map((s) => (
-              <Button iconOnly leftIcon={<Icon name={ACTION_ICONS[s]} size="sm" />} aria-label={ACTION_LABELS[s]} key={s} variant="primary" size="sm" onClick={() => setTransitionTarget(s)} />
+              <Button leftIcon={<Icon name={ACTION_ICONS[s]} size="sm" />} key={s} variant="primary" size="sm" onClick={() => setTransitionTarget(s)}>{ACTION_LABELS[s]}</Button>
             ))}
           </div>
         )}
@@ -405,14 +405,14 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
               placeholder="Descreva o motivo da mudança..."
             />
             <div className="flex gap-2">
-              <Button iconOnly leftIcon={<Icon name="Check" size="sm" />} aria-label="Confirmar mudança" type="submit" variant="primary" isLoading={saving} />
-              <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" type="button" variant="secondary" onClick={() => { setTransitionTarget(null); setReason('') }} />
+              <Button leftIcon={<Icon name="Check" size="sm" />} type="submit" variant="primary" isLoading={saving}>Confirmar mudança</Button>
+              <Button leftIcon={<Icon name="X" size="sm" />} type="button" variant="secondary" onClick={() => { setTransitionTarget(null); setReason('') }}>Cancelar</Button>
             </div>
           </form>
         )}
 
         {!isTerminal && !showRetroForm && !transitionTarget && (
-          <Button iconOnly leftIcon={<Icon name="RotateCcw" size="sm" />} aria-label="Solicitar retrocesso" variant="outline" size="sm" onClick={() => setShowRetroForm(true)} />
+          <Button leftIcon={<Icon name="RotateCcw" size="sm" />} variant="outline" size="sm" onClick={() => setShowRetroForm(true)}>Solicitar retrocesso</Button>
         )}
 
         {showRetroForm && (
@@ -442,8 +442,8 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
               placeholder="Descreva o motivo da solicitação..."
             />
             <div className="flex gap-2">
-              <Button iconOnly leftIcon={<Icon name="Send" size="sm" />} aria-label="Enviar solicitação" type="submit" variant="primary" isLoading={saving} />
-              <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" type="button" variant="secondary" onClick={() => { setShowRetroForm(false); setRetroStatus(''); setRetroJustification('') }} />
+              <Button leftIcon={<Icon name="Send" size="sm" />} type="submit" variant="primary" isLoading={saving}>Enviar solicitação</Button>
+              <Button leftIcon={<Icon name="X" size="sm" />} type="button" variant="secondary" onClick={() => { setShowRetroForm(false); setRetroStatus(''); setRetroJustification('') }}>Cancelar</Button>
             </div>
           </form>
         )}

@@ -73,7 +73,7 @@ export function DistributionCenterForm({ form, onFormChange, onSubmit, saving, s
       <FormField label="CEP" id="dc-zip">
         <Input id="dc-zip" value={form.zipCode} onChange={(e) => onFormChange({ zipCode: e.target.value })} required />
       </FormField>
-      <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={saveLabel} type="submit" variant="primary" isLoading={saving} disabled={!canSubmit} className="col-span-2 self-start" />
+      <Button leftIcon={<Icon name="Save" size="sm" />} type="submit" variant="primary" isLoading={saving} disabled={!canSubmit} className="col-span-2 self-start">{saveLabel}</Button>
     </form>
   )
 }

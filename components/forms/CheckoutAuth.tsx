@@ -113,7 +113,7 @@ export function CheckoutAuth() {
           </Text>
         )}
 
-        <Button iconOnly leftIcon={<Icon name={activeTab === 'login' ? 'LogIn' : 'UserPlus'} size="sm" />} aria-label={activeTab === 'login' ? 'Entrar' : 'Criar Conta'} type="submit" variant="primary" isLoading={loading} />
+        <Button leftIcon={<Icon name={activeTab === 'login' ? 'LogIn' : 'UserPlus'} size="sm" />} type="submit" variant="primary" isLoading={loading}>{activeTab === 'login' ? 'Entrar' : 'Criar Conta'}</Button>
       </form>
     </div>
   )

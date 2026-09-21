@@ -153,8 +153,8 @@ export function ReviewsContent() {
                   <Text weight="bold">{item.productName}</Text>
                   <ProductReviewCard review={item.review} />
                   <div className="flex gap-3">
-                    <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label="Editar" variant="secondary" size="sm" onClick={() => openEdit(item)} />
-                    <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Excluir avaliação de ${item.productName}`} variant="danger" size="sm" onClick={() => setDeleteTarget(item)} />
+                    <Button leftIcon={<Icon name="Pencil" size="sm" />} variant="secondary" size="sm" onClick={() => openEdit(item)}>Editar</Button>
+                    <Button leftIcon={<Icon name="Trash2" size="sm" />} variant="danger" size="sm" onClick={() => setDeleteTarget(item)}>{`Excluir avaliação de ${item.productName}`}</Button>
                   </div>
                 </div>
               ) : (
@@ -171,7 +171,7 @@ export function ReviewsContent() {
                     )}
                     <Text weight="bold">{item.productName}</Text>
                   </div>
-                  <Button iconOnly leftIcon={<Icon name="Star" size="sm" />} aria-label="Avaliar" variant="primary" size="sm" onClick={() => openCreate(item)} />
+                  <Button leftIcon={<Icon name="Star" size="sm" />} variant="primary" size="sm" onClick={() => openCreate(item)}>Avaliar</Button>
                 </div>
               )}
             </div>

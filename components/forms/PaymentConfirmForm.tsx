@@ -33,8 +33,8 @@ export function PaymentConfirmForm({ file, onFileChange, onConfirm, onCancel, co
       )}
 
       <div className="flex gap-3">
-        <Button iconOnly leftIcon={<Icon name="Check" size="sm" />} aria-label="Confirmar pagamento" type="submit" variant="primary" disabled={!file} isLoading={confirming} />
-        <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" type="button" variant="secondary" onClick={onCancel} disabled={confirming} />
+        <Button leftIcon={<Icon name="Check" size="sm" />} type="submit" variant="primary" disabled={!file} isLoading={confirming}>Confirmar pagamento</Button>
+        <Button leftIcon={<Icon name="X" size="sm" />} type="button" variant="secondary" onClick={onCancel} disabled={confirming}>Cancelar</Button>
       </div>
     </form>
   )

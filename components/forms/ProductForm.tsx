@@ -403,7 +403,7 @@ export function ProductForm({
         </div>
       </Card>
 
-      <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={saveLabel} type="submit" variant="primary" isLoading={saving} disabled={form.categoryIds.length === 0} className="self-start" />
+      <Button leftIcon={<Icon name="Save" size="sm" />} type="submit" variant="primary" isLoading={saving} disabled={form.categoryIds.length === 0} className="self-start">{saveLabel}</Button>
     </form>
   )
 }

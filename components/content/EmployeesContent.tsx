@@ -164,7 +164,7 @@ export function EmployeesContent() {
       <ManagementPageHeader title="Gestão de Funcionários" />
       <ManagementPageBody
         actions={
-          <Button iconOnly leftIcon={<Icon name="UserPlus" size="sm" />} aria-label="Novo funcionário" variant="primary" onClick={() => setCreateDialogOpen(true)} />
+          <Button leftIcon={<Icon name="UserPlus" size="sm" />} variant="primary" onClick={() => setCreateDialogOpen(true)}>Novo funcionário</Button>
         }
       >
         <ManagementContentHeader
@@ -239,8 +239,8 @@ export function EmployeesContent() {
             })}
           </div>
           <div className="flex justify-end gap-2 mt-4">
-            <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" variant="secondary" onClick={() => setPermDialogOpen(false)} />
-            <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label="Salvar" variant="primary" onClick={handleSavePermissions} />
+            <Button leftIcon={<Icon name="X" size="sm" />} variant="secondary" onClick={() => setPermDialogOpen(false)}>Cancelar</Button>
+            <Button leftIcon={<Icon name="Save" size="sm" />} variant="primary" onClick={handleSavePermissions}>Salvar</Button>
           </div>
         </Dialog>
 

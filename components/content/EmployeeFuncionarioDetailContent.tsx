@@ -104,7 +104,7 @@ export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/em
             moveAllBackLabel="Mover todos para Disponíveis"
           />
           <div className="flex gap-2 mt-4">
-            <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label="Salvar permissões" variant="primary" onClick={handleSave} isLoading={saving} />
+            <Button leftIcon={<Icon name="Save" size="sm" />} variant="primary" onClick={handleSave} isLoading={saving}>Salvar permissões</Button>
             <Button variant="secondary" disabled>
               Redefinir senha
             </Button>

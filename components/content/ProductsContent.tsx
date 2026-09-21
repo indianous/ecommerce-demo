@@ -167,10 +167,10 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
           actions={
             canManageProducts && (
               <>
-                <Button iconOnly leftIcon={<Icon name="FolderPlus" size="sm" />} aria-label="Nova categoria" variant="outline" onClick={() => setCategoryDialogOpen(true)} />
-                <Button iconOnly leftIcon={<Icon name="Download" size="sm" />} aria-label="Exportar CSV" variant="outline" isLoading={exporting} onClick={handleExport} />
-                <Button iconOnly leftIcon={<Icon name="Upload" size="sm" />} aria-label="Importar CSV" variant="outline" onClick={() => setImportDialogOpen(true)} />
-                <Button iconOnly leftIcon={<Icon name="Plus" size="sm" />} aria-label="Novo produto" variant="primary" onClick={() => router.push(`${basePath}/new`)} />
+                <Button leftIcon={<Icon name="FolderPlus" size="sm" />} variant="outline" onClick={() => setCategoryDialogOpen(true)}>Nova categoria</Button>
+                <Button leftIcon={<Icon name="Download" size="sm" />} variant="outline" isLoading={exporting} onClick={handleExport}>Exportar CSV</Button>
+                <Button leftIcon={<Icon name="Upload" size="sm" />} variant="outline" onClick={() => setImportDialogOpen(true)}>Importar CSV</Button>
+                <Button leftIcon={<Icon name="Plus" size="sm" />} variant="primary" onClick={() => router.push(`${basePath}/new`)}>Novo produto</Button>
               </>
             )
           }

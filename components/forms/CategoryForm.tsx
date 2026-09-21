@@ -22,7 +22,7 @@ export function CategoryForm({ name, onChange, onSave, saving, saveLabel = 'Salv
       </FormField>
 
       <div>
-        <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={saveLabel} type="submit" variant="primary" disabled={!name.trim()} isLoading={saving} />
+        <Button leftIcon={<Icon name="Save" size="sm" />} type="submit" variant="primary" disabled={!name.trim()} isLoading={saving}>{saveLabel}</Button>
       </div>
     </form>
   )

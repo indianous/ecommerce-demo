@@ -94,7 +94,7 @@ export function NavItemForm({ form, onFormChange, onSubmit, saving, isChild = fa
         </FormField>
       )}
 
-      <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={saveLabel} type="submit" variant="primary" isLoading={saving} disabled={!canSubmit} className="self-start" />
+      <Button leftIcon={<Icon name="Save" size="sm" />} type="submit" variant="primary" isLoading={saving} disabled={!canSubmit} className="self-start">{saveLabel}</Button>
     </form>
   )
 }

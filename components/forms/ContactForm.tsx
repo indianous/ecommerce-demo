@@ -50,7 +50,7 @@ export function ContactForm({
       </FormField>
 
       <div>
-        <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={saveLabel} type="submit" variant="primary" isLoading={saving} />
+        <Button leftIcon={<Icon name="Save" size="sm" />} type="submit" variant="primary" isLoading={saving}>{saveLabel}</Button>
       </div>
     </form>
   )

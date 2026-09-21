@@ -74,9 +74,9 @@ export function ReviewForm({
       )}
 
       <div className="flex gap-3">
-        <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={submitLabel} type="submit" variant="primary" disabled={!isValid} isLoading={submitting} />
+        <Button leftIcon={<Icon name="Save" size="sm" />} type="submit" variant="primary" disabled={!isValid} isLoading={submitting}>{submitLabel}</Button>
         {onCancel && (
-          <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" type="button" variant="secondary" onClick={onCancel} disabled={submitting} />
+          <Button leftIcon={<Icon name="X" size="sm" />} type="button" variant="secondary" onClick={onCancel} disabled={submitting}>Cancelar</Button>
         )}
       </div>
     </form>

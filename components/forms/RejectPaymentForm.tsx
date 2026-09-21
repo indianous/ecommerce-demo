@@ -32,8 +32,8 @@ export function RejectPaymentForm({ reason, onReasonChange, onSubmit, onCancel, 
       </FormField>
 
       <div className="flex gap-3">
-        <Button iconOnly leftIcon={<Icon name="Ban" size="sm" />} aria-label="Confirmar rejeição" type="submit" variant="danger" disabled={!isValid} isLoading={submitting} />
-        <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" type="button" variant="secondary" onClick={onCancel} disabled={submitting} />
+        <Button leftIcon={<Icon name="Ban" size="sm" />} type="submit" variant="danger" disabled={!isValid} isLoading={submitting}>Confirmar rejeição</Button>
+        <Button leftIcon={<Icon name="X" size="sm" />} type="button" variant="secondary" onClick={onCancel} disabled={submitting}>Cancelar</Button>
       </div>
     </form>
   )

@@ -66,7 +66,7 @@ export function LoginForm({ onSuccess }: Props) {
         />
       </FormField>
 
-      <Button iconOnly leftIcon={<Icon name="LogIn" size="sm" />} aria-label="Entrar" type="submit" variant="primary" isLoading={isLoading} />
+      <Button leftIcon={<Icon name="LogIn" size="sm" />} type="submit" variant="primary" isLoading={isLoading}>Entrar</Button>
     </form>
   )
 }

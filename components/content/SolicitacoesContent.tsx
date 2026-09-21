@@ -114,7 +114,7 @@ export function SolicitacoesContent() {
     return (
       <main className="mx-auto max-w-3xl px-4 py-8">
         <div className="mb-4">
-          <Button iconOnly leftIcon={<Icon name="ArrowLeft" size="sm" />} aria-label="Voltar à lista" variant="outline" size="sm" onClick={() => setSelected(null)} />
+          <Button leftIcon={<Icon name="ArrowLeft" size="sm" />} variant="outline" size="sm" onClick={() => setSelected(null)}>Voltar à lista</Button>
         </div>
 
         <Heading as="h1" size="2xl" className="mb-6">
@@ -170,8 +170,8 @@ export function SolicitacoesContent() {
 
           {selected.status === 'PENDING' ? (
             <div className="flex gap-3 pt-2">
-              <Button iconOnly leftIcon={<Icon name="Check" size="sm" />} aria-label="Aceitar" variant="primary" onClick={handleApprove} isLoading={actioning} />
-              <Button iconOnly leftIcon={<Icon name="Ban" size="sm" />} aria-label="Negar" variant="danger" onClick={() => setDenyDialogOpen(true)} disabled={actioning} />
+              <Button leftIcon={<Icon name="Check" size="sm" />} variant="primary" onClick={handleApprove} isLoading={actioning}>Aceitar</Button>
+              <Button leftIcon={<Icon name="Ban" size="sm" />} variant="danger" onClick={() => setDenyDialogOpen(true)} disabled={actioning}>Negar</Button>
             </div>
           ) : (
             <p className="text-sm text-muted-foreground italic">
@@ -187,8 +187,8 @@ export function SolicitacoesContent() {
           description="Essa ação não pode ser desfeita."
           footer={
             <div className="flex gap-3">
-              <Button iconOnly leftIcon={<Icon name="Ban" size="sm" />} aria-label="Confirmar" variant="danger" onClick={handleReject} isLoading={actioning} />
-              <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" variant="secondary" onClick={() => setDenyDialogOpen(false)} disabled={actioning} />
+              <Button leftIcon={<Icon name="Ban" size="sm" />} variant="danger" onClick={handleReject} isLoading={actioning}>Confirmar</Button>
+              <Button leftIcon={<Icon name="X" size="sm" />} variant="secondary" onClick={() => setDenyDialogOpen(false)} disabled={actioning}>Cancelar</Button>
             </div>
           }
         />

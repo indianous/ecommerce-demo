@@ -184,8 +184,8 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
         </div>
 
         <div className="mb-4 flex gap-2">
-          <Button iconOnly leftIcon={<Icon name="FolderPlus" size="sm" />} aria-label="Nova coleção" variant="primary" onClick={() => openNewTopLevel('COLLECTION')} />
-          <Button iconOnly leftIcon={<Icon name="Link" size="sm" />} aria-label="Novo link" variant="outline" onClick={() => openNewTopLevel('LINK')} />
+          <Button leftIcon={<Icon name="FolderPlus" size="sm" />} variant="primary" onClick={() => openNewTopLevel('COLLECTION')}>Nova coleção</Button>
+          <Button leftIcon={<Icon name="Link" size="sm" />} variant="outline" onClick={() => openNewTopLevel('LINK')}>Novo link</Button>
         </div>
 
         <div className="flex flex-col gap-3">
@@ -200,13 +200,13 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
                     {item.placement && <Badge variant="info" size="sm">{PLACEMENT_LABELS[item.placement]}</Badge>}
                   </div>
                   <div className="flex gap-1">
-                    <Button iconOnly leftIcon={<Icon name="ChevronUp" size="sm" />} aria-label={`Subir ${item.label}`} variant="ghost" size="sm" disabled={index === 0} onClick={() => reorderTopLevel(index, index - 1)} />
-                    <Button iconOnly leftIcon={<Icon name="ChevronDown" size="sm" />} aria-label={`Descer ${item.label}`} variant="ghost" size="sm" disabled={index === items.length - 1} onClick={() => reorderTopLevel(index, index + 1)} />
+                    <Button leftIcon={<Icon name="ChevronUp" size="sm" />} variant="ghost" size="sm" disabled={index === 0} onClick={() => reorderTopLevel(index, index - 1)}>{`Subir ${item.label}`}</Button>
+                    <Button leftIcon={<Icon name="ChevronDown" size="sm" />} variant="ghost" size="sm" disabled={index === items.length - 1} onClick={() => reorderTopLevel(index, index + 1)}>{`Descer ${item.label}`}</Button>
                     {item.type === 'COLLECTION' && (
-                      <Button iconOnly leftIcon={<Icon name={isExpanded ? 'ChevronDown' : 'ChevronRight'} size="sm" />} aria-label={isExpanded ? 'Recolher' : 'Expandir'} variant="outline" size="sm" onClick={() => setExpandedId(isExpanded ? null : item.id)} />
+                      <Button leftIcon={<Icon name={isExpanded ? 'ChevronDown' : 'ChevronRight'} size="sm" />} variant="outline" size="sm" onClick={() => setExpandedId(isExpanded ? null : item.id)}>{isExpanded ? 'Recolher' : 'Expandir'}</Button>
                     )}
-                    <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label={`Editar ${item.label}`} variant="outline" size="sm" onClick={() => openEdit(item)} />
-                    <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Remover ${item.label}`} variant="danger" size="sm" onClick={() => setDeleteTarget(item)} />
+                    <Button leftIcon={<Icon name="Pencil" size="sm" />} variant="outline" size="sm" onClick={() => openEdit(item)}>{`Editar ${item.label}`}</Button>
+                    <Button leftIcon={<Icon name="Trash2" size="sm" />} variant="danger" size="sm" onClick={() => setDeleteTarget(item)}>{`Remover ${item.label}`}</Button>
                   </div>
                 </div>
 
@@ -216,14 +216,14 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
                       <div key={child.id} className="flex items-center justify-between gap-2 pl-4">
                         <Text size="sm">{child.label}</Text>
                         <div className="flex gap-1">
-                          <Button iconOnly leftIcon={<Icon name="ChevronUp" size="sm" />} aria-label={`Subir ${child.label}`} variant="ghost" size="sm" disabled={childIndex === 0} onClick={() => reorderChildren(item, childIndex, childIndex - 1)} />
-                          <Button iconOnly leftIcon={<Icon name="ChevronDown" size="sm" />} aria-label={`Descer ${child.label}`} variant="ghost" size="sm" disabled={childIndex === (item.children?.length ?? 0) - 1} onClick={() => reorderChildren(item, childIndex, childIndex + 1)} />
-                          <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label={`Editar ${child.label}`} variant="outline" size="sm" onClick={() => openEditChild(item.id, child)} />
-                          <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Remover ${child.label}`} variant="danger" size="sm" onClick={() => setDeleteTarget(child)} />
+                          <Button leftIcon={<Icon name="ChevronUp" size="sm" />} variant="ghost" size="sm" disabled={childIndex === 0} onClick={() => reorderChildren(item, childIndex, childIndex - 1)}>{`Subir ${child.label}`}</Button>
+                          <Button leftIcon={<Icon name="ChevronDown" size="sm" />} variant="ghost" size="sm" disabled={childIndex === (item.children?.length ?? 0) - 1} onClick={() => reorderChildren(item, childIndex, childIndex + 1)}>{`Descer ${child.label}`}</Button>
+                          <Button leftIcon={<Icon name="Pencil" size="sm" />} variant="outline" size="sm" onClick={() => openEditChild(item.id, child)}>{`Editar ${child.label}`}</Button>
+                          <Button leftIcon={<Icon name="Trash2" size="sm" />} variant="danger" size="sm" onClick={() => setDeleteTarget(child)}>{`Remover ${child.label}`}</Button>
                         </div>
                       </div>
                     ))}
-                    <Button iconOnly leftIcon={<Icon name="Plus" size="sm" />} aria-label={`Novo link em ${item.label}`} variant="outline" size="sm" className="self-start" onClick={() => openNewChild(item.id)} />
+                    <Button leftIcon={<Icon name="Plus" size="sm" />} variant="outline" size="sm" className="self-start" onClick={() => openNewChild(item.id)}>{`Novo link em ${item.label}`}</Button>
                   </div>
                 )}
               </Card>

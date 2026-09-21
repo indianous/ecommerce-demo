@@ -126,7 +126,7 @@ export function AdminsContent() {
       <ManagementPageHeader title="Gestão de Administradores" />
       <ManagementPageBody
         actions={
-          <Button iconOnly leftIcon={<Icon name="UserPlus" size="sm" />} aria-label="Novo administrador" variant="primary" onClick={() => setCreateDialogOpen(true)} />
+          <Button leftIcon={<Icon name="UserPlus" size="sm" />} variant="primary" onClick={() => setCreateDialogOpen(true)}>Novo administrador</Button>
         }
       >
         <ManagementContentHeader

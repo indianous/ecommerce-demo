@@ -48,8 +48,8 @@ export function EmployeeForm({ onSave, onCancel, saveLabel = 'Salvar' }: Props) 
         />
       </div>
       <div className="flex gap-2 justify-end">
-        <Button iconOnly leftIcon={<Icon name="X" size="sm" />} aria-label="Cancelar" variant="secondary" onClick={onCancel} />
-        <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label={saveLabel} variant="primary" onClick={() => onSave({ name, email, password })} disabled={!canSubmit} />
+        <Button leftIcon={<Icon name="X" size="sm" />} variant="secondary" onClick={onCancel}>Cancelar</Button>
+        <Button leftIcon={<Icon name="Save" size="sm" />} variant="primary" onClick={() => onSave({ name, email, password })} disabled={!canSubmit}>{saveLabel}</Button>
       </div>
     </div>
   )

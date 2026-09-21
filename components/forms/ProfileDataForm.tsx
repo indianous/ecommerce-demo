@@ -121,7 +121,7 @@ export function ProfileDataForm({
       >
         <Input id="profile-cpf" value={cpf} onChange={(e) => onCpfChange(e.target.value)} />
       </FormField>
-      <Button iconOnly leftIcon={<Icon name="Save" size="sm" />} aria-label="Salvar" type="submit" variant="primary" isLoading={saving} className="self-start" />
+      <Button leftIcon={<Icon name="Save" size="sm" />} type="submit" variant="primary" isLoading={saving} className="self-start">Salvar</Button>
     </form>
   )
 }
