@@ -5,9 +5,10 @@ import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const pushMock = vi.fn()
+const replaceMock = vi.fn()
 let mockSearch = ''
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: pushMock }),
+  useRouter: () => ({ push: pushMock, replace: replaceMock }),
   usePathname: () => '/orders',
   useSearchParams: () => new URLSearchParams(mockSearch),
 }))
@@ -58,6 +59,7 @@ afterEach(async () => {
   ordersResponse = [makeOrder({})]
   lastOrdersUrl = ''
   pushMock.mockClear()
+  replaceMock.mockClear()
   mockSearch = ''
   await act(async () => {
     useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
@@ -200,6 +202,69 @@ describe('CustomerOrdersContent — como pagar (pagamento manual)', () => {
 
     expect(await screen.findByText('Teclado Mecânico')).toBeInTheDocument()
     expect(screen.queryByText(/como pagar/i)).not.toBeInTheDocument()
+  })
+})
+
+describe('CustomerOrdersContent — pagar agora e retorno do pagamento', () => {
+  const soon = () => new Date(Date.now() + 3 * 3600 * 1000).toISOString()
+  const past = () => new Date(Date.now() - 3600 * 1000).toISOString()
+
+  it('pedido pendente com link e validade futura mostra "Pagar agora" apontando pro checkout', async () => {
+    ordersResponse = [
+      makeOrder({ status: 'PENDING', paymentStatus: 'PENDING', paymentId: 'CHEC_1', checkoutUrl: 'https://pagamento.pagbank.com.br/x', paymentExpiresAt: soon() }),
+    ]
+    render(<CustomerOrdersContent />)
+
+    expect(await screen.findByRole('link', { name: /pagar agora/i })).toHaveAttribute('href', 'https://pagamento.pagbank.com.br/x')
+  })
+
+  it('validade vencida mostra "Checkout expirado" e não o link', async () => {
+    ordersResponse = [
+      makeOrder({ status: 'PENDING', paymentStatus: 'PENDING', paymentId: 'CHEC_1', checkoutUrl: 'https://pagamento.pagbank.com.br/x', paymentExpiresAt: past() }),
+    ]
+    render(<CustomerOrdersContent />)
+
+    expect(await screen.findByText(/checkout expirado/i)).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /pagar agora/i })).not.toBeInTheDocument()
+  })
+
+  it('pagamento já confirmado ou sem link (manual) não mostra "Pagar agora"', async () => {
+    ordersResponse = [makeOrder({ paymentStatus: 'PAID', checkoutUrl: undefined })]
+    render(<CustomerOrdersContent />)
+
+    await screen.findByRole('cell', { name: '#10' })
+    expect(screen.queryByRole('link', { name: /pagar agora/i })).not.toBeInTheDocument()
+  })
+
+  it('?payment=success mostra a mensagem de confirmação em andamento e limpa o parâmetro da URL', async () => {
+    mockSearch = 'payment=success'
+    render(<CustomerOrdersContent />)
+
+    expect(await screen.findByText(/recebemos seu pagamento/i)).toBeInTheDocument()
+    expect(replaceMock).toHaveBeenCalledWith('/orders')
+  })
+
+  it('?payment=cancelled avisa que o pagamento não foi concluído e aponta pro "Pagar agora"', async () => {
+    mockSearch = 'payment=cancelled'
+    render(<CustomerOrdersContent />)
+
+    expect(await screen.findByText(/pagamento não concluído/i)).toBeInTheDocument()
+  })
+
+  it('sem o parâmetro, nenhuma mensagem de retorno e nenhum replace', async () => {
+    render(<CustomerOrdersContent />)
+
+    await screen.findByRole('cell', { name: '#10' })
+    expect(screen.queryByText(/recebemos seu pagamento|pagamento não concluído/i)).not.toBeInTheDocument()
+    expect(replaceMock).not.toHaveBeenCalled()
+  })
+
+  it('limpar o parâmetro preserva os demais (ex.: page)', async () => {
+    mockSearch = 'payment=success&page=2'
+    render(<CustomerOrdersContent />)
+
+    await screen.findByText(/recebemos seu pagamento/i)
+    expect(replaceMock).toHaveBeenCalledWith('/orders?page=2')
   })
 })
 

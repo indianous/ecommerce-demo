@@ -1,13 +1,15 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
-import { Badge, Heading, Skeleton, Table, type TableColumn, Text } from 'base-ds'
+import { Badge, Button, Heading, Icon, Skeleton, Table, type TableColumn, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PaginationBar } from '@/components/ui/PaginationBar'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import { paymentMethodLabel } from '@/lib/payment-labels'
+import { payNowState } from '@/lib/payment-checkout'
 import { ManualPaymentInstructions } from '@/components/payment/ManualPaymentInstructions'
 import type { OrderItemResponse, OrderResponse, OrderStatus } from '@/types'
 
@@ -27,6 +29,27 @@ const formatDate = (iso: string) => new Intl.DateTimeFormat('pt-BR').format(new 
 
 export function CustomerOrdersContent() {
   const { accessToken } = useAuthStore()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  // Retorno do gateway (?payment=success|cancelled): a mensagem fica guardada e o parâmetro sai da URL,
+  // pra um refresh não repeti-la.
+  const [paymentReturn] = useState<'success' | 'cancelled' | null>(() => {
+    const value = searchParams.get('payment')
+    return value === 'success' || value === 'cancelled' ? value : null
+  })
+  const [now] = useState(() => Date.now())
+  const query = searchParams.toString()
+  const hasPaymentParam = searchParams.get('payment') !== null
+
+  useEffect(() => {
+    if (!hasPaymentParam) return
+    const params = new URLSearchParams(query)
+    params.delete('payment')
+    const rest = params.toString()
+    router.replace(rest ? `${pathname}?${rest}` : pathname)
+  }, [hasPaymentParam, query, pathname, router])
 
   const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<OrderResponse> | null> => {
     if (!accessToken) return null
@@ -62,7 +85,22 @@ export function CustomerOrdersContent() {
     { key: 'orderNumber', header: 'Pedido', render: (order) => `#${order.orderNumber}` },
     { key: 'createdAt', header: 'Data', render: (order) => formatDate(order.createdAt) },
     { key: 'totalAmount', header: 'Total', render: (order) => formatBRL(order.totalAmount) },
-    { key: 'paymentMethod', header: 'Pagamento', render: (order) => paymentMethodLabel(order.paymentMethod) },
+    {
+      key: 'paymentMethod',
+      header: 'Pagamento',
+      render: (order) => {
+        const payNow = payNowState(order, now)
+        return (
+          <span className="inline-flex flex-wrap items-center gap-2">
+            {paymentMethodLabel(order.paymentMethod)}
+            {payNow === 'pay' && (
+              <Button leftIcon={<Icon name="CreditCard" size="sm" />} as="a" href={order.checkoutUrl ?? "#"} size="sm" variant="primary">Pagar agora</Button>
+            )}
+            {payNow === 'expired' && <Text size="sm" color="muted">Checkout expirado</Text>}
+          </span>
+        )
+      },
+    },
     {
       key: 'status',
       header: 'Status',
@@ -90,6 +128,13 @@ export function CustomerOrdersContent() {
       <Heading as="h1" size="2xl" className="mb-6">
         Meus Pedidos
       </Heading>
+
+      {paymentReturn === 'success' && (
+        <Text role="status" className="mb-4">Recebemos seu pagamento. A confirmação pode levar alguns instantes.</Text>
+      )}
+      {paymentReturn === 'cancelled' && (
+        <Text role="status" className="mb-4">Pagamento não concluído. Você pode tentar de novo em &quot;Pagar agora&quot;.</Text>
+      )}
 
       <Table
         columns={columns}

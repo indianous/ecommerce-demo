@@ -317,6 +317,9 @@ export interface OrderResponse {
   shippingLabelUrl?: string
   deliveryMethod?: DeliveryMethod
   pickupLocation?: DistributionCenter
+  paymentProvider?: PaymentGatewayProvider | null
+  /** Validade do link de pagamento (só enquanto o pagamento está pendente). */
+  paymentExpiresAt?: string | null
 }
 
 export interface ShippingQuote {
@@ -352,6 +355,8 @@ export interface AdminOrderResponse {
   paymentId?: string
   receiptUrl?: string
   paymentRejectionReason?: string
+  /** Gateway que criou o pagamento (nulo em pedidos antigos). */
+  paymentProvider?: PaymentGatewayProvider | null
   createdAt: string
   itemCount: number
   shippingCost?: number

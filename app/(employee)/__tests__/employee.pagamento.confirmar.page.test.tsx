@@ -93,6 +93,20 @@ describe('PaymentConfirmContent — dados do pedido', () => {
     expect(screen.getByText(/R\$\s*150/)).toBeInTheDocument()
   })
 
+  it('exibe a origem do pagamento (gateway) quando o pedido tem esse dado', async () => {
+    server.use(http.get('/api/admin/orders/:id', () => HttpResponse.json({ ...mockOrder, paymentProvider: 'PAGSEGURO' })))
+    renderContent()
+
+    expect(await screen.findByText('PagBank')).toBeInTheDocument()
+  })
+
+  it('pedido antigo, sem gateway registrado, não mostra "Origem"', async () => {
+    renderContent()
+
+    await screen.findByText('#42')
+    expect(screen.queryByText(/origem/i)).not.toBeInTheDocument()
+  })
+
   it('exibe botão de copiar ao lado do nome do cliente', async () => {
     renderContent()
     await screen.findByText('Ana Lima')

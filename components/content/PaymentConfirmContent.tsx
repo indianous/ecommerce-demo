@@ -9,7 +9,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { PaymentConfirmForm } from '@/components/forms/PaymentConfirmForm'
-import { paymentMethodLabel } from '@/lib/payment-labels'
+import { paymentMethodLabel, paymentProviderLabel } from '@/lib/payment-labels'
 import type { AdminOrderDetailResponse } from '@/types'
 
 const formatBRL = (v: number) =>
@@ -117,6 +117,12 @@ export function PaymentConfirmContent({
             <p className="text-muted-foreground">Método</p>
             <p>{paymentMethodLabel(order.paymentMethod)}</p>
           </div>
+          {paymentProviderLabel(order.paymentProvider) && (
+            <div>
+              <p className="text-muted-foreground">Origem</p>
+              <p>{paymentProviderLabel(order.paymentProvider)}</p>
+            </div>
+          )}
           <div>
             <p className="text-muted-foreground">Total</p>
             <p className="font-semibold">{formatBRL(order.totalAmount)}</p>

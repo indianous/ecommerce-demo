@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { paymentMethodLabel, PAYMENT_METHOD_LABELS } from '../payment-labels'
+import { paymentMethodLabel, paymentProviderLabel, PAYMENT_METHOD_LABELS } from '../payment-labels'
 
 describe('paymentMethodLabel', () => {
   it('rotula cada forma de pagamento', () => {
@@ -15,5 +15,19 @@ describe('paymentMethodLabel', () => {
 
   it('o mapa cobre todas as formas do tipo PaymentMethod', () => {
     expect(Object.keys(PAYMENT_METHOD_LABELS).sort()).toEqual(['BOLETO', 'CREDIT_CARD', 'PAY_ON_PICKUP', 'PIX'])
+  })
+})
+
+describe('paymentProviderLabel', () => {
+  it('rotula o gateway que criou o pagamento', () => {
+    expect(paymentProviderLabel('PAGSEGURO')).toBe('PagBank')
+    expect(paymentProviderLabel('STRIPE')).toBe('Stripe')
+    expect(paymentProviderLabel('MANUAL')).toBe('Pagamento manual')
+  })
+
+  it('pedido antigo (sem gateway) ou valor desconhecido: null', () => {
+    expect(paymentProviderLabel(undefined)).toBeNull()
+    expect(paymentProviderLabel(null)).toBeNull()
+    expect(paymentProviderLabel('OUTRO')).toBeNull()
   })
 })
