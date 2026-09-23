@@ -206,11 +206,9 @@ faixa passa a ser o único sinal de que a pessoa está logada como equipe.
 - `components/layout/AppShell.tsx`: não diferencia quem é da equipe. O único
   caminho de volta ao painel é o item "Painel" dentro do `UserMenu`
   (`UserMenu.tsx:31`), escondido no dropdown.
-- O base-ds não tem um componente de faixa/alerta (nada parecido nos exports do
-  `index.d.ts`). Pela regra do projeto, abrir issue em `indianous/base-ds` pedindo
-  um `Banner` (ou `Alert`) com ação. Até a issue sair, a faixa é um
-  `<div role="region">` só de layout com `Text`, `Icon` e `Button` do base-ds,
-  como a `SelectionBar` (`components/layout/SelectionBar.tsx`) já faz.
+- A faixa usa o `Alert` do base-ds, criado a pedido deste plano
+  ([indianous/base-ds#45](https://github.com/indianous/base-ds/issues/45), na
+  v0.4.2, já instalada): `layout="full"`, `variant="neutral"`, `icon` e `actions`.
 
 ### 2. Testes a incluir/alterar
 
@@ -220,7 +218,8 @@ faixa passa a ser o único sinal de que a pessoa está logada como equipe.
   "Voltar ao painel" apontando para `/dashboard/admin`.
 - Role `EMPLOYEE` → o botão aponta para `/dashboard`.
 - `CUSTOMER`, visitante e antes da hidratação da sessão (role nulo) → não renderiza.
-- A faixa é uma `region` com `aria-label="Visão do cliente"`.
+- A faixa é uma `region` com `aria-label="Visão do cliente"` (o `Alert` aceita
+  `role` e `aria-label` no lugar do `role="status"` padrão da variante `neutral`).
 - Sem violações de acessibilidade.
 
 **`components/layout/__tests__/AppShell.test.tsx`** (alterar)
@@ -229,15 +228,12 @@ faixa passa a ser o único sinal de que a pessoa está logada como equipe.
 
 ### 3. O que entra no projeto
 
-1. **Issue no base-ds** pedindo o componente de faixa com ação: aberta em
-   [indianous/base-ds#45](https://github.com/indianous/base-ds/issues/45). Antes de
-   implementar, conferir se ela já saiu; se sim, usar o componente em vez da faixa local.
-2. **`components/layout/StaffPreviewBanner.tsx`** (novo): lê o `role` do
-   `useAuthStore`; para `ADMIN`/`EMPLOYEE`, renderiza a faixa com `Icon name="Eye"`,
-   `Text` e `Button` (`as="a"`, com o `href` de `homeFor(role)` de
-   `lib/route-access.ts`, do plano 59). Classes só de tokens:
-   `flex flex-wrap items-center justify-center gap-3 bg-muted px-4 py-2`.
-3. **`AppShell.tsx`**: renderiza o `<StaffPreviewBanner />` antes do `Navbar`.
+1. **`components/layout/StaffPreviewBanner.tsx`** (novo): lê o `role` do
+   `useAuthStore`; para `ADMIN`/`EMPLOYEE`, renderiza
+   `<Alert variant="neutral" layout="full" icon={<Icon name="Eye" />} role="region" aria-label="Visão do cliente" actions={<Button as="a" href={homeFor(role)} variant="outline" size="sm">Voltar ao painel</Button>}>`
+   com o texto "Você está vendo a loja como um cliente". O `homeFor` vem de
+   `lib/route-access.ts` (plano 59).
+2. **`AppShell.tsx`**: renderiza o `<StaffPreviewBanner />` antes do `Navbar`.
 
 ### O que o usuário verifica
 
@@ -395,10 +391,10 @@ próprio badge. Se não couber na linha, a tag inteira desce, sem se partir.
 
 ### 1. Problemas encontrados
 
-- O `Badge` do base-ds usa `inline-flex items-center font-medium`, sem
-  `whitespace-nowrap`, então um nome com espaços quebra dentro dele. É um defeito
-  do componente: abrir issue em `indianous/base-ds` pedindo `whitespace-nowrap`
-  no `Badge`.
+- O texto da tag já não quebra dentro do `Badge`: o base-ds incluiu
+  `whitespace-nowrap` na classe base
+  ([indianous/base-ds#46](https://github.com/indianous/base-ds/issues/46), na
+  v0.4.1, já instalada). Falta só o contêiner.
 - `app/(public)/catalog/[slug]/page.tsx:113` e `components/product/ProductCard.tsx:59`:
   as tags ficam num `flex` sem `flex-wrap`. Com o texto sem quebra, várias tags
   longas precisam poder descer para a linha de baixo inteiras.
@@ -407,17 +403,12 @@ próprio badge. Se não couber na linha, a tag inteira desce, sem se partir.
 
 - **`components/product/__tests__/ProductCard.test.tsx`** e
   **`app/(public)/__tests__/catalog.product-detail.page.test.tsx`** (alterar): o
-  `Badge` de categoria tem `whitespace-nowrap`, e o contêiner das tags tem `flex-wrap`.
+  contêiner das tags tem `flex-wrap`.
 
 ### 3. O que entra no projeto
 
-1. **Issue no base-ds**: aberta em
-   [indianous/base-ds#46](https://github.com/indianous/base-ds/issues/46). Antes de
-   implementar, conferir se ela já saiu; se sim, a classe local do passo 2 não é necessária.
-2. Até a issue sair: `className="w-fit whitespace-nowrap"` nos `Badge`s de
-   categoria da página do produto e do `ProductCard` (o `className` é prop
-   pública do `Badge`), e `flex-wrap` nos dois contêineres. Quando o base-ds
-   corrigir, a classe local sai.
+1. `flex-wrap` nos contêineres das tags da página do produto e do `ProductCard`.
+   Nenhuma classe local no `Badge` (o base-ds já resolve).
 
 ### O que o usuário verifica
 
@@ -425,6 +416,9 @@ próprio badge. Se não couber na linha, a tag inteira desce, sem se partir.
   do produto e no card do catálogo.
 - Um produto com várias categorias: as tags descem inteiras para a linha de
   baixo, sem se partir.
+- Efeito colateral avisado no CHANGELOG da v0.4.1: os chips do `MultiSelect`
+  (categorias no formulário do produto) também não quebram mais; conferir que um
+  nome longo não estoura o campo.
 
 ---
 

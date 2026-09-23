@@ -254,11 +254,10 @@ O form tem validação própria.
    (carregando, válido, expirado, concluído). O de verificação usa uma `ref` para
    não chamar o backend duas vezes no StrictMode.
 8. **`components/layout/EmailVerificationBanner.tsx`** (novo): aviso no topo do
-   `AppShell` para cliente não verificado, com o reenvio. O componente de aviso já
-   foi pedido em [indianous/base-ds#45](https://github.com/indianous/base-ds/issues/45)
-   (mesma issue da faixa da etapa 3 do plano 66; não abrir outra). Se ela já tiver
-   saído, usar o componente; senão, a mesma faixa local da etapa 3 do plano 66
-   (`Text`, `Icon` e `Button` do base-ds numa `<div>` de layout).
+   `AppShell` para cliente não verificado, com o reenvio. Usa o `Alert` do base-ds
+   (`variant="warning"`, `layout="full"`, `actions` com o botão "Reenviar e-mail"),
+   criado em [indianous/base-ds#45](https://github.com/indianous/base-ds/issues/45)
+   e disponível desde a v0.4.2.
 9. **Checkout**: `CheckoutContent`/`CheckoutForm` mostram o `Card` de "Confirme
    seu e-mail" no lugar do botão de finalizar, e tratam o `403 EMAIL_NOT_VERIFIED`
    do pedido (F5).
