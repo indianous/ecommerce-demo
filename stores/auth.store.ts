@@ -77,6 +77,10 @@ async function mergeCartOnLogin(): Promise<void> {
   }
 }
 
+// Refresh em andamento, compartilhado por hydrateSession e authFetch: o mesmo refresh token
+// nunca sai em duas requisições paralelas (plano #59).
+let pendingRefresh: Promise<string | null> | null = null
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
   user: null,
@@ -112,19 +116,27 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ user })
   },
 
-  refreshAccessToken: async () => {
-    try {
-      const res = await fetch('/api/auth/refresh', { method: 'POST' })
-      if (!res.ok) {
-        set({ accessToken: null, user: null, role: null, isAuthenticated: false })
+  refreshAccessToken: () => {
+    if (pendingRefresh) return pendingRefresh
+
+    const clear = () => set({ accessToken: null, user: null, role: null, isAuthenticated: false })
+    pendingRefresh = fetch('/api/auth/refresh', { method: 'POST' })
+      .then(async (res) => {
+        if (!res.ok) {
+          clear()
+          return null
+        }
+        const data = await res.json()
+        set({ accessToken: data.accessToken, isAuthenticated: true, role: data.role ?? null })
+        return data.accessToken as string
+      })
+      .catch(() => {
+        clear()
         return null
-      }
-      const data = await res.json()
-      set({ accessToken: data.accessToken, isAuthenticated: true, role: data.role ?? null })
-      return data.accessToken
-    } catch {
-      set({ accessToken: null, user: null, role: null, isAuthenticated: false })
-      return null
-    }
+      })
+      .finally(() => {
+        pendingRefresh = null
+      })
+    return pendingRefresh
   },
 }))

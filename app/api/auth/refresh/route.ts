@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
 
   if (!upstream.ok) {
     cookieStore.delete('session')
+    cookieStore.delete('role')
     return NextResponse.json({ message: 'Sessão expirada' }, { status: 401 })
   }
 

@@ -10,17 +10,19 @@ interface Props {
 }
 
 export function PermissionGuard({ permissions, children }: Props) {
-  const { user, isAuthenticated } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
   const router = useRouter()
 
-  const hasAccess = user?.role === 'ADMIN' || permissions.some((p) => user?.permissions?.includes(p))
+  // Decide pelo user, não pelo isAuthenticated: depois do refresh a sessão já está autenticada
+  // mas o /me ainda não voltou — redirecionar nessa janela tirava o usuário da página (plano #59).
+  const hasAccess = !!user && (user.role === 'ADMIN' || permissions.some((p) => user.permissions?.includes(p)))
 
   useEffect(() => {
-    if (isAuthenticated && !hasAccess) {
+    if (user && !hasAccess) {
       router.replace('/dashboard')
     }
-  }, [isAuthenticated, hasAccess, router])
+  }, [user, hasAccess, router])
 
-  if (!isAuthenticated || !hasAccess) return null
+  if (!hasAccess) return null
   return <>{children}</>
 }

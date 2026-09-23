@@ -136,6 +136,11 @@ describe('LoginPage', () => {
   })
 
   it('com callbackUrl na query string: login redireciona pra lá em vez da raiz do dashboard', async () => {
+    server.use(
+      http.post('/api/auth/login', () =>
+        HttpResponse.json({ accessToken: 'token', refreshToken: 'refresh', tokenType: 'Bearer', expiresIn: 900, role: 'EMPLOYEE' }),
+      ),
+    )
     searchParamsString = 'callbackUrl=%2Fdashboard%2Forders'
     const user = userEvent.setup()
     renderLoginPage()
@@ -145,6 +150,22 @@ describe('LoginPage', () => {
     await user.click(screen.getByRole('button', { name: /entrar/i }))
 
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/dashboard/orders'))
+  })
+
+  it.each([
+    ['https%3A%2F%2Fevil.com', '/'],
+    ['%2Fdashboard%2Forders', '/'],
+    ['%2Forders', '/orders'],
+  ])('CUSTOMER com callbackUrl=%s → push(%s)', async (callbackUrl, expected) => {
+    searchParamsString = `callbackUrl=${callbackUrl}`
+    const user = userEvent.setup()
+    renderLoginPage()
+
+    await user.type(screen.getByLabelText(/email/i), 'valid@test.com')
+    await user.type(screen.getByLabelText(/senha/i), 'password123')
+    await user.click(screen.getByRole('button', { name: /entrar/i }))
+
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith(expected))
   })
 
   it('com sessionExpired=1 na query string: mostra aviso de sessão expirada', () => {

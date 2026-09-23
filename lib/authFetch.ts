@@ -1,16 +1,5 @@
 import { useAuthStore } from '@/stores/auth.store'
 
-let pendingRefresh: Promise<string | null> | null = null
-
-function getFreshToken(): Promise<string | null> {
-  if (!pendingRefresh) {
-    pendingRefresh = useAuthStore.getState().refreshAccessToken().finally(() => {
-      pendingRefresh = null
-    })
-  }
-  return pendingRefresh
-}
-
 function redirectToLogin() {
   const path = window.location.pathname + window.location.search
   window.location.href = `/login?callbackUrl=${encodeURIComponent(path)}&sessionExpired=1`
@@ -28,7 +17,8 @@ export async function authFetch(input: RequestInfo | URL, init: RequestInit = {}
 
   if (res.status !== 401) return res
 
-  const newToken = await getFreshToken()
+  // O store deduplica refreshes simultâneos
+  const newToken = await useAuthStore.getState().refreshAccessToken()
   if (!newToken) {
     redirectToLogin()
     return new Promise<Response>(() => {})

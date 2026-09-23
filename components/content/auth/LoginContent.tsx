@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Container, Heading, Text } from 'base-ds'
 import { LoginForm } from '@/components/forms/LoginForm'
+import { postLoginPath } from '@/lib/post-login-path'
 import { useAuthStore } from '@/stores/auth.store'
 
 export function LoginContent() {
@@ -13,14 +14,7 @@ export function LoginContent() {
   const sessionExpired = searchParams.get('sessionExpired') === '1'
 
   const handleSuccess = () => {
-    if (callbackUrl) {
-      router.push(callbackUrl)
-      return
-    }
-    const role = useAuthStore.getState().role
-    if (role === 'ADMIN') router.push('/dashboard/admin')
-    else if (role === 'EMPLOYEE') router.push('/dashboard')
-    else router.push('/')
+    router.push(postLoginPath(callbackUrl, useAuthStore.getState().role))
   }
 
   return (

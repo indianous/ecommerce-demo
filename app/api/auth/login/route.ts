@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     maxAge: 60 * 60 * 24 * 7,
     path: '/',
   })
-  // Non-sensitive role cookie read by the Edge middleware for route protection
+  // Non-sensitive role cookie read by the proxy for route protection
   cookieStore.set('role', data.role ?? 'CUSTOMER', {
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production',

@@ -56,12 +56,13 @@ describe('POST /api/auth/refresh (BFF route)', () => {
     expect(cookieStore.delete).not.toHaveBeenCalled()
   })
 
-  it('quando o backend rejeita apaga o cookie de sessão e devolve 401', async () => {
+  it('quando o backend rejeita apaga os cookies de sessão e de papel e devolve 401', async () => {
     fetchMock.mockResolvedValueOnce(Response.json({ message: 'Sessão revogada' }, { status: 401 }))
 
     const response = await POST(request)
 
     expect(response.status).toBe(401)
     expect(cookieStore.delete).toHaveBeenCalledWith('session')
+    expect(cookieStore.delete).toHaveBeenCalledWith('role')
   })
 })

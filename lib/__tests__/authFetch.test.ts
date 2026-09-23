@@ -120,6 +120,24 @@ describe('authFetch', () => {
     expect(refreshCallCount).toBe(1)
   })
 
+  it('hydrateSession em andamento + authFetch recebendo 401: só um POST /api/auth/refresh', async () => {
+    useAuthStore.setState({ accessToken: null, isAuthenticated: false })
+    let callCount = 0
+    server.use(
+      http.get('/api/auth/me', () => HttpResponse.json({ id: 'u1', name: 'Ana', email: 'a@test.com', role: 'CUSTOMER' })),
+      http.get('/api/orders', () => {
+        callCount++
+        if (callCount === 1) return new HttpResponse(null, { status: 401 })
+        return HttpResponse.json({ ok: true })
+      }),
+    )
+
+    const [, res] = await Promise.all([useAuthStore.getState().hydrateSession(), authFetch('/api/orders')])
+
+    expect(res.status).toBe(200)
+    expect(refreshCallCount).toBe(1)
+  })
+
   it('erro não-401 (500): nenhum retry, propaga a resposta normalmente', async () => {
     server.use(http.get('/api/orders', () => new HttpResponse(null, { status: 500 })))
 

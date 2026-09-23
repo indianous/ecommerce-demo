@@ -152,4 +152,54 @@ describe('PermissionGuard', () => {
     expect(screen.getByText('conteúdo protegido')).toBeInTheDocument()
     expect(replaceMock).not.toHaveBeenCalled()
   })
+  it('sessão restaurada com /me pendente (user=null): não renderiza e não redireciona', async () => {
+    useAuthStore.setState({ isAuthenticated: true, accessToken: 'tok', role: 'EMPLOYEE', user: null })
+
+    await act(async () => {
+      render(
+        <PermissionGuard permissions={['MANAGE_ORDERS']}>
+          <p>conteúdo protegido</p>
+        </PermissionGuard>,
+      )
+    })
+
+    expect(screen.queryByText('conteúdo protegido')).not.toBeInTheDocument()
+    expect(replaceMock).not.toHaveBeenCalled()
+  })
+
+  it('quando o user chega depois do refresh com a permissão: renderiza sem ter redirecionado', async () => {
+    useAuthStore.setState({ isAuthenticated: true, accessToken: 'tok', role: 'EMPLOYEE', user: null })
+
+    await act(async () => {
+      render(
+        <PermissionGuard permissions={['MANAGE_ORDERS']}>
+          <p>conteúdo protegido</p>
+        </PermissionGuard>,
+      )
+    })
+    await act(async () => {
+      useAuthStore.setState({ user: makeEmployee(['MANAGE_ORDERS']).user })
+    })
+
+    expect(screen.getByText('conteúdo protegido')).toBeInTheDocument()
+    expect(replaceMock).not.toHaveBeenCalled()
+  })
+
+  it('quando o user admin chega depois do refresh: renderiza sem ter redirecionado', async () => {
+    useAuthStore.setState({ isAuthenticated: true, accessToken: 'tok', role: 'ADMIN', user: null })
+
+    await act(async () => {
+      render(
+        <PermissionGuard permissions={['MANAGE_ORDERS']}>
+          <p>conteúdo protegido</p>
+        </PermissionGuard>,
+      )
+    })
+    await act(async () => {
+      useAuthStore.setState({ user: { ...makeEmployee([]).user, role: 'ADMIN' as const } })
+    })
+
+    expect(screen.getByText('conteúdo protegido')).toBeInTheDocument()
+    expect(replaceMock).not.toHaveBeenCalled()
+  })
 })

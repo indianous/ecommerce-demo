@@ -161,4 +161,55 @@ describe('AuthStore', () => {
       expect(getStore().isAuthenticated).toBe(false)
     })
   })
+
+  describe('refreshAccessToken — dedupe', () => {
+    function countRefreshes(ok = true) {
+      const counter = { calls: 0 }
+      server.use(
+        http.post('/api/auth/refresh', () => {
+          counter.calls++
+          if (!ok) return new HttpResponse(null, { status: 401 })
+          return HttpResponse.json({ accessToken: `tok-${counter.calls}`, tokenType: 'Bearer', expiresIn: 900, role: 'CUSTOMER' })
+        }),
+      )
+      return counter
+    }
+
+    it('duas chamadas simultâneas disparam um só POST e devolvem o mesmo token', async () => {
+      const counter = countRefreshes()
+
+      const [a, b] = await Promise.all([getStore().refreshAccessToken(), getStore().refreshAccessToken()])
+
+      expect(counter.calls).toBe(1)
+      expect(a).toBe('tok-1')
+      expect(b).toBe('tok-1')
+    })
+
+    it('hydrateSession() e refreshAccessToken() simultâneos disparam um só POST', async () => {
+      const counter = countRefreshes()
+
+      await Promise.all([getStore().hydrateSession(), getStore().refreshAccessToken()])
+
+      expect(counter.calls).toBe(1)
+    })
+
+    it('depois que o refresh termina, a próxima chamada faz outro POST', async () => {
+      const counter = countRefreshes()
+
+      await getStore().refreshAccessToken()
+      const second = await getStore().refreshAccessToken()
+
+      expect(counter.calls).toBe(2)
+      expect(second).toBe('tok-2')
+    })
+
+    it('depois de uma falha, a próxima chamada tenta de novo', async () => {
+      const counter = countRefreshes(false)
+
+      await getStore().refreshAccessToken()
+      await getStore().refreshAccessToken()
+
+      expect(counter.calls).toBe(2)
+    })
+  })
 })
