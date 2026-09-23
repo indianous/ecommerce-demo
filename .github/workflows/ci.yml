@@ -10,6 +10,9 @@ jobs:
   test:
     name: Type Check, Test & Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read # checkout
+      packages: read # baixar o @indianous/base-ds do GitHub Packages
 
     steps:
       - uses: actions/checkout@v4
@@ -23,11 +26,14 @@ jobs:
           scope: '@indianous'
 
       # base-ds vem do GitHub Packages (@indianous/base-ds), que exige token
-      # com read:packages mesmo para instalar — o .npmrc lê GITHUB_PACKAGES_TOKEN.
+      # mesmo para instalar — o .npmrc lê GITHUB_PACKAGES_TOKEN. O GITHUB_TOKEN
+      # do run basta: o pacote dá acesso de leitura a este repositório
+      # (Package settings → Manage Actions access).
       - name: Install dependencies
         run: npm ci
         env:
-          GITHUB_PACKAGES_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+          GITHUB_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }} # lido pelo .npmrc do projeto
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # lido pelo .npmrc do setup-node
 
       - name: Type check
         run: npm run typecheck

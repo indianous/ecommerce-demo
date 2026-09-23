@@ -27,6 +27,11 @@ vi.mock('@/stores/auth.store', () => ({
     sel ? sel(mockAuthState) : mockAuthState,
 }))
 
+// Página que nunca termina de carregar: simula o bailout do useSearchParams no prerender
+function Suspends(): never {
+  throw new Promise(() => {})
+}
+
 describe('EmployeeLayout', () => {
   it('renderiza EmployeeShell como wrapper dos filhos', () => {
     render(
@@ -59,5 +64,17 @@ describe('EmployeeLayout', () => {
       </ToastProvider>,
     )
     expect(screen.queryByRole('navigation', { name: /main navigation/i })).not.toBeInTheDocument()
+  })
+
+  it('enquanto a página suspende, mostra o esqueleto de carregamento dentro do shell', () => {
+    render(
+      <ToastProvider>
+        <EmployeeLayout>
+          <Suspends />
+        </EmployeeLayout>
+      </ToastProvider>,
+    )
+    expect(screen.getByRole('status', { name: /carregando/i })).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: /sidebar navigation/i })).toBeInTheDocument()
   })
 })
