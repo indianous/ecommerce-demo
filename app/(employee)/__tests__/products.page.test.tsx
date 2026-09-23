@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -64,7 +64,6 @@ let categories: Category[] = []
 
 const server = setupServer(
   http.get('/api/categories', () => HttpResponse.json(categories)),
-  http.post('/api/admin/categories', () => HttpResponse.json({ id: 'cat-2', name: 'Eletrodomésticos', slug: 'eletrodomesticos' }, { status: 201 })),
   http.get('/api/admin/products', ({ request }) => {
     const url = new URL(request.url)
     const categoryIds = url.searchParams.getAll('categoryId')
@@ -335,50 +334,11 @@ describe('ProductsManagementPage — filtros', () => {
   })
 })
 
-describe('ProductsManagementPage — criar categoria', () => {
-  it('exibe botão "Nova categoria" para usuário com MANAGE_PRODUCTS', async () => {
+describe('ProductsManagementPage — categorias', () => {
+  it('não exibe mais o botão "Nova categoria" (o cadastro fica na tela de Categorias)', async () => {
     renderPage()
     await screen.findByText('Teclado Mecânico')
-    expect(screen.getByRole('button', { name: /nova categoria/i })).toBeInTheDocument()
-  })
-
-  it('botão "Salvar" de categoria fica desabilitado sem nome', async () => {
-    const user = userEvent.setup()
-    renderPage()
-    await screen.findByText('Teclado Mecânico')
-
-    await user.click(screen.getByRole('button', { name: /nova categoria/i }))
-    const dialog = screen.getByRole('dialog')
-    expect(within(dialog).getByRole('button', { name: /salvar/i })).toBeDisabled()
-  })
-
-  it('"Salvar" categoria chama POST, exibe toast de sucesso e atualiza filtro de categorias', async () => {
-    const user = userEvent.setup()
-    renderPage()
-    await screen.findByText('Teclado Mecânico')
-
-    await user.click(screen.getByRole('button', { name: /nova categoria/i }))
-    const dialog = screen.getByRole('dialog')
-    await user.type(within(dialog).getByRole('textbox'), 'Eletrodomésticos')
-    await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
-
-    expect(await screen.findByRole('status')).toHaveTextContent(/categoria criada/i)
-    await user.click(screen.getByRole('button', { name: /^categoria/i }))
-    expect(screen.getByRole('checkbox', { name: 'Eletrodomésticos' })).toBeInTheDocument()
-  })
-
-  it('exibe toast de erro se o POST de categoria falhar', async () => {
-    server.use(http.post('/api/admin/categories', () => HttpResponse.json({}, { status: 500 })))
-    const user = userEvent.setup()
-    renderPage()
-    await screen.findByText('Teclado Mecânico')
-
-    await user.click(screen.getByRole('button', { name: /nova categoria/i }))
-    const dialog = screen.getByRole('dialog')
-    await user.type(within(dialog).getByRole('textbox'), 'Eletrodomésticos')
-    await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(/erro ao criar/i)
+    expect(screen.queryByRole('button', { name: /nova categoria/i })).not.toBeInTheDocument()
   })
 })
 

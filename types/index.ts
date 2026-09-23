@@ -144,7 +144,19 @@ export interface Category {
   id: string
   name: string
   slug: string
-  description?: string
+  description?: string | null
+}
+
+/** Categoria no painel, com quantos produtos (ativos e excluídos) a usam. */
+export interface AdminCategory extends Category {
+  productCount: number
+}
+
+/** Corpo de criação/edição de categoria; slug vazio é gerado pelo backend a partir do nome. */
+export interface CategoryInput {
+  name: string
+  slug?: string
+  description?: string | null
 }
 
 export type ProductStatus = 'AVAILABLE' | 'UNAVAILABLE'

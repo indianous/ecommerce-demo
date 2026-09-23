@@ -99,6 +99,18 @@ describe('EmployeeShell — Sidebar (desktop)', () => {
     expect(screen.queryByRole('link', { name: /pedidos/i })).not.toBeInTheDocument()
   })
 
+  it('MANAGE_PRODUCTS exibe item "Categorias" apontando para /dashboard/categories', () => {
+    useAuthStore.setState(makeEmployee(['MANAGE_PRODUCTS']))
+    renderEmployeeShell()
+    expect(screen.getByRole('link', { name: /^categorias$/i })).toHaveAttribute('href', '/dashboard/categories')
+  })
+
+  it('sem MANAGE_PRODUCTS não exibe "Categorias"', () => {
+    useAuthStore.setState(makeEmployee(['MANAGE_STOCK']))
+    renderEmployeeShell()
+    expect(screen.queryByRole('link', { name: /^categorias$/i })).not.toBeInTheDocument()
+  })
+
   it('MANAGE_STOCK exibe item "Estoque"', () => {
     useAuthStore.setState(makeEmployee(['MANAGE_STOCK']))
     renderEmployeeShell()

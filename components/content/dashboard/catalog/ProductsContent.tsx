@@ -3,10 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, Container, Dialog, FilterDropdown, Icon, Table, type TableColumn, useToast } from 'base-ds'
+import { Badge, Button, Container, FilterDropdown, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
-import { CategoryForm } from '@/components/forms/CategoryForm'
 import { ProductImportDialog } from '@/components/product/ProductImportDialog'
 import { downloadBlob } from '@/lib/downloadBlob'
 import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
@@ -38,9 +37,6 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
 
   const [categories, setCategories] = useState<Category[]>([])
 
-  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
-  const [categoryName, setCategoryName] = useState('')
-  const [categorySaving, setCategorySaving] = useState(false)
 
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [exporting, setExporting] = useState(false)
@@ -69,32 +65,6 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
     if (!accessToken) return
     fetch('/api/categories').then((r) => (r.ok ? r.json() : [])).then(setCategories)
   }, [accessToken])
-
-  const handleCategorySave = async () => {
-    if (!categoryName.trim() || !accessToken) return
-    setCategorySaving(true)
-    try {
-      const res = await authFetch('/api/admin/categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', },
-        body: JSON.stringify({
-          name: categoryName,
-          slug: categoryName.toLowerCase().replace(/\s+/g, '-'),
-          description: '',
-        }),
-      })
-      if (!res.ok) throw new Error()
-      const newCategory: Category = await res.json()
-      setCategories((prev) => [...prev, newCategory])
-      setCategoryName('')
-      setCategoryDialogOpen(false)
-      toast({ variant: 'success', description: 'Categoria criada com sucesso.' })
-    } catch {
-      toast({ variant: 'destructive', description: 'Erro ao criar categoria.' })
-    } finally {
-      setCategorySaving(false)
-    }
-  }
 
   const handleExport = async () => {
     if (!accessToken) return
@@ -167,7 +137,6 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
           actions={
             canManageProducts && (
               <>
-                <Button leftIcon={<Icon name="FolderPlus" size="sm" />} variant="outline" onClick={() => setCategoryDialogOpen(true)}>Nova categoria</Button>
                 <Button leftIcon={<Icon name="Download" size="sm" />} variant="outline" isLoading={exporting} onClick={handleExport}>Exportar CSV</Button>
                 <Button leftIcon={<Icon name="Upload" size="sm" />} variant="outline" onClick={() => setImportDialogOpen(true)}>Importar CSV</Button>
                 <Button leftIcon={<Icon name="Plus" size="sm" />} variant="primary" onClick={() => router.push(`${basePath}/new`)}>Novo produto</Button>
@@ -213,9 +182,6 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
 
           <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
 
-          <Dialog open={categoryDialogOpen} onClose={() => setCategoryDialogOpen(false)} title="Nova categoria">
-            <CategoryForm name={categoryName} onChange={setCategoryName} onSave={handleCategorySave} saving={categorySaving} />
-          </Dialog>
 
           <ProductImportDialog
             open={importDialogOpen}
