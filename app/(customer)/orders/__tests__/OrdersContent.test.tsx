@@ -1,4 +1,5 @@
 import { act, render, screen } from '@testing-library/react'
+import { ToastProvider } from 'base-ds'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -72,7 +73,7 @@ beforeEach(() => {
 })
 
 function renderContent() {
-  return render(<CustomerOrdersContent />)
+  return render(<CustomerOrdersContent />, { wrapper: ToastProvider })
 }
 
 describe('CustomerOrdersContent (cliente)', () => {
@@ -165,7 +166,7 @@ describe('CustomerOrdersContent — como pagar (pagamento manual)', () => {
 
   it('pedido PIX com pagamento pendente e sem paymentId mostra a chave PIX ao expandir', async () => {
     ordersResponse = [makeOrder({ status: 'PENDING', paymentStatus: 'PENDING', paymentMethod: 'PIX' })]
-    render(<CustomerOrdersContent />)
+    render(<CustomerOrdersContent />, { wrapper: ToastProvider })
 
     await userEvent.click(await screen.findByRole('button', { name: /expand row/i }))
 
@@ -186,7 +187,7 @@ describe('CustomerOrdersContent — como pagar (pagamento manual)', () => {
         },
       }),
     ]
-    render(<CustomerOrdersContent />)
+    render(<CustomerOrdersContent />, { wrapper: ToastProvider })
 
     await userEvent.click(await screen.findByRole('button', { name: /expand row/i }))
 
@@ -196,7 +197,7 @@ describe('CustomerOrdersContent — como pagar (pagamento manual)', () => {
 
   it('pedido com pagamento já confirmado não mostra "Como pagar"', async () => {
     ordersResponse = [makeOrder({ paymentStatus: 'PAID', paymentMethod: 'PIX' })]
-    render(<CustomerOrdersContent />)
+    render(<CustomerOrdersContent />, { wrapper: ToastProvider })
 
     await userEvent.click(await screen.findByRole('button', { name: /expand row/i }))
 
@@ -213,7 +214,7 @@ describe('CustomerOrdersContent — pagar agora e retorno do pagamento', () => {
     ordersResponse = [
       makeOrder({ status: 'PENDING', paymentStatus: 'PENDING', paymentId: 'CHEC_1', checkoutUrl: 'https://pagamento.pagbank.com.br/x', paymentExpiresAt: soon() }),
     ]
-    render(<CustomerOrdersContent />)
+    render(<CustomerOrdersContent />, { wrapper: ToastProvider })
 
     expect(await screen.findByRole('link', { name: /pagar agora/i })).toHaveAttribute('href', 'https://pagamento.pagbank.com.br/x')
   })
@@ -222,7 +223,7 @@ describe('CustomerOrdersContent — pagar agora e retorno do pagamento', () => {
     ordersResponse = [
       makeOrder({ status: 'PENDING', paymentStatus: 'PENDING', paymentId: 'CHEC_1', checkoutUrl: 'https://pagamento.pagbank.com.br/x', paymentExpiresAt: past() }),
     ]
-    render(<CustomerOrdersContent />)
+    render(<CustomerOrdersContent />, { wrapper: ToastProvider })
 
     expect(await screen.findByText(/checkout expirado/i)).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /pagar agora/i })).not.toBeInTheDocument()
@@ -230,7 +231,7 @@ describe('CustomerOrdersContent — pagar agora e retorno do pagamento', () => {
 
   it('pagamento já confirmado ou sem link (manual) não mostra "Pagar agora"', async () => {
     ordersResponse = [makeOrder({ paymentStatus: 'PAID', checkoutUrl: undefined })]
-    render(<CustomerOrdersContent />)
+    render(<CustomerOrdersContent />, { wrapper: ToastProvider })
 
     await screen.findByRole('cell', { name: '#10' })
     expect(screen.queryByRole('link', { name: /pagar agora/i })).not.toBeInTheDocument()
@@ -238,7 +239,7 @@ describe('CustomerOrdersContent — pagar agora e retorno do pagamento', () => {
 
   it('?payment=success mostra a mensagem de confirmação em andamento e limpa o parâmetro da URL', async () => {
     mockSearch = 'payment=success'
-    render(<CustomerOrdersContent />)
+    render(<CustomerOrdersContent />, { wrapper: ToastProvider })
 
     expect(await screen.findByText(/recebemos seu pagamento/i)).toBeInTheDocument()
     expect(replaceMock).toHaveBeenCalledWith('/orders')
@@ -246,13 +247,13 @@ describe('CustomerOrdersContent — pagar agora e retorno do pagamento', () => {
 
   it('?payment=cancelled avisa que o pagamento não foi concluído e aponta pro "Pagar agora"', async () => {
     mockSearch = 'payment=cancelled'
-    render(<CustomerOrdersContent />)
+    render(<CustomerOrdersContent />, { wrapper: ToastProvider })
 
     expect(await screen.findByText(/pagamento não concluído/i)).toBeInTheDocument()
   })
 
   it('sem o parâmetro, nenhuma mensagem de retorno e nenhum replace', async () => {
-    render(<CustomerOrdersContent />)
+    render(<CustomerOrdersContent />, { wrapper: ToastProvider })
 
     await screen.findByRole('cell', { name: '#10' })
     expect(screen.queryByText(/recebemos seu pagamento|pagamento não concluído/i)).not.toBeInTheDocument()
@@ -260,8 +261,10 @@ describe('CustomerOrdersContent — pagar agora e retorno do pagamento', () => {
   })
 
   it('limpar o parâmetro preserva os demais (ex.: page)', async () => {
+    // 11 pedidos: a página 2 (tamanho 10) tem 1 pedido, e não cai no estado vazio
+    ordersResponse = Array.from({ length: 11 }, (_, i) => makeOrder({ id: `order-${i + 1}`, orderNumber: i + 1 }))
     mockSearch = 'payment=success&page=2'
-    render(<CustomerOrdersContent />)
+    render(<CustomerOrdersContent />, { wrapper: ToastProvider })
 
     await screen.findByText(/recebemos seu pagamento/i)
     expect(replaceMock).toHaveBeenCalledWith('/orders?page=2')

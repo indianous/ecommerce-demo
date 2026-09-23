@@ -49,7 +49,25 @@ describe('SiteFiscalCompanyDataContent', () => {
   })
 
   it('exibe toast de erro se o PUT falhar', async () => {
-    server.use(http.put('/api/site/settings/fiscal-company-data', () => HttpResponse.json({}, { status: 500 })))
+    // Dados completos e CNPJ válido: com o formulário vazio a validação barra o envio e o PUT nem acontece
+    server.use(
+      http.get('/api/site/settings', () =>
+        HttpResponse.json({
+          ...emptySettings,
+          fiscalCompanyCnpj: '11444777000161',
+          fiscalCompanyLegalName: 'Empresa Teste LTDA',
+          fiscalCompanyStreet: 'Rua A',
+          fiscalCompanyNumber: '1',
+          fiscalCompanyNeighborhood: 'Centro',
+          fiscalCompanyCity: 'SP',
+          fiscalCompanyState: 'SP',
+          fiscalCompanyZipCode: '01000000',
+          fiscalCompanyEmail: 'contato@empresa.com',
+          fiscalCompanyPhone: '11999999999',
+        }),
+      ),
+      http.put('/api/site/settings/fiscal-company-data', () => HttpResponse.json({}, { status: 500 })),
+    )
     renderSection(<SiteFiscalCompanyDataContent backPath="/dashboard/site" />)
 
     await userEvent.click(await screen.findByRole('button', { name: /salvar dados fiscais da empresa/i }))

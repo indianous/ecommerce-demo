@@ -286,6 +286,8 @@ describe('CheckoutForm — formas de pagamento (chave PIX cadastrada)', () => {
 
     expect(screen.getByRole('button', { name: /finalizar/i })).toBeDisabled()
 
+    // o fetch sai num efeito: só dá para liberar a resposta depois que o MSW chamou o handler
+    await waitFor(() => expect(release).toBeTypeOf('function'))
     release()
     await waitFor(() => expect(screen.getByRole('button', { name: /finalizar/i })).toBeEnabled())
   })

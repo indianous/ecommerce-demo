@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "base-ds/styles";
+@import "base-ds/styles/v4";
 
 /*
   Tailwind v4 doesn't scan node_modules by default. base-ds ships its
@@ -10,113 +10,12 @@
 @source "../node_modules/base-ds/dist";
 
 /*
-  base-ds/styles ships its design tokens as plain :root custom properties
-  built from a Tailwind v3 config (tailwind.config.js -> theme.extend.colors
-  etc), not as a Tailwind v4 `@theme` block. Re-declare the ones base-ds's
-  components actually use so Tailwind v4 generates their utilities
-  (bg-primary, text-foreground, border-border, ...). Values still come from
-  the :root variables imported above, so a future base-ds theme.css update
-  is picked up automatically.
-
-  base-ds ships light-mode tokens only right now — there's no dark variant,
-  so dark mode isn't supported for base-ds-driven UI until base-ds adds one.
+  base-ds/styles/v4 already ships the @theme block that maps its tokens to
+  Tailwind v4 utilities (bg-primary, text-muted-foreground, rounded-md, ...).
+  Only the brand font is overridden here; it must come after the import so it
+  wins over base-ds's generic system-font fallback.
 */
 @theme inline {
-  --color-background: var(--color-background);
-  --color-foreground: var(--color-foreground);
-
-  --color-border: var(--color-border);
-  --color-input: var(--color-input);
-  --color-ring: var(--color-ring);
-  --color-overlay: var(--color-overlay);
-
-  --color-muted: var(--color-muted);
-  --color-muted-foreground: var(--color-muted-foreground);
-
-  --color-primary: var(--color-primary);
-  --color-primary-foreground: var(--color-primary-foreground);
-  --color-primary-hover: var(--color-primary-hover);
-  --color-primary-active: var(--color-primary-active);
-  --color-primary-muted: var(--color-primary-muted);
-  --color-primary-muted-fg: var(--color-primary-muted-fg);
-  --color-primary-border: var(--color-primary-border);
-
-  --color-secondary: var(--color-secondary);
-  --color-secondary-foreground: var(--color-secondary-foreground);
-  --color-secondary-hover: var(--color-secondary-hover);
-  --color-secondary-active: var(--color-secondary-active);
-  --color-secondary-muted: var(--color-secondary-muted);
-  --color-secondary-muted-fg: var(--color-secondary-muted-fg);
-  --color-secondary-border: var(--color-secondary-border);
-
-  --color-success: var(--color-success);
-  --color-success-foreground: var(--color-success-foreground);
-  --color-success-hover: var(--color-success-hover);
-  --color-success-muted: var(--color-success-muted);
-  --color-success-muted-fg: var(--color-success-muted-fg);
-  --color-success-border: var(--color-success-border);
-
-  --color-warning: var(--color-warning);
-  --color-warning-foreground: var(--color-warning-foreground);
-  --color-warning-hover: var(--color-warning-hover);
-  --color-warning-muted: var(--color-warning-muted);
-  --color-warning-muted-fg: var(--color-warning-muted-fg);
-  --color-warning-border: var(--color-warning-border);
-
-  --color-destructive: var(--color-destructive);
-  --color-destructive-foreground: var(--color-destructive-foreground);
-  --color-destructive-hover: var(--color-destructive-hover);
-  --color-destructive-active: var(--color-destructive-active);
-  --color-destructive-muted: var(--color-destructive-muted);
-  --color-destructive-muted-fg: var(--color-destructive-muted-fg);
-  --color-destructive-border: var(--color-destructive-border);
-
-  --color-info: var(--color-info);
-  --color-info-foreground: var(--color-info-foreground);
-  --color-info-hover: var(--color-info-hover);
-  --color-info-muted: var(--color-info-muted);
-  --color-info-muted-fg: var(--color-info-muted-fg);
-  --color-info-border: var(--color-info-border);
-
-  --color-chart-1: var(--color-chart-1);
-  --color-chart-2: var(--color-chart-2);
-  --color-chart-3: var(--color-chart-3);
-  --color-chart-4: var(--color-chart-4);
-
-  --color-chart-sequential-250: var(--color-chart-sequential-250);
-  --color-chart-sequential-300: var(--color-chart-sequential-300);
-  --color-chart-sequential-350: var(--color-chart-sequential-350);
-  --color-chart-sequential-400: var(--color-chart-sequential-400);
-  --color-chart-sequential-450: var(--color-chart-sequential-450);
-  --color-chart-sequential-500: var(--color-chart-sequential-500);
-  --color-chart-sequential-550: var(--color-chart-sequential-550);
-  --color-chart-sequential-600: var(--color-chart-sequential-600);
-  --color-chart-sequential-650: var(--color-chart-sequential-650);
-  --color-chart-sequential-700: var(--color-chart-sequential-700);
-
-  --radius-none: var(--radius-none);
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
-  --radius-lg: var(--radius-lg);
-  --radius-xl: var(--radius-xl);
-  --radius-2xl: var(--radius-2xl);
-  --radius-3xl: var(--radius-3xl);
-  --radius-full: var(--radius-full);
-
-  /* Brand font stays Geist, not base-ds's generic system-font fallback. */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-/*
-  base-ds's tooltip bubbles (Button's built-in one and the standalone Tooltip,
-  both role="tooltip") hardcode whitespace-nowrap with no way to override via
-  props — near a screen/container edge, a longer label overflows past it
-  instead of wrapping. Unlayered rule, so it wins over Tailwind's @layer
-  utilities regardless of source order/specificity.
-*/
-[role='tooltip'] {
-  white-space: normal;
-  max-width: 12rem;
-  text-align: center;
 }

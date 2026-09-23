@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import { ToastProvider } from 'base-ds'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
@@ -35,7 +36,7 @@ function useSettings(patch: Record<string, unknown>) {
 
 describe('ManualPaymentInstructions — PIX', () => {
   it('mostra a chave, o favorecido, o QR Code (imagem), o total e o botão de copiar', async () => {
-    render(<ManualPaymentInstructions order={pixOrder} />)
+    render(<ManualPaymentInstructions order={pixOrder} />, { wrapper: ToastProvider })
 
     expect(await screen.findByText('52998224725')).toBeInTheDocument()
     expect(screen.getByText(/Loja do Jota/)).toBeInTheDocument()
@@ -46,14 +47,14 @@ describe('ManualPaymentInstructions — PIX', () => {
 
   it('sem QR Code enviado, mostra só a chave', async () => {
     useSettings({ pixQrCodeUrl: null })
-    render(<ManualPaymentInstructions order={pixOrder} />)
+    render(<ManualPaymentInstructions order={pixOrder} />, { wrapper: ToastProvider })
 
     expect(await screen.findByText('52998224725')).toBeInTheDocument()
     expect(screen.queryByAltText(/qr code do pix/i)).not.toBeInTheDocument()
   })
 
   it('pede o comprovante por e-mail ou WhatsApp, com os links do e-mail e do telefone de contato', async () => {
-    render(<ManualPaymentInstructions order={pixOrder} />)
+    render(<ManualPaymentInstructions order={pixOrder} />, { wrapper: ToastProvider })
 
     expect(await screen.findByText(/envie o comprovante/i)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /contato@loja\.com/i })).toHaveAttribute('href', 'mailto:contato@loja.com')
@@ -62,7 +63,7 @@ describe('ManualPaymentInstructions — PIX', () => {
 
   it('só e-mail cadastrado: oferece só o e-mail', async () => {
     useSettings({ contactPhone: null })
-    render(<ManualPaymentInstructions order={pixOrder} />)
+    render(<ManualPaymentInstructions order={pixOrder} />, { wrapper: ToastProvider })
 
     expect(await screen.findByRole('link', { name: /contato@loja\.com/i })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /whatsapp/i })).not.toBeInTheDocument()
@@ -70,7 +71,7 @@ describe('ManualPaymentInstructions — PIX', () => {
 
   it('só telefone cadastrado: oferece só o WhatsApp', async () => {
     useSettings({ contactEmail: null })
-    render(<ManualPaymentInstructions order={pixOrder} />)
+    render(<ManualPaymentInstructions order={pixOrder} />, { wrapper: ToastProvider })
 
     expect(await screen.findByRole('link', { name: /whatsapp/i })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /mailto|@/i })).not.toBeInTheDocument()
@@ -78,13 +79,13 @@ describe('ManualPaymentInstructions — PIX', () => {
 
   it('nenhum contato cadastrado: manda entrar em contato com a loja', async () => {
     useSettings({ contactEmail: null, contactPhone: null })
-    render(<ManualPaymentInstructions order={pixOrder} />)
+    render(<ManualPaymentInstructions order={pixOrder} />, { wrapper: ToastProvider })
 
     expect(await screen.findByText(/entre em contato com a loja/i)).toBeInTheDocument()
   })
 
   it('pedido PIX que já tem paymentId (Stripe/PagSeguro) não mostra as instruções manuais', async () => {
-    const { container } = render(<ManualPaymentInstructions order={{ ...pixOrder, paymentId: 'cs_123' }} />)
+    const { container } = render(<ManualPaymentInstructions order={{ ...pixOrder, paymentId: 'cs_123' }} />, { wrapper: ToastProvider })
 
     await new Promise((r) => setTimeout(r, 50))
     expect(container).toBeEmptyDOMElement()
@@ -93,7 +94,7 @@ describe('ManualPaymentInstructions — PIX', () => {
 
 describe('ManualPaymentInstructions — pagar na retirada', () => {
   it('mostra o local de retirada e não pede comprovante', async () => {
-    render(<ManualPaymentInstructions order={pickupOrder} />)
+    render(<ManualPaymentInstructions order={pickupOrder} />, { wrapper: ToastProvider })
 
     expect(await screen.findByText(/pague na retirada em CD Zona Sul/i)).toBeInTheDocument()
     expect(screen.getByText(/Av\. das Nações, 1000/)).toBeInTheDocument()
@@ -103,7 +104,7 @@ describe('ManualPaymentInstructions — pagar na retirada', () => {
 
 describe('ManualPaymentInstructions — pagamento já resolvido', () => {
   it.each(['PAID', 'FAILED', 'REFUNDED'] as const)('pagamento %s não mostra as instruções', async (paymentStatus) => {
-    const { container } = render(<ManualPaymentInstructions order={{ ...pixOrder, paymentStatus }} />)
+    const { container } = render(<ManualPaymentInstructions order={{ ...pixOrder, paymentStatus }} />, { wrapper: ToastProvider })
 
     await new Promise((r) => setTimeout(r, 50))
     expect(container).toBeEmptyDOMElement()
