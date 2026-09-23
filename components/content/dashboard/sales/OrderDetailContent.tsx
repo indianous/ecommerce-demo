@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Badge, Button, Container, Heading, Icon, Select, Skeleton, Table, type TableColumn, Text, Textarea, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { OrderTotal } from '@/components/order/OrderTotal'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { paymentMethodLabel } from '@/lib/payment-labels'
 import type { AdminOrderDetailResponse, Invoice, InvoiceStatus, OrderItemResponse, OrderStatus, PaymentStatus } from '@/types'
@@ -259,7 +260,7 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Total</p>
-            <p className="font-semibold">{formatBRL(order.totalAmount)}</p>
+            <OrderTotal totalAmount={order.totalAmount} discountAmount={order.discountAmount} couponCode={order.couponCode} />
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Pagamento</p>

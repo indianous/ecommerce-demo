@@ -12,6 +12,7 @@ import { paymentMethodLabel } from '@/lib/payment-labels'
 import { payNowState } from '@/lib/payment-checkout'
 import { ManualPaymentInstructions } from '@/components/payment/ManualPaymentInstructions'
 import type { OrderItemResponse, OrderResponse, OrderStatus } from '@/types'
+import { OrderTotal } from '@/components/order/OrderTotal'
 
 const STATUS_BADGE_VARIANT: Record<OrderStatus, 'warning' | 'info' | 'primary' | 'success' | 'danger'> = {
   PENDING: 'warning',
@@ -84,7 +85,11 @@ export function CustomerOrdersContent() {
   const columns: TableColumn<OrderResponse>[] = [
     { key: 'orderNumber', header: 'Pedido', render: (order) => `#${order.orderNumber}` },
     { key: 'createdAt', header: 'Data', render: (order) => formatDate(order.createdAt) },
-    { key: 'totalAmount', header: 'Total', render: (order) => formatBRL(order.totalAmount) },
+    {
+      key: 'totalAmount',
+      header: 'Total',
+      render: (order) => <OrderTotal totalAmount={order.totalAmount} discountAmount={order.discountAmount} couponCode={order.couponCode} />,
+    },
     {
       key: 'paymentMethod',
       header: 'Pagamento',

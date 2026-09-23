@@ -63,6 +63,7 @@ describe('AdminShell — Sidebar (desktop)', () => {
     expect(screen.getByRole('link', { name: /funcionários/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /administradores/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /pagamentos/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /^cupons$/i })).toHaveAttribute('href', '/dashboard/admin/coupons')
     expect(screen.getByRole('link', { name: /auditoria/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /analytics/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /ver site/i })).toBeInTheDocument()

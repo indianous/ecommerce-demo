@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Button, Container, Dialog, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { OrderTotal } from '@/components/order/OrderTotal'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { RejectPaymentForm } from '@/components/forms/RejectPaymentForm'
 import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
@@ -20,9 +21,6 @@ import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import { paymentMethodLabel } from '@/lib/payment-labels'
 import type { AdminOrderResponse } from '@/types'
-
-const formatBRL = (v: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 
 export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath?: string }) {
   const { accessToken } = useAuthStore()
@@ -111,7 +109,12 @@ export function PaymentsContent({ basePath = '/dashboard/payments' }: { basePath
       ),
     },
     { key: 'paymentMethod', header: 'Método', render: (o) => paymentMethodLabel(o.paymentMethod) },
-    { key: 'totalAmount', header: 'Total', sortable: true, render: (o) => formatBRL(o.totalAmount) },
+    {
+      key: 'totalAmount',
+      header: 'Total',
+      sortable: true,
+      render: (o) => <OrderTotal totalAmount={o.totalAmount} discountAmount={o.discountAmount} couponCode={o.couponCode} />,
+    },
     {
       key: 'actions',
       header: 'Ações',

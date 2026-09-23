@@ -6,9 +6,11 @@ import { Button, FormField, Icon, Radio, Select, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { useCartStore, selectCartTotal } from '@/stores/cart.store'
 import { ManualPaymentInstructions } from '@/components/payment/ManualPaymentInstructions'
+import { CouponField } from '@/components/forms/CouponField'
 import { PAYMENT_METHOD_LABELS } from '@/lib/payment-labels'
 import type {
   Address,
+  CouponValidation,
   DeliveryMethod,
   DistributionCenter,
   OrderResponse,
@@ -46,6 +48,11 @@ export function CheckoutForm({ addresses }: Props) {
   const [distributionCenters, setDistributionCenters] = useState<DistributionCenter[]>([])
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('DELIVERY')
   const [selectedPickupLocationId, setSelectedPickupLocationId] = useState('')
+
+  const [couponCode, setCouponCode] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState<CouponValidation | null>(null)
+  const [couponError, setCouponError] = useState<string | null>(null)
+  const [couponApplying, setCouponApplying] = useState(false)
 
   useEffect(() => {
     fetch('/api/site/payment-methods')
@@ -127,8 +134,43 @@ export function CheckoutForm({ addresses }: Props) {
   const isPickup = effectiveDelivery === 'PICKUP'
   const selectedOption = shippingOptions.find((o) => o.serviceId === selectedServiceId)
   const shippingCost = isPickup || shippingFree ? 0 : (selectedOption?.price ?? 0)
-  const total = cartTotal + shippingCost
+  const discount = appliedCoupon?.discountAmount ?? 0
+  const total = cartTotal - discount + shippingCost
   const shippingChosen = isPickup ? !!selectedPickupLocationId : (shippingFree || !!selectedServiceId)
+
+  /** Confere o cupom contra o carrinho; devolve a mensagem de erro, ou null se valeu. */
+  const checkCoupon = async (code: string): Promise<{ ok: CouponValidation } | { error: string }> => {
+    try {
+      const res = await authFetch('/api/cart/coupon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) return { error: (data as { message?: string } | null)?.message ?? 'Cupom inválido' }
+      return { ok: data as CouponValidation }
+    } catch {
+      return { error: 'Não foi possível conferir o cupom. Tente novamente.' }
+    }
+  }
+
+  const applyCoupon = async () => {
+    setCouponApplying(true)
+    const result = await checkCoupon(couponCode.trim())
+    setCouponApplying(false)
+    if ('ok' in result) {
+      setAppliedCoupon(result.ok)
+      setCouponError(null)
+    } else {
+      setCouponError(result.error)
+    }
+  }
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null)
+    setCouponCode('')
+    setCouponError(null)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -149,6 +191,7 @@ export function CheckoutForm({ addresses }: Props) {
           ...(isPickup
             ? { deliveryMethod: 'PICKUP', pickupLocationId: selectedPickupLocationId }
             : (shippingFree ? {} : { shippingServiceId: selectedServiceId })),
+          ...(appliedCoupon ? { couponCode: appliedCoupon.code } : {}),
         }),
       })
 
@@ -156,6 +199,14 @@ export function CheckoutForm({ addresses }: Props) {
 
       if (!res.ok) {
         toast({ variant: 'destructive', description: data.message ?? 'Erro ao criar pedido' })
+        // 422 também vem de falta de estoque: só tira o cupom se ele deixou mesmo de valer
+        if (res.status === 422 && appliedCoupon) {
+          const recheck = await checkCoupon(appliedCoupon.code)
+          if ('error' in recheck) {
+            setAppliedCoupon(null)
+            setCouponError(recheck.error)
+          }
+        }
         return
       }
 
@@ -289,6 +340,19 @@ export function CheckoutForm({ addresses }: Props) {
         )}
       </fieldset>
 
+      <CouponField
+        code={couponCode}
+        onCodeChange={(code) => { setCouponCode(code); setCouponError(null) }}
+        onApply={() => void applyCoupon()}
+        onRemove={removeCoupon}
+        applied={appliedCoupon}
+        error={couponError}
+        applying={couponApplying}
+      />
+
+      {appliedCoupon && (
+        <Text size="sm">Desconto ({appliedCoupon.code}): − {formatBRL(appliedCoupon.discountAmount)}</Text>
+      )}
       <p>Total: {formatBRL(total)}</p>
 
       <Button leftIcon={<Icon name="Check" size="sm" />} type="submit" variant="primary" disabled={items.length === 0 || !selectedAddressId || !shippingChosen || !effectiveMethod} isLoading={loading}>Finalizar Pedido</Button>

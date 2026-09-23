@@ -269,5 +269,11 @@ describe('CustomerOrdersContent — pagar agora e retorno do pagamento', () => {
     await screen.findByText(/recebemos seu pagamento/i)
     expect(replaceMock).toHaveBeenCalledWith('/orders?page=2')
   })
-})
 
+  it('pedido com cupom mostra o desconto na coluna do total', async () => {
+    ordersResponse = [makeOrder({ totalAmount: 179.91, discountAmount: 19.99, couponCode: 'DEZ' })]
+    renderContent()
+
+    expect(await screen.findByText(/desconto \(DEZ\): −\s*R\$\s*19,99/i)).toBeInTheDocument()
+  })
+})

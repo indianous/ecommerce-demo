@@ -236,4 +236,11 @@ describe('OrderDetailContent — dados de contato do cliente', () => {
     expect(screen.getByRole('button', { name: 'Copiar nome do cliente' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Copiar e-mail do cliente' })).toBeInTheDocument()
   })
+
+  it('pedido com cupom mostra o desconto abaixo do total', async () => {
+    detailToReturn = { ...baseDetail, totalAmount: 179.91, discountAmount: 19.99, couponCode: 'DEZ' }
+    renderPage()
+
+    expect(await screen.findByText(/desconto \(DEZ\): −\s*R\$\s*19,99/i)).toBeInTheDocument()
+  })
 })

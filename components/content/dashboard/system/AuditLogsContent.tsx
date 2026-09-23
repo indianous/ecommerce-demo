@@ -20,6 +20,7 @@ const ENTITY_TYPE_OPTIONS = [
   { value: 'PRODUCT', label: 'Produto' },
   { value: 'CATEGORY', label: 'Categoria' },
   { value: 'PROMOTION', label: 'Promoção' },
+  { value: 'COUPON', label: 'Cupom' },
   { value: 'USER', label: 'Usuário' },
   { value: 'ADDRESS', label: 'Endereço' },
 ]
@@ -47,6 +48,7 @@ const ENTITY_TYPE_LABELS: Record<AuditEntityType, string> = {
   PRODUCT: 'Produto',
   CATEGORY: 'Categoria',
   PROMOTION: 'Promoção',
+  COUPON: 'Cupom',
   USER: 'Usuário',
   ADDRESS: 'Endereço',
 }

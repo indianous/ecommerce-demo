@@ -12,6 +12,7 @@ export type EmployeePermission =
   | 'MANAGE_ORDER_STATUS_REQUESTS'
   | 'MANAGE_SITE'
   | 'MANAGE_ANALYTICS'
+  | 'MANAGE_COUPONS'
 
 export type TaxRegime = 'SIMPLES_NACIONAL' | 'LUCRO_PRESUMIDO' | 'LUCRO_REAL'
 
@@ -369,6 +370,8 @@ export interface OrderResponse {
   orderNumber: number
   status: OrderStatus
   totalAmount: number
+  discountAmount?: number
+  couponCode?: string | null
   paymentMethod: PaymentMethod
   paymentStatus: PaymentStatus
   paymentId?: string
@@ -415,6 +418,8 @@ export interface AdminOrderResponse {
   customerEmail: string
   status: OrderStatus
   totalAmount: number
+  discountAmount?: number
+  couponCode?: string | null
   paymentMethod: PaymentMethod
   paymentStatus: PaymentStatus
   paymentId?: string
@@ -662,7 +667,7 @@ export interface CustomerDetailResponse {
   recentlyViewedProducts: RecentlyViewedProduct[]
 }
 
-export type AuditEntityType = 'PRODUCT' | 'CATEGORY' | 'PROMOTION' | 'ORDER' | 'USER' | 'ADDRESS'
+export type AuditEntityType = 'PRODUCT' | 'CATEGORY' | 'PROMOTION' | 'COUPON' | 'ORDER' | 'USER' | 'ADDRESS'
 export type AuditAction =
   | 'CREATED'
   | 'UPDATED'
@@ -719,3 +724,44 @@ export interface MyReviewableProduct {
   productImageUrl?: string
   review: ProductReview | null
 }
+
+// ── Cupons de desconto (plano #62) ──────────────────────────────────────────
+
+export type CouponType = 'PERCENT' | 'FIXED'
+export type CouponStatus = 'ACTIVE' | 'SCHEDULED' | 'EXPIRED' | 'EXHAUSTED' | 'INACTIVE'
+
+export interface CouponInput {
+  code: string
+  type: CouponType
+  value: number
+  maxDiscountAmount: number | null
+  minSubtotal: number | null
+  startsAt: string | null
+  endsAt: string | null
+  maxUses: number | null
+  maxUsesPerCustomer: number | null
+  active: boolean
+}
+
+export interface Coupon extends CouponInput {
+  id: string
+  /** Usos que ainda contam (sem os devolvidos por cancelamento). */
+  usesCount: number
+  status: CouponStatus
+}
+
+export interface CouponRedemption {
+  orderId: string
+  orderNumber: number
+  customerName: string
+  discountAmount: number
+  redeemedAt: string
+  releasedAt: string | null
+}
+
+export interface CouponValidation {
+  code: string
+  discountAmount: number
+  subtotal: number
+}
+

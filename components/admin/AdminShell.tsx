@@ -14,6 +14,7 @@ const navItems: DashboardNavItem[] = [
   { label: 'Envios', href: '/dashboard/admin/shipping', icon: 'Truck', group: DASHBOARD_NAV_GROUPS.VENDAS },
   { label: 'Solicitações', href: '/dashboard/admin/change-requests', icon: 'ListChecks', group: DASHBOARD_NAV_GROUPS.VENDAS },
   { label: 'Pagamentos', href: '/dashboard/admin/payments', icon: 'CreditCard', group: DASHBOARD_NAV_GROUPS.VENDAS },
+  { label: 'Cupons', href: '/dashboard/admin/coupons', icon: 'Ticket', group: DASHBOARD_NAV_GROUPS.VENDAS },
   { label: 'Produtos', href: '/dashboard/admin/products', icon: 'Package', group: DASHBOARD_NAV_GROUPS.CATALOGO },
   { label: 'Categorias', href: '/dashboard/admin/categories', icon: 'Tags', group: DASHBOARD_NAV_GROUPS.CATALOGO },
   { label: 'Promoções', href: '/dashboard/admin/promotions', icon: 'BadgePercent', group: DASHBOARD_NAV_GROUPS.CATALOGO },

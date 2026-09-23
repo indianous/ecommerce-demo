@@ -7,13 +7,11 @@ import Link from 'next/link'
 import { Container, Heading, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { OrderTotal } from '@/components/order/OrderTotal'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { PaymentConfirmForm } from '@/components/forms/PaymentConfirmForm'
 import { paymentMethodLabel, paymentProviderLabel } from '@/lib/payment-labels'
 import type { AdminOrderDetailResponse } from '@/types'
-
-const formatBRL = (v: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 
 export function PaymentConfirmContent({
   id,
@@ -125,7 +123,7 @@ export function PaymentConfirmContent({
           )}
           <div>
             <p className="text-muted-foreground">Total</p>
-            <p className="font-semibold">{formatBRL(order.totalAmount)}</p>
+            <OrderTotal totalAmount={order.totalAmount} discountAmount={order.discountAmount} couponCode={order.couponCode} />
           </div>
         </div>
 

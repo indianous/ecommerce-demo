@@ -198,3 +198,119 @@ describe('CheckoutPage — frete', () => {
     })
   })
 })
+
+describe('CheckoutPage — cupom de desconto', () => {
+  async function applyCoupon(user: ReturnType<typeof userEvent.setup>, code: string) {
+    await user.type(await screen.findByLabelText(/cupom de desconto/i), code)
+    await user.click(screen.getByRole('button', { name: /^aplicar$/i }))
+  }
+
+  it('aplicar um cupom válido mostra a linha de desconto e recalcula o total', async () => {
+    let body: unknown = null
+    server.use(http.post('/api/cart/coupon', async ({ request }) => {
+      body = await request.json()
+      return HttpResponse.json({ code: 'DEZ', discountAmount: 299.9, subtotal: 2999 })
+    }))
+    const user = userEvent.setup()
+    renderCheckoutPage()
+
+    await user.click(await screen.findByLabelText(/correios — pac/i))
+    await applyCoupon(user, 'dez')
+
+    await waitFor(() => expect(body).toEqual({ code: 'dez' }))
+    expect(await screen.findByText(/desconto \(DEZ\): −\s*R\$\s*299,90/i)).toBeInTheDocument()
+    expect(screen.getByText(/total: R\$\s*2\.719,10/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /remover cupom/i })).toBeInTheDocument()
+  })
+
+  it('cupom recusado mostra a mensagem do backend e não mexe no total', async () => {
+    server.use(http.post('/api/cart/coupon', () => HttpResponse.json({ message: 'Cupom expirado' }, { status: 422 })))
+    const user = userEvent.setup()
+    renderCheckoutPage()
+
+    await user.click(await screen.findByLabelText(/correios — pac/i))
+    await applyCoupon(user, 'FOI')
+
+    expect(await screen.findByText('Cupom expirado')).toBeInTheDocument()
+    expect(screen.getByText(/total: R\$\s*3\.019,00/i)).toBeInTheDocument()
+  })
+
+  it('"Remover cupom" volta ao total sem desconto', async () => {
+    server.use(http.post('/api/cart/coupon', () => HttpResponse.json({ code: 'DEZ', discountAmount: 299.9, subtotal: 2999 })))
+    const user = userEvent.setup()
+    renderCheckoutPage()
+
+    await user.click(await screen.findByLabelText(/correios — pac/i))
+    await applyCoupon(user, 'dez')
+    await user.click(await screen.findByRole('button', { name: /remover cupom/i }))
+
+    expect(screen.queryByText(/desconto \(DEZ\)/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/total: R\$\s*3\.019,00/i)).toBeInTheDocument()
+  })
+
+  it('o pedido vai com o couponCode aplicado', async () => {
+    let orderBody: Record<string, unknown> = {}
+    server.use(
+      http.post('/api/cart/coupon', () => HttpResponse.json({ code: 'DEZ', discountAmount: 299.9, subtotal: 2999 })),
+      http.post('/api/orders', async ({ request }) => {
+        orderBody = (await request.json()) as Record<string, unknown>
+        return HttpResponse.json({
+          id: 'order-1', orderNumber: 1, status: 'PENDING', totalAmount: 2719.1, discountAmount: 299.9, couponCode: 'DEZ',
+          paymentMethod: 'PIX', paymentStatus: 'PENDING', createdAt: '2026-01-01T00:00:00Z', items: [],
+        })
+      }),
+    )
+    const user = userEvent.setup()
+    renderCheckoutPage()
+
+    await user.click(await screen.findByLabelText(/correios — pac/i))
+    await applyCoupon(user, 'dez')
+    await screen.findByText(/desconto \(DEZ\)/i)
+    await user.click(screen.getByRole('button', { name: /finalizar/i }))
+
+    await waitFor(() => expect(orderBody).toEqual({
+      addressId: 'addr-1', paymentMethod: 'PIX', shippingServiceId: 'svc-1', couponCode: 'DEZ',
+    }))
+  })
+
+  it('422 no pedido com o cupom deixando de valer: revalida, tira o cupom, mostra a mensagem e não finaliza', async () => {
+    let couponCalls = 0
+    server.use(
+      http.post('/api/cart/coupon', () => {
+        couponCalls++
+        return couponCalls === 1
+          ? HttpResponse.json({ code: 'DEZ', discountAmount: 299.9, subtotal: 2999 })
+          : HttpResponse.json({ message: 'Este cupom esgotou' }, { status: 422 })
+      }),
+      http.post('/api/orders', () => HttpResponse.json({ message: 'Este cupom esgotou' }, { status: 422 })),
+    )
+    const user = userEvent.setup()
+    renderCheckoutPage()
+
+    await user.click(await screen.findByLabelText(/correios — pac/i))
+    await applyCoupon(user, 'dez')
+    await screen.findByText(/desconto \(DEZ\)/i)
+    await user.click(screen.getByRole('button', { name: /finalizar/i }))
+
+    expect(await screen.findAllByText('Este cupom esgotou')).not.toHaveLength(0)
+    await waitFor(() => expect(screen.queryByText(/desconto \(DEZ\)/i)).not.toBeInTheDocument())
+    expect(screen.queryByTestId('order-success')).not.toBeInTheDocument()
+  })
+
+  it('422 no pedido por outro motivo (estoque): o cupom continua aplicado', async () => {
+    server.use(
+      http.post('/api/cart/coupon', () => HttpResponse.json({ code: 'DEZ', discountAmount: 299.9, subtotal: 2999 })),
+      http.post('/api/orders', () => HttpResponse.json({ message: 'Estoque insuficiente para Laptop' }, { status: 422 })),
+    )
+    const user = userEvent.setup()
+    renderCheckoutPage()
+
+    await user.click(await screen.findByLabelText(/correios — pac/i))
+    await applyCoupon(user, 'dez')
+    await screen.findByText(/desconto \(DEZ\)/i)
+    await user.click(screen.getByRole('button', { name: /finalizar/i }))
+
+    expect(await screen.findAllByText(/estoque insuficiente/i)).not.toHaveLength(0)
+    expect(screen.getByText(/desconto \(DEZ\)/i)).toBeInTheDocument()
+  })
+})

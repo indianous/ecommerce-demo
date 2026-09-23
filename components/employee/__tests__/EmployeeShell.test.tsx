@@ -118,6 +118,17 @@ describe('EmployeeShell — Sidebar (desktop)', () => {
     expect(screen.queryByRole('link', { name: /^promoções$/i })).not.toBeInTheDocument()
   })
 
+  it('MANAGE_COUPONS exibe item "Cupons"; sem ela, não', () => {
+    useAuthStore.setState(makeEmployee(['MANAGE_COUPONS']))
+    const { unmount } = renderEmployeeShell()
+    expect(screen.getByRole('link', { name: /^cupons$/i })).toHaveAttribute('href', '/dashboard/coupons')
+    unmount()
+
+    useAuthStore.setState(makeEmployee(['MANAGE_ORDERS']))
+    renderEmployeeShell()
+    expect(screen.queryByRole('link', { name: /^cupons$/i })).not.toBeInTheDocument()
+  })
+
   it('MANAGE_STOCK exibe item "Estoque"', () => {
     useAuthStore.setState(makeEmployee(['MANAGE_STOCK']))
     renderEmployeeShell()
