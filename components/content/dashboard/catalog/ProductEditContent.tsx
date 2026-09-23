@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Badge, Button, Container, Heading, Skeleton, Switch, useToast } from 'base-ds'
+import { Badge, Button, Container, Heading, Skeleton, Switch, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ProductForm, type ProductFormState } from '@/components/forms/ProductForm'
@@ -19,6 +19,7 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
   const [categories, setCategories] = useState<Category[]>([])
   const [form, setForm] = useState<ProductFormState | null>(null)
   const [status, setStatus] = useState<ProductStatus | null>(null)
+  const [promotion, setPromotion] = useState<{ id: string; name: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -31,6 +32,7 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
       setCategories(cats)
       if (product) {
         setStatus(product.status)
+        setPromotion(product.promotionId && product.promotionName ? { id: product.promotionId, name: product.promotionName } : null)
         setForm({
           name: product.name,
           description: product.description ?? '',
@@ -45,9 +47,6 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
           commercialUnit: product.commercialUnit ?? '',
           gtinEan: product.gtinEan ?? '',
           origin: product.origin ?? '',
-          promotionalPrice: product.promotionalPrice ?? 0,
-          promotionStartDate: product.promotionStartDate ?? '',
-          promotionEndDate: product.promotionEndDate ?? '',
           weight: product.weight ?? 0,
           height: product.height ?? 0,
           width: product.width ?? 0,
@@ -72,9 +71,6 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
         commercialUnit: form.commercialUnit || null,
         gtinEan: form.gtinEan || null,
         origin: form.origin || null,
-        promotionalPrice: form.promotionalPrice || null,
-        promotionStartDate: form.promotionStartDate || null,
-        promotionEndDate: form.promotionEndDate || null,
       }
       const res = await authFetch(`/api/admin/products/${id}`, {
         method: 'PUT',
@@ -137,6 +133,15 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
             Ver avaliações
           </Link>
         </div>
+        {promotion && (
+          <Text size="sm" color="muted" className="mb-4">
+            Este produto está na promoção{' '}
+            <Link href={`${backPath.replace(/products$/, 'promotions')}/${promotion.id}`} className="text-primary underline">
+              {promotion.name}
+            </Link>
+            . O preço promocional é definido por ela.
+          </Text>
+        )}
         <ProductForm
           form={form}
           onFormChange={(patch) => setForm((f) => (f ? { ...f, ...patch } : f))}

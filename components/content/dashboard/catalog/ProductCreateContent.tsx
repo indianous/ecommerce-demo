@@ -36,9 +36,6 @@ export function ProductCreateContent({ backPath = '/dashboard/products' }: { bac
         commercialUnit: form.commercialUnit || null,
         gtinEan: form.gtinEan || null,
         origin: form.origin || null,
-        promotionalPrice: form.promotionalPrice || null,
-        promotionStartDate: form.promotionStartDate || null,
-        promotionEndDate: form.promotionEndDate || null,
       }
       const res = await authFetch('/api/admin/products', {
         method: 'POST',

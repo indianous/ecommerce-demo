@@ -11,15 +11,16 @@ interface Props {
   category: string | undefined
   search: string | undefined
   sort?: ProductSort
+  onSale?: boolean
 }
 
-export function CatalogPagination({ currentPage, totalPages, category, search, sort }: Props) {
+export function CatalogPagination({ currentPage, totalPages, category, search, sort, onSale }: Props) {
   const router = useRouter()
 
   if (totalPages <= 1) return null
 
   const handlePageChange = (page: number) => {
-    router.push(buildCatalogUrl({ category, search, sort, page }))
+    router.push(buildCatalogUrl({ category, search, sort, onSale, page }))
   }
 
   return <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />

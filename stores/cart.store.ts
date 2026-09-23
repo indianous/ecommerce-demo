@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { CartItem } from '@/types'
+import type { CartItem, ProductPrice } from '@/types'
 import { useAuthStore } from '@/stores/auth.store'
 import { authFetch } from '@/lib/authFetch'
 
@@ -41,6 +41,11 @@ interface CartStore {
   updateQuantity: (productId: string, quantity: number) => Promise<void>
   clearCart: () => Promise<void>
   mergeOnLogin: () => Promise<void>
+  /**
+   * Visitante: o carrinho guarda o preço do momento em que o item entrou. Atualiza pelos preços atuais
+   * e tira os itens que deixaram de estar à venda. Devolve os nomes dos itens tirados.
+   */
+  refreshGuestPrices: () => Promise<{ removed: string[] }>
 }
 
 export const useCartStore = create<CartStore>()(
@@ -110,6 +115,38 @@ export const useCartStore = create<CartStore>()(
           }),
         })
         set({ items: mapServerCart(cart) })
+      },
+
+      refreshGuestPrices: async () => {
+        const items = get().items
+        if (useAuthStore.getState().isAuthenticated || items.length === 0) return { removed: [] }
+        let prices: ProductPrice[]
+        try {
+          const res = await fetch('/api/catalog/prices', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: items.map((i) => i.productId) }),
+          })
+          if (!res.ok) return { removed: [] }
+          prices = await res.json()
+        } catch {
+          return { removed: [] }
+        }
+        const byId = new Map(prices.map((p) => [p.id, p]))
+        const removed: string[] = []
+        const next: CartItem[] = []
+        for (const item of items) {
+          const current = byId.get(item.productId)
+          if (!current) {
+            next.push(item)
+          } else if (!current.available || current.effectivePrice === null) {
+            removed.push(item.name)
+          } else {
+            next.push({ ...item, price: current.effectivePrice })
+          }
+        }
+        set({ items: next })
+        return { removed }
       },
     }),
     { name: 'cart-storage' },

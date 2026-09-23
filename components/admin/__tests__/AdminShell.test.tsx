@@ -56,6 +56,7 @@ describe('AdminShell — Sidebar (desktop)', () => {
     expect(screen.getByRole('link', { name: /solicitações/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /produtos/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /^categorias$/i })).toHaveAttribute('href', '/dashboard/admin/categories')
+    expect(screen.getByRole('link', { name: /^promoções$/i })).toHaveAttribute('href', '/dashboard/admin/promotions')
     expect(screen.getByRole('link', { name: /estoque/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /excluídos/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /clientes/i })).toBeInTheDocument()

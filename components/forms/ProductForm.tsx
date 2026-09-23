@@ -21,9 +21,6 @@ export type ProductFormState = {
   commercialUnit: string
   gtinEan: string
   origin: MerchandiseOrigin | ''
-  promotionalPrice: number
-  promotionStartDate: string
-  promotionEndDate: string
   weight: number
   height: number
   width: number
@@ -45,9 +42,6 @@ export const EMPTY_PRODUCT_FORM: ProductFormState = {
   commercialUnit: '',
   gtinEan: '',
   origin: '',
-  promotionalPrice: 0,
-  promotionStartDate: '',
-  promotionEndDate: '',
   weight: 0,
   height: 0,
   width: 0,
@@ -93,17 +87,6 @@ export function ProductForm({
 
   const ncmError =
     form.ncm && !/^\d{8}$/.test(form.ncm) ? 'NCM deve ter 8 dígitos numéricos' : undefined
-
-  const promotionDatesError =
-    (form.promotionStartDate || form.promotionEndDate) &&
-    (!form.promotionStartDate || !form.promotionEndDate)
-      ? 'Início e fim da promoção são obrigatórios juntos'
-      : undefined
-
-  const promotionPriceError =
-    form.promotionalPrice > 0 && form.promotionalPrice >= form.price
-      ? 'Preço promocional precisa ser menor que o preço normal'
-      : undefined
 
   const handleImagesChange = async (files: File[]) => {
     const alreadyProcessed = uploadedFileCountRef.current
@@ -362,44 +345,6 @@ export function ProductForm({
             checked={form.freeShipping}
             onChange={(e) => onFormChange({ freeShipping: e.target.checked })}
           />
-        </div>
-      </Card>
-
-      <Card variant="outlined" header="Promoção">
-        <div className="flex flex-col gap-4">
-          <FormField
-            label="Preço promocional"
-            id="product-promotional-price"
-            error={promotionPriceError}
-          >
-            <NumberInput
-              id="product-promotional-price"
-              value={form.promotionalPrice}
-              min={0}
-              step={0.01}
-              onChange={(value) => onFormChange({ promotionalPrice: value })}
-            />
-          </FormField>
-
-          <FormField label="Início da promoção" id="product-promotion-start" error={promotionDatesError}>
-            <input
-              id="product-promotion-start"
-              type="datetime-local"
-              value={form.promotionStartDate}
-              onChange={(e) => onFormChange({ promotionStartDate: e.target.value })}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </FormField>
-
-          <FormField label="Fim da promoção" id="product-promotion-end">
-            <input
-              id="product-promotion-end"
-              type="datetime-local"
-              value={form.promotionEndDate}
-              onChange={(e) => onFormChange({ promotionEndDate: e.target.value })}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </FormField>
         </div>
       </Card>
 

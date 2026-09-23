@@ -16,14 +16,15 @@ interface Props {
   value: ProductSort
   category: string | undefined
   search: string | undefined
+  onSale?: boolean
 }
 
-export function CatalogSort({ value, category, search }: Props) {
+export function CatalogSort({ value, category, search, onSale }: Props) {
   const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const sort = e.target.value as ProductSort
-    router.push(buildCatalogUrl({ category, search, sort }))
+    router.push(buildCatalogUrl({ category, search, sort, onSale }))
   }
 
   return (

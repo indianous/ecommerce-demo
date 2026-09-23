@@ -163,6 +163,57 @@ export type ProductStatus = 'AVAILABLE' | 'UNAVAILABLE'
 
 export type ProductSort = 'NAME_ASC' | 'PRICE_ASC' | 'PRICE_DESC' | 'NEWEST'
 
+/** Situação da promoção de um produto em relação a agora. */
+export type PromotionStatus = 'ACTIVE' | 'SCHEDULED' | 'EXPIRED'
+
+/** Filtro por promoção da listagem de produtos do painel (NONE inclui promoções encerradas). */
+export type ProductPromotionFilter = 'ACTIVE' | 'SCHEDULED' | 'NONE'
+
+export type PromotionType = 'PERCENT' | 'FIXED_PRICE'
+
+/** Promoção nomeada: regra e período compartilhados pelos produtos dela. */
+export interface Promotion {
+  id: string
+  name: string
+  type: PromotionType
+  value: number
+  startDate: string
+  endDate: string
+  status: PromotionStatus
+  productCount: number
+}
+
+export interface PromotionProduct {
+  productId: string
+  name: string
+  slug: string
+  imageUrl: string | null
+  price: number
+  promotionalPrice: number
+  active: boolean
+}
+
+export interface PromotionDetail extends Omit<Promotion, 'productCount'> {
+  products: PromotionProduct[]
+}
+
+/** Corpo de edição da promoção; na criação, vai também {@code productIds}. */
+export interface PromotionInput {
+  name: string
+  type: PromotionType
+  value: number
+  startDate: string
+  endDate: string
+}
+
+/** Preço atual de um produto (revalidação do carrinho de visitante). */
+export interface ProductPrice {
+  id: string
+  effectivePrice: number | null
+  onPromotion: boolean
+  available: boolean
+}
+
 export type MerchandiseOrigin =
   | 'NACIONAL'
   | 'ESTRANGEIRA_IMPORTACAO_DIRETA'
@@ -193,6 +244,8 @@ export interface Product {
   promotionalPrice?: number
   promotionStartDate?: string
   promotionEndDate?: string
+  promotionId?: string | null
+  promotionName?: string | null
   weight?: number
   height?: number
   width?: number
@@ -609,7 +662,7 @@ export interface CustomerDetailResponse {
   recentlyViewedProducts: RecentlyViewedProduct[]
 }
 
-export type AuditEntityType = 'PRODUCT' | 'CATEGORY' | 'ORDER' | 'USER' | 'ADDRESS'
+export type AuditEntityType = 'PRODUCT' | 'CATEGORY' | 'PROMOTION' | 'ORDER' | 'USER' | 'ADDRESS'
 export type AuditAction =
   | 'CREATED'
   | 'UPDATED'

@@ -16,6 +16,7 @@ const navItems: DashboardNavItem[] = [
   { label: 'Pagamentos', href: '/dashboard/admin/payments', icon: 'CreditCard', group: DASHBOARD_NAV_GROUPS.VENDAS },
   { label: 'Produtos', href: '/dashboard/admin/products', icon: 'Package', group: DASHBOARD_NAV_GROUPS.CATALOGO },
   { label: 'Categorias', href: '/dashboard/admin/categories', icon: 'Tags', group: DASHBOARD_NAV_GROUPS.CATALOGO },
+  { label: 'Promoções', href: '/dashboard/admin/promotions', icon: 'BadgePercent', group: DASHBOARD_NAV_GROUPS.CATALOGO },
   { label: 'Estoque', href: '/dashboard/admin/stock', icon: 'Boxes', group: DASHBOARD_NAV_GROUPS.CATALOGO },
   { label: 'Excluídos', href: '/dashboard/admin/products/deleted', icon: 'Trash2', group: DASHBOARD_NAV_GROUPS.CATALOGO },
   { label: 'Clientes', href: '/dashboard/admin/customers', icon: 'Users', group: DASHBOARD_NAV_GROUPS.PESSOAS },

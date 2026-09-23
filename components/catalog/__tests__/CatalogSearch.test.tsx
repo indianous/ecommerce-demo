@@ -39,4 +39,14 @@ describe('CatalogSearch', () => {
 
     expect(pushMock).toHaveBeenCalledWith('/catalog?search=mouse&sort=PRICE_ASC')
   })
+
+  it('preserves the "Em promoção" filter when searching', async () => {
+    const user = userEvent.setup()
+    render(<CatalogSearch defaultValue="" category={undefined} onSale />)
+
+    await user.type(screen.getByRole('textbox', { name: /search input/i }), 'mouse')
+    await user.click(screen.getByRole('button', { name: /search/i }))
+
+    expect(pushMock).toHaveBeenCalledWith('/catalog?search=mouse&onSale=true')
+  })
 })

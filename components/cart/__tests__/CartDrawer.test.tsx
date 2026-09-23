@@ -57,4 +57,30 @@ describe('CartDrawer', () => {
 
     expect(await screen.findByRole('link', { name: /finalizar compra/i })).toHaveAttribute('href', '/checkout')
   })
+
+  it('ao abrir, revalida os preços do visitante e avisa quando um item saiu do carrinho', async () => {
+    const refresh = vi.spyOn(useCartStore.getState(), 'refreshGuestPrices')
+      .mockResolvedValue({ removed: ['Mouse'] })
+    useCartStore.getState().addItem({ productId: 'prod-1', name: 'Laptop', price: 2999 })
+    const user = userEvent.setup()
+    render(<CartDrawer />)
+
+    await user.click(screen.getByRole('button', { name: /carrinho/i }))
+
+    expect(refresh).toHaveBeenCalled()
+    expect(await screen.findByText(/mouse não está mais disponível e saiu do carrinho/i)).toBeInTheDocument()
+    refresh.mockRestore()
+  })
+
+  it('quando mais de um item sai do carrinho, o aviso fica no plural', async () => {
+    const refresh = vi.spyOn(useCartStore.getState(), 'refreshGuestPrices')
+      .mockResolvedValue({ removed: ['Mouse', 'Teclado'] })
+    const user = userEvent.setup()
+    render(<CartDrawer />)
+
+    await user.click(screen.getByRole('button', { name: /carrinho/i }))
+
+    expect(await screen.findByText('Mouse, Teclado não estão mais disponíveis e saíram do carrinho.')).toBeInTheDocument()
+    refresh.mockRestore()
+  })
 })

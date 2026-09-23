@@ -40,4 +40,13 @@ describe('CatalogPagination', () => {
 
     expect(pushMock).toHaveBeenCalledWith('/catalog?sort=PRICE_DESC&page=2')
   })
+
+  it('preserves the "Em promoção" filter when paginating', async () => {
+    const user = userEvent.setup()
+    render(<CatalogPagination currentPage={1} totalPages={3} category={undefined} search={undefined} onSale />)
+
+    await user.click(screen.getByRole('button', { name: /next page/i }))
+
+    expect(pushMock).toHaveBeenCalledWith('/catalog?onSale=true&page=2')
+  })
 })

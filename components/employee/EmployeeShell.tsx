@@ -18,6 +18,7 @@ const ALL_NAV_ITEMS: (DashboardNavItem & { perms: EmployeePermission[] })[] = [
   { label: 'Pagamentos', href: '/dashboard/payments', icon: 'CreditCard', perms: ['MANAGE_PAYMENTS'], group: DASHBOARD_NAV_GROUPS.VENDAS },
   { label: 'Produtos', href: '/dashboard/products', icon: 'Package', perms: ['MANAGE_PRODUCTS'], group: DASHBOARD_NAV_GROUPS.CATALOGO },
   { label: 'Categorias', href: '/dashboard/categories', icon: 'Tags', perms: ['MANAGE_PRODUCTS'], group: DASHBOARD_NAV_GROUPS.CATALOGO },
+  { label: 'Promoções', href: '/dashboard/promotions', icon: 'BadgePercent', perms: ['MANAGE_PRODUCTS'], group: DASHBOARD_NAV_GROUPS.CATALOGO },
   { label: 'Estoque', href: '/dashboard/stock', icon: 'Boxes', perms: ['MANAGE_STOCK'], group: DASHBOARD_NAV_GROUPS.CATALOGO },
   { label: 'Excluídos', href: '/dashboard/products/deleted', icon: 'Trash2', perms: ['RESTORE_PRODUCTS'], group: DASHBOARD_NAV_GROUPS.CATALOGO },
   { label: 'Clientes', href: '/dashboard/customers', icon: 'Users', perms: ['MANAGE_CUSTOMERS'], group: DASHBOARD_NAV_GROUPS.PESSOAS },

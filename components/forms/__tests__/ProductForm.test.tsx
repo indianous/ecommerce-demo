@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -231,62 +231,12 @@ describe('ProductForm — envio', () => {
 })
 
 describe('ProductForm — promoção', () => {
-  it('renderiza os campos de preço promocional e datas de início/fim', () => {
+  it('não tem mais campos de promoção (a promoção é gerida na tela Promoções)', () => {
     renderForm()
 
-    expect(screen.getByLabelText(/preço promocional/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/início da promoção/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/fim da promoção/i)).toBeInTheDocument()
-  })
-
-  it('preencher só a data de início mostra erro de validação local', () => {
-    const form: ProductFormState = { ...EMPTY_PRODUCT_FORM, promotionStartDate: '2026-01-01T00:00' }
-    renderForm({ form })
-
-    expect(screen.getByRole('alert')).toHaveTextContent(/obrigatórios juntos/i)
-  })
-
-  it('preencher só a data de fim mostra erro de validação local', () => {
-    const form: ProductFormState = { ...EMPTY_PRODUCT_FORM, promotionEndDate: '2026-01-02T00:00' }
-    renderForm({ form })
-
-    expect(screen.getByRole('alert')).toHaveTextContent(/obrigatórios juntos/i)
-  })
-
-  it('preencher as duas datas não mostra erro de datas', () => {
-    const form: ProductFormState = {
-      ...EMPTY_PRODUCT_FORM,
-      promotionStartDate: '2026-01-01T00:00',
-      promotionEndDate: '2026-01-02T00:00',
-    }
-    renderForm({ form })
-
-    expect(screen.queryByText(/obrigatórios juntos/i)).not.toBeInTheDocument()
-  })
-
-  it('preço promocional maior ou igual ao preço normal mostra erro local', () => {
-    const form: ProductFormState = { ...EMPTY_PRODUCT_FORM, price: 100, promotionalPrice: 100 }
-    renderForm({ form })
-
-    expect(screen.getByRole('alert')).toHaveTextContent(/menor que o preço normal/i)
-  })
-
-  it('preço promocional menor que o preço normal não mostra erro', () => {
-    const form: ProductFormState = { ...EMPTY_PRODUCT_FORM, price: 100, promotionalPrice: 80 }
-    renderForm({ form })
-
-    expect(screen.queryByText(/menor que o preço normal/i)).not.toBeInTheDocument()
-  })
-
-  it('propaga a digitação da data de início via onFormChange', () => {
-    const onFormChange = vi.fn()
-    renderForm({ onFormChange })
-
-    fireEvent.change(screen.getByLabelText(/início da promoção/i), {
-      target: { value: '2026-01-01T10:00' },
-    })
-
-    expect(onFormChange).toHaveBeenCalledWith({ promotionStartDate: '2026-01-01T10:00' })
+    expect(screen.queryByLabelText(/preço promocional/i)).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/início da promoção/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^promoção$/i)).not.toBeInTheDocument()
   })
 })
 

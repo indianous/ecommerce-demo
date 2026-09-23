@@ -11,15 +11,22 @@ const formatBRL = (value: number) =>
 
 export function CartDrawer() {
   const [open, setOpen] = useState(false)
+  const [removedNotice, setRemovedNotice] = useState<string[]>([])
   const items = useCartStore((s) => s.items)
   const total = useCartStore(selectCartTotal)
   const itemCount = useCartStore(selectItemCount)
+
+  const openDrawer = () => {
+    setOpen(true)
+    setRemovedNotice([])
+    void useCartStore.getState().refreshGuestPrices().then(({ removed }) => setRemovedNotice(removed))
+  }
 
   return (
     <>
       <div className="relative inline-flex">
         <Tooltip label={`Carrinho (${itemCount})`} position="bottom">
-          <Button iconOnly leftIcon={<Icon name="ShoppingCart" size="sm" />} variant="ghost" size="sm" onClick={() => setOpen(true)}>
+          <Button iconOnly leftIcon={<Icon name="ShoppingCart" size="sm" />} variant="ghost" size="sm" onClick={openDrawer}>
             <span className="sr-only">{`Carrinho (${itemCount})`}</span>
           </Button>
         </Tooltip>
@@ -57,6 +64,13 @@ export function CartDrawer() {
           </div>
         }
       >
+        {removedNotice.length > 0 && (
+          <Text size="sm" color="muted" className="mb-3">
+            {removedNotice.length === 1
+              ? `${removedNotice[0]} não está mais disponível e saiu do carrinho.`
+              : `${removedNotice.join(', ')} não estão mais disponíveis e saíram do carrinho.`}
+          </Text>
+        )}
         {items.length === 0 ? (
           <Text color="muted">Seu carrinho está vazio.</Text>
         ) : (

@@ -19,6 +19,7 @@ const ENTITY_TYPE_OPTIONS = [
   { value: 'ORDER', label: 'Pedido' },
   { value: 'PRODUCT', label: 'Produto' },
   { value: 'CATEGORY', label: 'Categoria' },
+  { value: 'PROMOTION', label: 'Promoção' },
   { value: 'USER', label: 'Usuário' },
   { value: 'ADDRESS', label: 'Endereço' },
 ]
@@ -45,6 +46,7 @@ const ENTITY_TYPE_LABELS: Record<AuditEntityType, string> = {
   ORDER: 'Pedido',
   PRODUCT: 'Produto',
   CATEGORY: 'Categoria',
+  PROMOTION: 'Promoção',
   USER: 'Usuário',
   ADDRESS: 'Endereço',
 }

@@ -177,4 +177,17 @@ describe('ProductCreateContent', () => {
       expect(lastSavedBody.imageUrls).toEqual(['/uploads/uuid-test.jpg'])
     })
   })
+
+  it('o POST não manda campos de promoção', async () => {
+    const user = userEvent.setup()
+    renderCreate()
+
+    await user.type(await screen.findByLabelText(/^nome/i), 'Produto Novo')
+    await user.click(screen.getByRole('combobox', { name: /categorias/i }))
+    await user.click(screen.getByRole('option', { name: 'Eletrônicos' }))
+    await user.click(screen.getByRole('button', { name: /salvar/i }))
+
+    await waitFor(() => expect(lastSavedBody.name).toBe('Produto Novo'))
+    expect(lastSavedBody).not.toHaveProperty('promotionalPrice')
+  })
 })

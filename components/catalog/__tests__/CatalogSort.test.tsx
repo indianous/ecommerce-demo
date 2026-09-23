@@ -35,4 +35,13 @@ describe('CatalogSort', () => {
 
     expect(pushMock).toHaveBeenCalledWith('/catalog?category=eletronicos&search=teclado&sort=PRICE_ASC')
   })
+
+  it('trocar a opção preserva o filtro "Em promoção"', async () => {
+    const user = userEvent.setup()
+    render(<CatalogSort value="NAME_ASC" category={undefined} search={undefined} onSale />)
+
+    await user.selectOptions(screen.getByRole('combobox', { name: /ordenar por/i }), 'PRICE_ASC')
+
+    expect(pushMock).toHaveBeenCalledWith('/catalog?sort=PRICE_ASC&onSale=true')
+  })
 })

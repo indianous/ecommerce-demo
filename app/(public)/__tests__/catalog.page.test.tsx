@@ -170,4 +170,49 @@ describe('CatalogPage', () => {
 
     expect(screen.getByText('Nenhum produto encontrado.')).toBeInTheDocument()
   })
+
+  it('envia onSale=true ao backend quando presente em searchParams e marca o filtro "Em promoção"', async () => {
+    let requestedOnSale: string | null = null
+    server.use(
+      http.get('http://localhost:8080/api/v1/catalog/products', ({ request }) => {
+        requestedOnSale = new URL(request.url).searchParams.get('onSale')
+        return HttpResponse.json(mockPage)
+      }),
+    )
+
+    const jsx = await CatalogPage({ searchParams: Promise.resolve({ onSale: 'true' }) })
+    renderWithProviders(jsx)
+
+    expect(requestedOnSale).toBe('true')
+    expect(screen.getByRole('switch', { name: /em promoção/i })).toBeChecked()
+  })
+
+  it('sem onSale na URL, não envia o filtro e o "Em promoção" fica desligado', async () => {
+    let requestedOnSale: string | null = 'x'
+    server.use(
+      http.get('http://localhost:8080/api/v1/catalog/products', ({ request }) => {
+        requestedOnSale = new URL(request.url).searchParams.get('onSale')
+        return HttpResponse.json(mockPage)
+      }),
+    )
+
+    const jsx = await CatalogPage({ searchParams: Promise.resolve({}) })
+    renderWithProviders(jsx)
+
+    expect(requestedOnSale).toBeNull()
+    expect(screen.getByRole('switch', { name: /em promoção/i })).not.toBeChecked()
+  })
+
+  it('links de categoria preservam o filtro "Em promoção"', async () => {
+    server.use(
+      http.get('http://localhost:8080/api/v1/catalog/categories', () =>
+        HttpResponse.json([{ id: 'cat-1', name: 'Electronics', slug: 'electronics' }]),
+      ),
+    )
+
+    const jsx = await CatalogPage({ searchParams: Promise.resolve({ onSale: 'true' }) })
+    renderWithProviders(jsx)
+
+    expect(screen.getByRole('link', { name: 'Electronics' })).toHaveAttribute('href', '/catalog?category=electronics&onSale=true')
+  })
 })

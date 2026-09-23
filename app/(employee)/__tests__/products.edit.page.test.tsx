@@ -218,4 +218,26 @@ describe('ProductEditContent — seção Ações', () => {
       expect(pushMock).toHaveBeenCalledWith('/dashboard/products')
     })
   })
+
+  it('o PUT não manda mais campos de promoção', async () => {
+    const user = userEvent.setup()
+    renderEdit()
+
+    await screen.findByDisplayValue('Teclado Mecânico')
+    await user.click(screen.getByRole('button', { name: /salvar/i }))
+
+    await waitFor(() => expect(lastPutBody.name).toBe('Teclado Mecânico'))
+    expect(lastPutBody).not.toHaveProperty('promotionalPrice')
+    expect(lastPutBody).not.toHaveProperty('promotionStartDate')
+    expect(lastPutBody).not.toHaveProperty('promotionEndDate')
+  })
+
+  it('produto numa promoção mostra o aviso com link para ela', async () => {
+    currentProduct = { ...mockProduct, promotionId: 'promo-1', promotionName: 'Black Friday' }
+    renderEdit()
+
+    const link = await screen.findByRole('link', { name: 'Black Friday' })
+    expect(link).toHaveAttribute('href', '/dashboard/promotions/promo-1')
+    expect(screen.getByText(/este produto está na promoção/i)).toBeInTheDocument()
+  })
 })

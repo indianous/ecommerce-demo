@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Badge, Button, Container, FilterDropdown, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { ApplyPromotionDialog } from '@/components/product/ApplyPromotionDialog'
 import { ProductImportDialog } from '@/components/product/ProductImportDialog'
 import { downloadBlob } from '@/lib/downloadBlob'
 import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
@@ -34,10 +35,12 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
   const searchRef = useRef('')
   const [categoryIds, setCategoryIds] = useState<string[]>([])
   const [statusFilter, setStatusFilter] = useState<string[]>([])
+  const [promotionFilter, setPromotionFilter] = useState<string[]>([])
 
   const [categories, setCategories] = useState<Category[]>([])
 
 
+  const [applyPromotionOpen, setApplyPromotionOpen] = useState(false)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [exporting, setExporting] = useState(false)
 
@@ -49,10 +52,11 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
     if (searchRef.current) params.set('search', searchRef.current)
     categoryIds.forEach((id) => params.append('categoryId', id))
     statusFilter.forEach((s) => params.append('status', s))
+    promotionFilter.forEach((p) => params.append('promotion', p))
     const res = await authFetch(`/api/admin/products?${params}`)
     if (!res.ok) return null
     return await res.json()
-  }, [accessToken, categoryIds, statusFilter])
+  }, [accessToken, categoryIds, statusFilter, promotionFilter])
 
   const { page, items: products, totalPages, loading, goToPage, reload } = usePaginatedFetch(fetchPage)
 
@@ -65,6 +69,9 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
     if (!accessToken) return
     fetch('/api/categories').then((r) => (r.ok ? r.json() : [])).then(setCategories)
   }, [accessToken])
+
+  const selection = useRowSelection()
+  const selectedProducts = products.filter((p) => selection.isSelected(p.id))
 
   const handleExport = async () => {
     if (!accessToken) return
@@ -92,12 +99,11 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
       )
     : products
 
-  const selection = useRowSelection()
-
   const columns: TableColumn<Product>[] = [
     makeSelectionColumn(sortedProducts, (p) => p.id, (p) => p.name, selection.selectedIds, selection.toggle, selection.selectAll),
     { key: 'name', header: 'Nome', sortable: true, render: (p) => p.name },
     { key: 'categoryName', header: 'Categoria', render: (p) => p.categories[0]?.name ?? '—' },
+    { key: 'promotionName', header: 'Promoção', render: (p) => p.promotionName ?? '—' },
     { key: 'price', header: 'Preço', sortable: true, render: (p) => formatBRL(p.price) },
     { key: 'stockQuantity', header: 'Estoque', sortable: true, render: (p) => p.stockQuantity },
     { key: 'viewCount', header: 'Visualizações', sortable: true, render: (p) => p.viewCount ?? 0 },
@@ -158,6 +164,16 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
                   onApply={setCategoryIds}
                 />
                 <FilterDropdown
+                  label="Promoção"
+                  options={[
+                    { value: 'ACTIVE', label: 'Ativa' },
+                    { value: 'SCHEDULED', label: 'Agendada' },
+                    { value: 'NONE', label: 'Sem promoção' },
+                  ]}
+                  value={promotionFilter}
+                  onApply={setPromotionFilter}
+                />
+                <FilterDropdown
                   label="Disponibilidade"
                   options={[
                     { value: 'AVAILABLE', label: 'Disponível' },
@@ -170,7 +186,17 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
             }
           />
 
-          <SelectionBar selectedCount={selection.selectedCount} onClear={selection.clear} />
+          <SelectionBar
+            selectedCount={selection.selectedCount}
+            onClear={selection.clear}
+            actions={
+              canManageProducts && (
+                <Button leftIcon={<Icon name="BadgePercent" size="sm" />} variant="primary" size="sm" onClick={() => setApplyPromotionOpen(true)}>
+                  Aplicar promoção
+                </Button>
+              )
+            }
+          />
 
           <ManagementContentBody loading={loading} empty={products.length === 0} emptyMessage="Nenhum produto encontrado." loadingLabel="Carregando produtos">
             <Table
@@ -182,6 +208,13 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
 
           <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
 
+
+          <ApplyPromotionDialog
+            open={applyPromotionOpen}
+            onClose={() => setApplyPromotionOpen(false)}
+            products={selectedProducts}
+            onApplied={() => { selection.clear(); reload() }}
+          />
 
           <ProductImportDialog
             open={importDialogOpen}

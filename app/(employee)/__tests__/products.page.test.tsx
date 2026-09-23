@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -331,6 +331,133 @@ describe('ProductsManagementPage — filtros', () => {
     expect(document.activeElement).toBe(searchInput)
     expect(searchInput).toHaveValue('tec')
     expect(screen.queryByText(/carregando produtos/i)).not.toBeInTheDocument()
+  })
+})
+
+describe('ProductsManagementPage — promoções', () => {
+  const activePromo = {
+    id: 'promo-1', name: 'Black Friday', type: 'PERCENT', value: 20,
+    startDate: '2026-09-20T00:00:00', endDate: '2026-12-30T23:59:00', status: 'ACTIVE', productCount: 4,
+  }
+  const expiredPromo = { ...activePromo, id: 'promo-old', name: 'Antiga', status: 'EXPIRED' }
+
+  async function selectBothAndOpen(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(screen.getByRole('checkbox', { name: /selecionar teclado mecânico/i }))
+    await user.click(screen.getByRole('checkbox', { name: /selecionar livro de receitas/i }))
+    await user.click(screen.getByRole('button', { name: /aplicar promoção/i }))
+    return screen.getByRole('dialog', { name: /aplicar promoção em 2 produtos/i })
+  }
+
+  it('coluna "Promoção" mostra o nome da promoção do produto', async () => {
+    products = [{ ...mockProduct, promotionId: 'promo-1', promotionName: 'Black Friday' }, mockBookProduct]
+    renderPage()
+
+    const row = (await screen.findByText('Teclado Mecânico')).closest('tr') as HTMLElement
+    expect(within(row).getByText('Black Friday')).toBeInTheDocument()
+  })
+
+  it('sem seleção, não mostra "Aplicar promoção"', async () => {
+    renderPage()
+    await screen.findByText('Teclado Mecânico')
+    expect(screen.queryByRole('button', { name: /aplicar promoção/i })).not.toBeInTheDocument()
+  })
+
+  it('"Nova promoção" cria a promoção já com os produtos selecionados', async () => {
+    products = [mockProduct, mockBookProduct]
+    let body: unknown = null
+    server.use(
+      http.post('/api/admin/promotions', async ({ request }) => {
+        body = await request.json()
+        return HttpResponse.json({ ...activePromo, name: 'Teste', productCount: 2 }, { status: 201 })
+      }),
+    )
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Teclado Mecânico')
+
+    const dialog = await selectBothAndOpen(user)
+    expect(within(dialog).getByRole('radio', { name: /nova promoção/i })).toBeChecked()
+    await user.type(within(dialog).getByLabelText(/^nome/i), 'Teste')
+    await user.type(within(dialog).getByLabelText(/^início/i), '2026-10-01T00:00')
+    await user.type(within(dialog).getByLabelText(/^fim/i), '2026-10-08T23:59')
+    await user.click(within(dialog).getByRole('button', { name: /criar promoção/i }))
+
+    await waitFor(() => expect(body).toEqual({
+      name: 'Teste', type: 'PERCENT', value: 10,
+      startDate: '2026-10-01T00:00', endDate: '2026-10-08T23:59',
+      productIds: ['prod-1', 'prod-2'],
+    }))
+    expect(await screen.findByText(/promoção teste criada com 2 produtos/i)).toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
+  it('"Promoção existente" lista só as ativas e agendadas e adiciona os selecionados', async () => {
+    products = [mockProduct, mockBookProduct]
+    let addBody: unknown = null
+    let addedTo = ''
+    server.use(
+      http.get('/api/admin/promotions', () => HttpResponse.json({ content: [activePromo, expiredPromo], totalPages: 1 })),
+      http.post('/api/admin/promotions/:id/products', async ({ request, params }) => {
+        addedTo = params.id as string
+        addBody = await request.json()
+        return HttpResponse.json({ ...activePromo, productCount: 6 })
+      }),
+    )
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Teclado Mecânico')
+
+    const dialog = await selectBothAndOpen(user)
+    await user.click(within(dialog).getByRole('radio', { name: /promoção existente/i }))
+    const select = await within(dialog).findByRole('combobox', { name: /^promoção/i })
+    expect(within(select).queryByRole('option', { name: /antiga/i })).not.toBeInTheDocument()
+    await user.selectOptions(select, 'promo-1')
+    await user.click(within(dialog).getByRole('button', { name: /adicionar à promoção/i }))
+
+    await waitFor(() => expect(addedTo).toBe('promo-1'))
+    expect(addBody).toEqual({ productIds: ['prod-1', 'prod-2'] })
+    expect(await screen.findByText(/2 produtos adicionados à promoção black friday/i)).toBeInTheDocument()
+  })
+
+  it('409 (produto em outra promoção): mostra a mensagem e mantém o diálogo aberto', async () => {
+    products = [mockProduct, mockBookProduct]
+    server.use(
+      http.post('/api/admin/promotions', () =>
+        HttpResponse.json({ message: 'Estes produtos já estão em outra promoção. Tire-os de lá antes: Teclado Mecânico (em "Natal")' }, { status: 409 }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Teclado Mecânico')
+
+    const dialog = await selectBothAndOpen(user)
+    await user.type(within(dialog).getByLabelText(/^nome/i), 'Teste')
+    await user.type(within(dialog).getByLabelText(/^início/i), '2026-10-01T00:00')
+    await user.type(within(dialog).getByLabelText(/^fim/i), '2026-10-08T23:59')
+    await user.click(within(dialog).getByRole('button', { name: /criar promoção/i }))
+
+    expect(await screen.findByText(/já estão em outra promoção/i)).toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('filtro "Promoção" repassa as situações escolhidas', async () => {
+    let requested: string[] = []
+    server.use(
+      http.get('/api/admin/products', ({ request }) => {
+        requested = new URL(request.url).searchParams.getAll('promotion')
+        return HttpResponse.json(makePage(products))
+      }),
+    )
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Teclado Mecânico')
+
+    await user.click(screen.getByRole('button', { name: /^promoção/i }))
+    await user.click(screen.getByRole('checkbox', { name: 'Ativa' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Agendada' }))
+    await user.click(screen.getByRole('button', { name: /^aplicar$/i }))
+
+    await waitFor(() => expect(requested).toEqual(['ACTIVE', 'SCHEDULED']))
   })
 })
 

@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: 'Catálogo',
   description: 'Navegue por todos os nossos produtos.',
 }
+import { CatalogOnSaleToggle } from '@/components/catalog/CatalogOnSaleToggle'
 import { CatalogPagination } from '@/components/catalog/CatalogPagination'
 import { CatalogSearch } from '@/components/catalog/CatalogSearch'
 import { CatalogSort } from '@/components/catalog/CatalogSort'
@@ -20,11 +21,13 @@ async function fetchProducts(
   search?: string,
   sort?: ProductSort,
   page = 1,
+  onSale = false,
 ): Promise<ProductPage> {
   const params = new URLSearchParams()
   if (category) params.set('category', category)
   if (search) params.set('search', search)
   if (sort) params.set('sort', sort)
+  if (onSale) params.set('onSale', 'true')
   params.set('page', String(page - 1))
 
   try {
@@ -47,14 +50,15 @@ async function fetchCategories(): Promise<Category[]> {
 }
 
 interface Props {
-  searchParams: Promise<{ category?: string; search?: string; sort?: ProductSort; page?: string }>
+  searchParams: Promise<{ category?: string; search?: string; sort?: ProductSort; page?: string; onSale?: string }>
 }
 
 export default async function CatalogPage({ searchParams }: Props) {
-  const { category, search, sort, page: pageParam } = await searchParams
+  const { category, search, sort, page: pageParam, onSale: onSaleParam } = await searchParams
   const page = Math.max(1, Number(pageParam) || 1)
+  const onSale = onSaleParam === 'true'
   const [data, categories] = await Promise.all([
-    fetchProducts(category, search, sort, page),
+    fetchProducts(category, search, sort, page, onSale),
     fetchCategories(),
   ])
 
@@ -63,8 +67,11 @@ export default async function CatalogPage({ searchParams }: Props) {
       <h1 className="mb-6 text-2xl font-bold">Catálogo</h1>
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <CatalogSearch defaultValue={search ?? ''} category={category} sort={sort} />
-        <CatalogSort value={sort ?? 'NAME_ASC'} category={category} search={search} />
+        <CatalogSearch defaultValue={search ?? ''} category={category} sort={sort} onSale={onSale} />
+        <div className="flex items-center gap-4">
+          <CatalogOnSaleToggle checked={onSale} category={category} search={search} sort={sort} />
+          <CatalogSort value={sort ?? 'NAME_ASC'} category={category} search={search} onSale={onSale} />
+        </div>
       </div>
 
       {categories.length > 0 && (
@@ -75,7 +82,7 @@ export default async function CatalogPage({ searchParams }: Props) {
           {categories.map((cat) => (
             <Link
               key={cat.id}
-              href={buildCatalogUrl({ category: cat.slug, search, sort })}
+              href={buildCatalogUrl({ category: cat.slug, search, sort, onSale })}
               className="rounded-full border px-4 py-1 text-sm hover:bg-gray-100"
             >
               {cat.name}
@@ -93,6 +100,7 @@ export default async function CatalogPage({ searchParams }: Props) {
           category={category}
           search={search}
           sort={sort}
+          onSale={onSale}
         />
       </div>
     </Container>

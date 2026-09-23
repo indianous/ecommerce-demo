@@ -31,4 +31,13 @@ describe('buildCatalogUrl', () => {
   it('page maior que 1 aparece na URL', () => {
     expect(buildCatalogUrl({ page: 2 })).toBe('/catalog?page=2')
   })
+
+  it('onSale=true aparece como onSale=true, depois de sort e antes de page', () => {
+    expect(buildCatalogUrl({ category: 'tech', sort: 'PRICE_ASC', onSale: true, page: 2 }))
+      .toBe('/catalog?category=tech&sort=PRICE_ASC&onSale=true&page=2')
+  })
+
+  it('onSale=false é omitido da URL', () => {
+    expect(buildCatalogUrl({ onSale: false })).toBe('/catalog')
+  })
 })
