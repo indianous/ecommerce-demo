@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Button, Icon, Table, type TableColumn, useToast } from 'base-ds'
+import { Button, Container, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
@@ -77,7 +77,7 @@ export function DeletedProductsContent() {
 
   return (
     <PermissionGuard permissions={['RESTORE_PRODUCTS']}>
-      <main className="mx-auto max-w-3xl px-4 py-8">
+      <Container>
         <ManagementPageHeader title="Produtos Excluídos" />
         <ManagementPageBody>
           <ManagementContentHeader
@@ -95,7 +95,7 @@ export function DeletedProductsContent() {
 
           <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
         </ManagementPageBody>
-      </main>
+      </Container>
     </PermissionGuard>
   )
 }

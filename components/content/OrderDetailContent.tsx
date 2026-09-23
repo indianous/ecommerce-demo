@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import type { ComponentProps } from 'react'
 import Link from 'next/link'
-import { Badge, Button, Heading, Icon, Select, Skeleton, Table, type TableColumn, Text, Textarea, useToast } from 'base-ds'
+import { Badge, Button, Container, Heading, Icon, Select, Skeleton, Table, type TableColumn, Text, Textarea, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
@@ -228,7 +228,7 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
 
   return (
     <PermissionGuard permissions={['MANAGE_ORDERS', 'MANAGE_SHIPPING', 'MANAGE_ORDER_STATUS_REQUESTS']}>
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      <Container>
         <div className="mb-6 flex items-center gap-4">
           <Link
             href={backPath}
@@ -448,7 +448,7 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
             </div>
           </form>
         )}
-      </div>
+      </Container>
     </PermissionGuard>
   )
 }

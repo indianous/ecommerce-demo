@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
-import { Button, Dialog, Icon, Table, type TableColumn, useToast } from 'base-ds'
+import { Button, Container, Dialog, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { StockEntryForm } from '@/components/forms/StockEntryForm'
@@ -174,7 +174,7 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
 
   return (
     <PermissionGuard permissions={['MANAGE_STOCK']}>
-      <main className="mx-auto max-w-4xl px-4 py-8">
+      <Container>
         <ManagementPageHeader title="Gestão de Estoque" />
         <ManagementPageBody
           actions={
@@ -202,7 +202,7 @@ export function StockContent({ stockBasePath = '/dashboard/stock' }: Props) {
 
           <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
         </ManagementPageBody>
-      </main>
+      </Container>
 
       <Dialog open={entryProductId !== null} onClose={closeEntryDialog} title="Registrar entrada">
         <StockEntryForm

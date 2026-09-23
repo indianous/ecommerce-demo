@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
-import { Badge, Breadcrumb, Heading, Text } from 'base-ds'
+import { Badge, Breadcrumb, Container, Heading, Text } from 'base-ds'
 import { AddToCartButton } from '@/components/product/AddToCartButton'
 import { ProductCarousel } from '@/components/product/ProductCarousel'
 import { ProductImageGallery } from '@/components/product/ProductImageGallery'
@@ -95,7 +95,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8 flex flex-col gap-10">
+    <Container className="flex flex-col gap-10">
       <Breadcrumb
         items={[
           { label: 'Catálogo', href: '/catalog' },
@@ -155,6 +155,6 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
       <ProductCarousel title="Produtos relacionados" products={relatedProducts} />
 
       <ProductViewTracker productId={product.id} />
-    </main>
+    </Container>
   )
 }

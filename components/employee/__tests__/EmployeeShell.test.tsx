@@ -2,7 +2,7 @@ import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ToastProvider } from 'base-ds'
+import { Container, ToastProvider } from 'base-ds'
 import { EmployeeShell } from '../EmployeeShell'
 import { useAuthStore } from '@/stores/auth.store'
 import type { EmployeePermission } from '@/types'
@@ -441,5 +441,25 @@ describe('EmployeeShell — Menu do site (MANAGE_SITE)', () => {
     expect(within(dialog).getByText('Site')).toBeInTheDocument()
     expect(within(dialog).getByRole('link', { name: /^favicon$/i })).toHaveAttribute('aria-current', 'page')
     expect(within(dialog).getByRole('link', { name: /^logo$/i })).not.toHaveAttribute('aria-current')
+  })
+})
+
+describe('EmployeeShell — área de conteúdo', () => {
+  it('o <main> do shell não tem padding próprio (o espaçamento é do Container da página)', () => {
+    useAuthStore.setState(authenticatedEmployee)
+    renderEmployeeShell()
+    expect(screen.getByRole('main')).not.toHaveClass('p-6')
+  })
+
+  it('com um Container como filho, existe um único landmark main', () => {
+    useAuthStore.setState(authenticatedEmployee)
+    render(
+      <ToastProvider>
+        <EmployeeShell>
+          <Container>conteúdo</Container>
+        </EmployeeShell>
+      </ToastProvider>,
+    )
+    expect(screen.getAllByRole('main')).toHaveLength(1)
   })
 })

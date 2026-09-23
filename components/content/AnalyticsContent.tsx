@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { FormField, Heading } from 'base-ds'
+import { Container, FormField, Heading } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { FunnelChart } from '@/components/analytics/FunnelChart'
@@ -43,7 +43,7 @@ export function AnalyticsContent() {
 
   return (
     <PermissionGuard permissions={['MANAGE_ANALYTICS']}>
-      <main className="mx-auto max-w-4xl px-4 py-8">
+      <Container>
         <Heading as="h1" size="2xl" className="mb-6">Analytics</Heading>
 
         <div className="flex gap-4 mb-6">
@@ -74,7 +74,7 @@ export function AnalyticsContent() {
           <Heading as="h2" size="xl" className="mb-3 mt-8">Conversão por canal</Heading>
           {channels && <ChannelChart data={channels} />}
         </div>
-      </main>
+      </Container>
     </PermissionGuard>
   )
 }

@@ -93,7 +93,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </>
         )}
 
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1">{children}</main>
       </div>
     </div>
   )

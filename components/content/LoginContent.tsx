@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Heading, Text } from 'base-ds'
+import { Container, Heading, Text } from 'base-ds'
 import { LoginForm } from '@/components/forms/LoginForm'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -24,7 +24,7 @@ export function LoginContent() {
   }
 
   return (
-    <main className="mx-auto flex max-w-sm flex-col gap-6 px-4 py-16">
+    <Container width="sm" spacing="loose" className="flex flex-col gap-6">
       <Heading as="h1" size="2xl">
         Entrar
       </Heading>
@@ -43,6 +43,6 @@ export function LoginContent() {
           Cadastre-se
         </Link>
       </Text>
-    </main>
+    </Container>
   )
 }

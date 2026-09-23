@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, FilterDropdown, Icon, Table, type TableColumn, useToast } from 'base-ds'
+import { Badge, Button, Container, FilterDropdown, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
@@ -116,7 +116,7 @@ export function EmployeeOrdersContent({ orderBasePath = '/dashboard/orders' }: {
 
   return (
     <PermissionGuard permissions={['MANAGE_ORDERS', 'MANAGE_SHIPPING', 'MANAGE_ORDER_STATUS_REQUESTS']}>
-      <main className="mx-auto max-w-5xl px-4 py-8">
+      <Container>
         <ManagementPageHeader title="Gestão de Pedidos" />
         <ManagementPageBody>
           <ManagementContentHeader
@@ -147,7 +147,7 @@ export function EmployeeOrdersContent({ orderBasePath = '/dashboard/orders' }: {
 
           <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
         </ManagementPageBody>
-      </main>
+      </Container>
     </PermissionGuard>
   )
 }

@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Badge, Button, Dialog, FilterDropdown, Heading, Icon, Table, type TableColumn, useToast } from 'base-ds'
+import { Badge, Button, Container, Dialog, FilterDropdown, Heading, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
@@ -112,7 +112,7 @@ export function SolicitacoesContent() {
 
   if (selected) {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-8">
+      <Container>
         <div className="mb-4">
           <Button leftIcon={<Icon name="ArrowLeft" size="sm" />} variant="outline" size="sm" onClick={() => setSelected(null)}>Voltar à lista</Button>
         </div>
@@ -192,7 +192,7 @@ export function SolicitacoesContent() {
             </div>
           }
         />
-      </main>
+      </Container>
     )
   }
 
@@ -224,7 +224,7 @@ export function SolicitacoesContent() {
 
   return (
     <PermissionGuard permissions={['MANAGE_ORDER_STATUS_REQUESTS']}>
-      <main className="mx-auto max-w-5xl px-4 py-8">
+      <Container>
         <ManagementPageHeader title="Solicitações de Status" />
         <ManagementPageBody>
           <ManagementContentHeader
@@ -258,7 +258,7 @@ export function SolicitacoesContent() {
 
           <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
         </ManagementPageBody>
-      </main>
+      </Container>
     </PermissionGuard>
   )
 }

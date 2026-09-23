@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Badge, Button, Heading, Skeleton, Switch, useToast } from 'base-ds'
+import { Badge, Button, Container, Heading, Skeleton, Switch, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ProductForm, type ProductFormState } from '@/components/forms/ProductForm'
@@ -127,7 +127,7 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
 
   return (
     <PermissionGuard permissions={['MANAGE_PRODUCTS']}>
-      <main className="mx-auto max-w-2xl px-4 py-8">
+      <Container>
         <div className="mb-6 flex items-center gap-4">
           <Link href={backPath} className="text-sm text-muted-foreground hover:underline">
             ← Voltar
@@ -170,7 +170,7 @@ export function ProductEditContent({ id, backPath = '/dashboard/products' }: { i
           title="Excluir produto"
           description="O produto sai imediatamente da loja. É possível restaurá-lo em Produtos excluídos."
         />
-      </main>
+      </Container>
     </PermissionGuard>
   )
 }

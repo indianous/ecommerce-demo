@@ -58,4 +58,9 @@ describe('CartPage', () => {
     render(<CartPage />)
     expect(screen.getByRole('link', { name: /finalizar pedido/i })).toHaveAttribute('href', '/checkout')
   })
+
+  it('o campo de quantidade tem nome acessível com o produto', () => {
+    render(<CartPage />)
+    expect(screen.getByRole('spinbutton', { name: 'Quantidade de Laptop' })).toHaveValue(1)
+  })
 })

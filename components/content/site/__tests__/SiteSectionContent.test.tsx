@@ -23,6 +23,6 @@ describe('SiteSectionContent', () => {
   it('slug sem componente não renderiza nada', () => {
     const { container } = renderSection(<SiteSectionContent slug="nao-existe" backPath="/dashboard/site" />)
 
-    expect(container.querySelector('main')).toBeNull()
+    expect(container).toBeEmptyDOMElement()
   })
 })

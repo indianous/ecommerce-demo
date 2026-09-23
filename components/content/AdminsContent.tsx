@@ -1,7 +1,7 @@
 'use client'
 import { useCallback, useRef, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Button, Dialog, Icon, useToast } from 'base-ds'
+import { Button, Container, Dialog, Icon, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { EmployeeManagementTable } from '@/components/admin/EmployeeManagementTable'
 import { EmployeeForm } from '@/components/forms/EmployeeForm'
@@ -122,7 +122,7 @@ export function AdminsContent() {
   } = useConfirmDelete(handleBulkDelete)
 
   return (
-    <>
+    <Container>
       <ManagementPageHeader title="Gestão de Administradores" />
       <ManagementPageBody
         actions={
@@ -190,6 +190,6 @@ export function AdminsContent() {
           description={bulkDeleteTarget ? `Remover ${bulkDeleteTarget.length} administrador(es) selecionado(s)? Essa ação não pode ser desfeita.` : undefined}
         />
       </ManagementPageBody>
-    </>
+    </Container>
   )
 }

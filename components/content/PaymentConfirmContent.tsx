@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Heading, Skeleton, useToast } from 'base-ds'
+import { Container, Heading, Skeleton, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
@@ -93,7 +93,7 @@ export function PaymentConfirmContent({
 
   return (
     <PermissionGuard permissions={['MANAGE_PAYMENTS']}>
-      <main className="mx-auto max-w-2xl px-4 py-8">
+      <Container>
         <div className="mb-6 flex items-center gap-4">
           <Link href={backPath} className="text-sm text-muted-foreground hover:underline">
             ← Voltar
@@ -137,7 +137,7 @@ export function PaymentConfirmContent({
           confirming={confirming}
           receiptRequired={receiptRequired}
         />
-      </main>
+      </Container>
     </PermissionGuard>
   )
 }

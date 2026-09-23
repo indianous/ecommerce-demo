@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
-import { Badge, Button, Heading, Icon, Skeleton, Table, type TableColumn, Text } from 'base-ds'
+import { Badge, Button, Container, Heading, Icon, Skeleton, Table, type TableColumn, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PaginationBar } from '@/components/ui/PaginationBar'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
@@ -62,22 +62,22 @@ export function CustomerOrdersContent() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-4xl px-4 py-8" role="status" aria-label="Carregando pedidos">
+      <Container width="4xl" role="status" aria-label="Carregando pedidos">
         {[1, 2, 3].map((i) => (
           <Skeleton key={i} variant="line" height={40} className="mb-2" />
         ))}
-      </main>
+      </Container>
     )
   }
 
   if (orders.length === 0) {
     return (
-      <main className="mx-auto max-w-4xl px-4 py-16 text-center">
+      <Container width="4xl" spacing="loose" className="text-center">
         <Heading as="h1" size="2xl" className="mb-4">
           Meus Pedidos
         </Heading>
         <Text color="muted">Nenhum pedido encontrado.</Text>
-      </main>
+      </Container>
     )
   }
 
@@ -124,7 +124,7 @@ export function CustomerOrdersContent() {
   ]
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8">
+    <Container width="4xl">
       <Heading as="h1" size="2xl" className="mb-6">
         Meus Pedidos
       </Heading>
@@ -150,6 +150,6 @@ export function CustomerOrdersContent() {
       <div className="mt-6 flex justify-center">
         <PaginationBar page={page} totalPages={totalPages} onPageChange={goToPage} />
       </div>
-    </main>
+    </Container>
   )
 }

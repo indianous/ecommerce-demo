@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Button, Heading, Icon, NumberInput, Table, Text, type TableColumn } from 'base-ds'
+import { Button, Container, Heading, Icon, NumberInput, Table, type TableColumn, Text } from 'base-ds'
 import { useCartStore, selectCartTotal } from '@/stores/cart.store'
 import type { CartItem } from '@/types'
 
@@ -14,7 +14,7 @@ export function CartContent() {
 
   if (items.length === 0) {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-16 text-center">
+      <Container width="3xl" spacing="loose" className="text-center">
         <Heading as="h1" size="2xl" className="mb-4">
           Carrinho
         </Heading>
@@ -27,7 +27,7 @@ export function CartContent() {
         >
           Ver catálogo
         </Link>
-      </main>
+      </Container>
     )
   }
 
@@ -40,6 +40,7 @@ export function CartContent() {
       render: (item) => (
         <NumberInput
           id={`quantity-${item.productId}`}
+          aria-label={`Quantidade de ${item.name}`}
           value={item.quantity}
           min={1}
           onChange={(value) => updateQuantity(item.productId, value)}
@@ -61,7 +62,7 @@ export function CartContent() {
   ]
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8">
+    <Container width="4xl">
       <Heading as="h1" size="2xl" className="mb-6">
         Carrinho
       </Heading>
@@ -80,6 +81,6 @@ export function CartContent() {
           Finalizar pedido
         </Link>
       </div>
-    </main>
+    </Container>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 import { useCallback, useRef, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { FilterDropdown, Table, type TableColumn } from 'base-ds'
+import { Container, FilterDropdown, Table, type TableColumn } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
 import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
@@ -99,7 +99,7 @@ export function AuditLogsContent() {
   ]
 
   return (
-    <div>
+    <Container>
       <ManagementPageHeader title="Auditoria" />
       <ManagementPageBody>
         <ManagementContentHeader
@@ -137,6 +137,6 @@ export function AuditLogsContent() {
 
         <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
       </ManagementPageBody>
-    </div>
+    </Container>
   )
 }

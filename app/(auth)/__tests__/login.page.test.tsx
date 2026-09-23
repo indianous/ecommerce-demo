@@ -159,4 +159,12 @@ describe('LoginPage', () => {
 
     expect(screen.queryByText(/sessão expirou/i)).not.toBeInTheDocument()
   })
+
+  it('o conteúdo fica numa coluna estreita (max-w-sm)', () => {
+    renderLoginPage()
+
+    const column = screen.getByRole('heading', { name: 'Entrar', level: 1 }).parentElement
+    expect(column).toHaveClass('mx-auto', 'max-w-sm')
+    expect(column).toContainElement(screen.getByRole('button', { name: /entrar/i }))
+  })
 })

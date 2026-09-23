@@ -1,7 +1,7 @@
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ToastProvider, ToastViewport, useToast } from 'base-ds'
+import { Container, ToastProvider, ToastViewport, useToast } from 'base-ds'
 import { AppShell } from '../AppShell'
 import { SiteSettingsContext } from '@/contexts/SiteSettingsContext'
 import { useAuthStore } from '@/stores/auth.store'
@@ -238,5 +238,16 @@ describe('AppShell', () => {
     await user.click(screen.getByRole('button', { name: /disparar toast/i }))
 
     expect(await screen.findByText('Pedido criado')).toBeInTheDocument()
+  })
+})
+
+describe('AppShell — área de conteúdo', () => {
+  it('com um Container como filho, existe um único landmark main', () => {
+    render(
+      <AppShell>
+        <Container>conteúdo</Container>
+      </AppShell>,
+    )
+    expect(screen.getAllByRole('main')).toHaveLength(1)
   })
 })

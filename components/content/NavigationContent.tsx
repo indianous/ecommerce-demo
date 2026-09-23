@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
-import { Badge, Button, Card, Dialog, Heading, Icon, Skeleton, Text, useToast } from 'base-ds'
+import { Badge, Button, Card, Container, Dialog, Heading, Icon, Skeleton, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { NavItemForm, EMPTY_NAV_ITEM_FORM, type NavItemFormState } from '@/components/forms/NavItemForm'
@@ -165,17 +165,17 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
 
   if (loading) {
     return (
-      <main className="px-4 py-8" role="status" aria-label="Carregando navegação">
+      <Container role="status" aria-label="Carregando navegação">
         {[1, 2, 3].map((i) => (
           <Skeleton key={i} variant="line" height={40} className="mb-2" />
         ))}
-      </main>
+      </Container>
     )
   }
 
   return (
     <PermissionGuard permissions={['MANAGE_SITE']}>
-      <main className="mx-auto max-w-3xl px-4 py-8">
+      <Container>
         <div className="mb-6 flex items-center gap-4">
           <Link href={backPath} className="text-sm text-muted-foreground hover:underline">
             ← Voltar
@@ -263,7 +263,7 @@ export function NavigationContent({ backPath = '/dashboard/site' }: { backPath?:
               : `Remover "${deleteTarget?.label}"?`
           }
         />
-      </main>
+      </Container>
     </PermissionGuard>
   )
 }

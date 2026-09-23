@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import ReactMarkdown from 'react-markdown'
+import { Container } from 'base-ds'
 
 const API = process.env.API_INTERNAL_URL ?? 'http://localhost:8080/api/v1'
 
@@ -27,7 +28,7 @@ export default async function ContactPage() {
   const hasContent = description || phone || email
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12">
+    <Container width="3xl" spacing="relaxed">
       <h1 className="mb-6 text-3xl font-bold">Contato</h1>
       {hasContent ? (
         <div className="flex flex-col gap-6">
@@ -56,6 +57,6 @@ export default async function ContactPage() {
       ) : (
         <p className="text-muted-foreground">Informações de contato em breve.</p>
       )}
-    </main>
+    </Container>
   )
 }

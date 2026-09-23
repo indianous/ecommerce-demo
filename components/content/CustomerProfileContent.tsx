@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Heading, Text, useToast } from 'base-ds'
+import { Container, Heading, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Address, Gender, User } from '@/types'
 import { ChangePasswordForm } from '@/components/forms/ChangePasswordForm'
@@ -96,14 +96,14 @@ export function CustomerProfileContent() {
 
   if (!accessToken) {
     return (
-      <main className="mx-auto max-w-md px-4 py-16 text-center">
+      <Container width="md" spacing="loose" className="text-center">
         <Text color="muted">Você precisa entrar na sua conta para ver o perfil.</Text>
-      </main>
+      </Container>
     )
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8 flex flex-col gap-10">
+    <Container width="2xl" className="flex flex-col gap-10">
       <section>
         <Heading as="h1" size="2xl" className="mb-6">
           Meus dados
@@ -161,6 +161,6 @@ export function CustomerProfileContent() {
         </Heading>
         <ChangePasswordForm />
       </section>
-    </main>
+    </Container>
   )
 }

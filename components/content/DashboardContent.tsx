@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { Heading } from 'base-ds'
+import { Container, Heading } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import type { EmployeePermission } from '@/types'
 
@@ -77,7 +77,7 @@ export function DashboardContent() {
   )
 
   return (
-    <div>
+    <Container>
       <Heading as="h1" size="2xl" className="mb-6">
         Bem-vindo{user?.name ? `, ${user.name}` : ''}
       </Heading>
@@ -96,6 +96,6 @@ export function DashboardContent() {
           ))}
         </div>
       )}
-    </div>
+    </Container>
   )
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, Heading, Icon, Skeleton } from 'base-ds'
+import { Button, Card, Container, Heading, Icon, Skeleton } from 'base-ds'
 import { PermissionGuard } from "@/components/employee/PermissionGuard";
 import { useSiteSettings } from "@/lib/useSiteSettings";
 import {
@@ -25,7 +25,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
 
   return (
     <PermissionGuard permissions={["MANAGE_SITE"]}>
-      <main className="mx-auto max-w-5xl px-4 py-8">
+      <Container>
         <Heading as="h1" size="2xl" className="mb-6">
           Gestão do Site
         </Heading>
@@ -72,7 +72,7 @@ export function SiteContent({ basePath = "/dashboard/site" }: { basePath?: strin
             ))}
           </div>
         )}
-      </main>
+      </Container>
     </PermissionGuard>
   );
 }

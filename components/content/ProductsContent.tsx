@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, Dialog, FilterDropdown, Icon, Table, type TableColumn, useToast } from 'base-ds'
+import { Badge, Button, Container, Dialog, FilterDropdown, Icon, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CategoryForm } from '@/components/forms/CategoryForm'
@@ -161,7 +161,7 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
 
   return (
     <PermissionGuard permissions={['MANAGE_PRODUCTS']}>
-      <main className="mx-auto max-w-5xl px-4 py-8">
+      <Container>
         <ManagementPageHeader title="Gestão de Produtos" />
         <ManagementPageBody
           actions={
@@ -223,7 +223,7 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
             onImported={reload}
           />
         </ManagementPageBody>
-      </main>
+      </Container>
     </PermissionGuard>
   )
 }

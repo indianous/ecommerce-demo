@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Avatar, Badge, Button, Heading, Icon, Skeleton, TransferList, useToast } from 'base-ds'
+import { Avatar, Badge, Button, Container, Heading, Icon, Skeleton, TransferList, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions'
@@ -65,7 +65,7 @@ export function EmployeeDetailPage({ id }: { id: string }) {
   const permOptions = ALL_PERMISSIONS.map((p) => ({ value: p, label: PERMISSION_LABELS[p] }))
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8">
+    <Container>
       <div className="flex items-center gap-4 mb-6">
         <Avatar src={employee.photoUrl} alt={employee.name} size="lg" />
         <div>
@@ -126,6 +126,6 @@ export function EmployeeDetailPage({ id }: { id: string }) {
           </ul>
         )}
       </section>
-    </main>
+    </Container>
   )
 }

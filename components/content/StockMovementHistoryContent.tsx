@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
-import { FilterDropdown, FormField, Table, type TableColumn } from 'base-ds'
+import { Container, FilterDropdown, FormField, Table, type TableColumn } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
@@ -95,7 +95,7 @@ export function StockMovementHistoryContent({ productId, stockBasePath = '/dashb
 
   return (
     <PermissionGuard permissions={['MANAGE_STOCK']}>
-      <main className="mx-auto max-w-4xl px-4 py-8">
+      <Container>
         <Link href={stockBasePath} className="text-sm underline">← Voltar</Link>
         <div className="mt-4">
           <ManagementPageHeader title={`Histórico de estoque${productName ? ` — ${productName}` : ''}`} />
@@ -148,7 +148,7 @@ export function StockMovementHistoryContent({ productId, stockBasePath = '/dashb
 
           <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
         </ManagementPageBody>
-      </main>
+      </Container>
     </PermissionGuard>
   )
 }

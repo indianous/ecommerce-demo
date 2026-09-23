@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Button, Card, Dialog, Heading, Icon, Text, useToast } from 'base-ds'
+import { Button, Card, Container, Dialog, Heading, Icon, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import {
@@ -123,11 +123,11 @@ export function DistributionCentersContent({ backPath = '/dashboard/site' }: { b
     cancel: cancelDelete,
   } = useConfirmDelete(performDelete)
 
-  if (loading) return <main className="px-4 py-8"><p>Carregando centros de distribuição...</p></main>
+  if (loading) return <Container><p>Carregando centros de distribuição...</p></Container>
 
   return (
     <PermissionGuard permissions={['MANAGE_SITE']}>
-      <main className="mx-auto max-w-3xl px-4 py-8">
+      <Container>
         <div className="mb-6 flex items-center gap-4">
           <Link href={backPath} className="text-sm text-muted-foreground hover:underline">
             ← Voltar
@@ -184,7 +184,7 @@ export function DistributionCentersContent({ backPath = '/dashboard/site' }: { b
           title="Remover centro de distribuição"
           description={deleteTarget ? `Remover "${deleteTarget.name}"? Essa ação não pode ser desfeita.` : undefined}
         />
-      </main>
+      </Container>
     </PermissionGuard>
   )
 }

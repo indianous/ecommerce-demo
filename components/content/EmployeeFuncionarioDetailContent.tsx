@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
-import { Avatar, Badge, Button, Heading, Icon, Skeleton, TransferList, useToast } from 'base-ds'
+import { Avatar, Badge, Button, Container, Heading, Icon, Skeleton, TransferList, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
@@ -66,7 +66,7 @@ export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/em
 
   return (
     <PermissionGuard permissions={['MANAGE_EMPLOYEES']}>
-      <main className="mx-auto max-w-4xl px-4 py-8">
+      <Container>
         <div className="mb-6 flex items-center gap-4">
           <Link href={backPath} className="text-sm text-muted-foreground hover:underline">
             ← Voltar
@@ -129,7 +129,7 @@ export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/em
             </ul>
           )}
         </section>
-      </main>
+      </Container>
     </PermissionGuard>
   )
 }

@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { FormField, Table, type TableColumn } from 'base-ds'
+import { Container, FormField, Table, type TableColumn } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
@@ -55,7 +55,7 @@ export function ExpiringLotsContent() {
 
   return (
     <PermissionGuard permissions={['MANAGE_STOCK']}>
-      <main className="mx-auto max-w-3xl px-4 py-8">
+      <Container>
         <ManagementPageHeader title="Lotes vencendo" />
         <ManagementPageBody>
           <ManagementContentHeader
@@ -89,7 +89,7 @@ export function ExpiringLotsContent() {
 
           <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
         </ManagementPageBody>
-      </main>
+      </Container>
     </PermissionGuard>
   )
 }

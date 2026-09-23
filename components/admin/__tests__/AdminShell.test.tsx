@@ -2,7 +2,7 @@ import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ToastProvider } from 'base-ds'
+import { Container, ToastProvider } from 'base-ds'
 import { AdminShell } from '../AdminShell'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -320,5 +320,25 @@ describe('AdminShell — Menu do site', () => {
 
     await user.click(screen.getByRole('button', { name: /abrir menu/i }))
     expect(screen.getByRole('dialog')).toHaveClass('overflow-y-auto')
+  })
+})
+
+describe('AdminShell — área de conteúdo', () => {
+  it('o <main> do shell não tem padding próprio (o espaçamento é do Container da página)', () => {
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell()
+    expect(screen.getByRole('main')).not.toHaveClass('p-6')
+  })
+
+  it('com um Container como filho, existe um único landmark main', () => {
+    useAuthStore.setState(authenticatedAdmin)
+    render(
+      <ToastProvider>
+        <AdminShell>
+          <Container>conteúdo</Container>
+        </AdminShell>
+      </ToastProvider>,
+    )
+    expect(screen.getAllByRole('main')).toHaveLength(1)
   })
 })

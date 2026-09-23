@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Heading, useToast } from 'base-ds'
+import { Container, Heading, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ProductForm, EMPTY_PRODUCT_FORM, type ProductFormState } from '@/components/forms/ProductForm'
@@ -57,7 +57,7 @@ export function ProductCreateContent({ backPath = '/dashboard/products' }: { bac
 
   return (
     <PermissionGuard permissions={['MANAGE_PRODUCTS']}>
-      <main className="mx-auto max-w-2xl px-4 py-8">
+      <Container>
         <div className="mb-6 flex items-center gap-4">
           <Link href={backPath} className="text-sm text-muted-foreground hover:underline">
             ← Voltar
@@ -72,7 +72,7 @@ export function ProductCreateContent({ backPath = '/dashboard/products' }: { bac
           saving={saving}
           onSubmit={handleSubmit}
         />
-      </main>
+      </Container>
     </PermissionGuard>
   )
 }

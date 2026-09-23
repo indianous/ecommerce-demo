@@ -58,4 +58,14 @@ describe('AuthLayout', () => {
     )
     expect(screen.getByRole('status', { name: /carregando/i })).toBeInTheDocument()
   })
+
+  it('renderiza um único <main> envolvendo o conteúdo', () => {
+    render(
+      <AuthLayout>
+        <p>conteúdo de login</p>
+      </AuthLayout>,
+    )
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+    expect(screen.getByRole('main')).toContainElement(screen.getByText('conteúdo de login'))
+  })
 })

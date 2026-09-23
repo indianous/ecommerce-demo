@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Heading, Skeleton } from 'base-ds'
+import { Container, Heading, Skeleton } from 'base-ds'
 import { CheckoutAuth } from '@/components/forms/CheckoutAuth'
 import { CheckoutForm } from '@/components/forms/CheckoutForm'
 import { useAuthStore } from '@/stores/auth.store'
@@ -24,31 +24,31 @@ export function CheckoutContent() {
 
   if (!accessToken) {
     return (
-      <main className="mx-auto max-w-md px-4 py-8">
+      <Container width="md">
         <Heading as="h1" size="2xl" className="mb-6">
           Finalizar pedido
         </Heading>
         <CheckoutAuth />
-      </main>
+      </Container>
     )
   }
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-xl px-4 py-8" role="status" aria-label="Carregando checkout">
+      <Container width="xl" role="status" aria-label="Carregando checkout">
         {[1, 2, 3].map((i) => (
           <Skeleton key={i} variant="line" height={40} className="mb-2" />
         ))}
-      </main>
+      </Container>
     )
   }
 
   return (
-    <main className="mx-auto max-w-xl px-4 py-8">
+    <Container width="xl">
       <Heading as="h1" size="2xl" className="mb-6">
         Finalizar pedido
       </Heading>
       <CheckoutForm addresses={addresses} />
-    </main>
+    </Container>
   )
 }

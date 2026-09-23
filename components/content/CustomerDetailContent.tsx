@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
-import { Badge, Heading, Image, Rating, Skeleton, Text, useToast } from 'base-ds'
+import { Badge, Container, Heading, Image, Rating, Skeleton, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
@@ -82,7 +82,7 @@ export function CustomerDetailContent({ id, backPath = '/dashboard/customers' }:
 
   return (
     <PermissionGuard permissions={['MANAGE_CUSTOMERS']}>
-      <main className="mx-auto max-w-2xl px-4 py-8">
+      <Container>
         <div className="mb-6 flex items-center gap-4">
           <Link href={backPath} className="text-sm text-muted-foreground hover:underline">
             ← Voltar
@@ -291,7 +291,7 @@ export function CustomerDetailContent({ id, backPath = '/dashboard/customers' }:
             ))}
           </ul>
         )}
-      </main>
+      </Container>
     </PermissionGuard>
   )
 }

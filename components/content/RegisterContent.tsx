@@ -2,14 +2,14 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Heading, Text } from 'base-ds'
+import { Container, Heading, Text } from 'base-ds'
 import { RegisterForm } from '@/components/forms/RegisterForm'
 
 export function RegisterContent() {
   const router = useRouter()
 
   return (
-    <main className="mx-auto flex max-w-sm flex-col gap-6 px-4 py-16">
+    <Container width="sm" spacing="loose" className="flex flex-col gap-6">
       <Heading as="h1" size="2xl">
         Cadastro
       </Heading>
@@ -22,6 +22,6 @@ export function RegisterContent() {
           Entrar
         </Link>
       </Text>
-    </main>
+    </Container>
   )
 }

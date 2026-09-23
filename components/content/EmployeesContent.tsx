@@ -1,7 +1,7 @@
 'use client'
 import { useCallback, useRef, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Button, Checkbox, Dialog, FilterDropdown, Icon, useToast } from 'base-ds'
+import { Button, Checkbox, Container, Dialog, FilterDropdown, Icon, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { EmployeeManagementTable } from '@/components/admin/EmployeeManagementTable'
@@ -161,107 +161,109 @@ export function EmployeesContent() {
 
   return (
     <PermissionGuard permissions={['MANAGE_EMPLOYEES']}>
-      <ManagementPageHeader title="Gestão de Funcionários" />
-      <ManagementPageBody
-        actions={
-          <Button leftIcon={<Icon name="UserPlus" size="sm" />} variant="primary" onClick={() => setCreateDialogOpen(true)}>Novo funcionário</Button>
-        }
-      >
-        <ManagementContentHeader
-          searchId="employees-search"
-          searchLabel="Buscar funcionários"
-          searchPlaceholder="Buscar por nome ou e-mail..."
-          onSearch={handleSearch}
-          filters={
-            <FilterDropdown
-              label="Permissão"
-              options={ALL_PERMISSIONS.map((p) => ({ value: p, label: PERMISSION_LABELS[p] }))}
-              value={permissionFilter}
-              onApply={setPermissionFilter}
-            />
-          }
-        />
-
-        <SelectionBar
-          selectedCount={selection.selectedCount}
-          onClear={selection.clear}
+      <Container>
+        <ManagementPageHeader title="Gestão de Funcionários" />
+        <ManagementPageBody
           actions={
-            <Button
-              leftIcon={<Icon name="Trash2" size="sm" />}
-              variant="danger"
-              size="sm"
-              onClick={() => setBulkDeleteTarget(Array.from(selection.selectedIds))}
-            >
-              Excluir selecionados
-            </Button>
+            <Button leftIcon={<Icon name="UserPlus" size="sm" />} variant="primary" onClick={() => setCreateDialogOpen(true)}>Novo funcionário</Button>
           }
-        />
-
-        <ManagementContentBody loading={loading} empty={employees.length === 0} emptyMessage="Nenhum funcionário cadastrado." loadingLabel="Carregando funcionários">
-          <EmployeeManagementTable
-            employees={employees}
-            onDelete={setDeleteTarget}
-            onManagePermissions={openPermissionsDialog}
-            selection={{ selectedIds: selection.selectedIds, onToggle: selection.toggle, onToggleAll: selection.selectAll }}
-          />
-        </ManagementContentBody>
-
-        <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
-
-        <Dialog
-          open={createDialogOpen}
-          onClose={() => setCreateDialogOpen(false)}
-          title="Novo funcionário"
         >
-          <EmployeeForm
-            onSave={handleCreate}
-            onCancel={() => setCreateDialogOpen(false)}
+          <ManagementContentHeader
+            searchId="employees-search"
+            searchLabel="Buscar funcionários"
+            searchPlaceholder="Buscar por nome ou e-mail..."
+            onSearch={handleSearch}
+            filters={
+              <FilterDropdown
+                label="Permissão"
+                options={ALL_PERMISSIONS.map((p) => ({ value: p, label: PERMISSION_LABELS[p] }))}
+                value={permissionFilter}
+                onApply={setPermissionFilter}
+              />
+            }
           />
-        </Dialog>
 
-        <Dialog
-          open={permDialogOpen}
-          onClose={() => setPermDialogOpen(false)}
-          title={selectedEmployee ? `Permissões de ${selectedEmployee.name}` : 'Permissões'}
-        >
-          <div className="flex flex-col gap-3">
-            {ALL_PERMISSIONS.map((perm) => {
-              const id = `perm-dialog-${perm}`
-              return (
-                <Checkbox
-                  key={perm}
-                  id={id}
-                  label={PERMISSION_LABELS[perm]}
-                  checked={editedPerms.includes(perm)}
-                  onChange={() => togglePerm(perm)}
-                />
-              )
-            })}
-          </div>
-          <div className="flex justify-end gap-2 mt-4">
-            <Button leftIcon={<Icon name="X" size="sm" />} variant="secondary" onClick={() => setPermDialogOpen(false)}>Cancelar</Button>
-            <Button leftIcon={<Icon name="Save" size="sm" />} variant="primary" onClick={handleSavePermissions}>Salvar</Button>
-          </div>
-        </Dialog>
+          <SelectionBar
+            selectedCount={selection.selectedCount}
+            onClear={selection.clear}
+            actions={
+              <Button
+                leftIcon={<Icon name="Trash2" size="sm" />}
+                variant="danger"
+                size="sm"
+                onClick={() => setBulkDeleteTarget(Array.from(selection.selectedIds))}
+              >
+                Excluir selecionados
+              </Button>
+            }
+          />
 
-        <ConfirmDeleteDialog
-          open={deleteTarget !== null}
-          onClose={cancelDelete}
-          onConfirm={confirmDelete}
-          deleting={deleting}
-          title="Excluir funcionário"
-          description={deleteTargetEmployee ? `Remover "${deleteTargetEmployee.name}"? Essa ação não pode ser desfeita.` : undefined}
-        />
+          <ManagementContentBody loading={loading} empty={employees.length === 0} emptyMessage="Nenhum funcionário cadastrado." loadingLabel="Carregando funcionários">
+            <EmployeeManagementTable
+              employees={employees}
+              onDelete={setDeleteTarget}
+              onManagePermissions={openPermissionsDialog}
+              selection={{ selectedIds: selection.selectedIds, onToggle: selection.toggle, onToggleAll: selection.selectAll }}
+            />
+          </ManagementContentBody>
 
-        <ConfirmDeleteDialog
-          open={bulkDeleteTarget !== null}
-          onClose={cancelBulkDelete}
-          onConfirm={confirmBulkDelete}
-          deleting={bulkDeleting}
-          title="Excluir funcionários"
-          description={bulkDeleteTarget ? `Remover ${bulkDeleteTarget.length} funcionário(s) selecionado(s)? Essa ação não pode ser desfeita.` : undefined}
-        />
-      </ManagementPageBody>
+          <ManagementContentFooter page={page} totalPages={totalPages} onPageChange={(p) => { goToPage(p); selection.clear() }} />
+
+          <Dialog
+            open={createDialogOpen}
+            onClose={() => setCreateDialogOpen(false)}
+            title="Novo funcionário"
+          >
+            <EmployeeForm
+              onSave={handleCreate}
+              onCancel={() => setCreateDialogOpen(false)}
+            />
+          </Dialog>
+
+          <Dialog
+            open={permDialogOpen}
+            onClose={() => setPermDialogOpen(false)}
+            title={selectedEmployee ? `Permissões de ${selectedEmployee.name}` : 'Permissões'}
+          >
+            <div className="flex flex-col gap-3">
+              {ALL_PERMISSIONS.map((perm) => {
+                const id = `perm-dialog-${perm}`
+                return (
+                  <Checkbox
+                    key={perm}
+                    id={id}
+                    label={PERMISSION_LABELS[perm]}
+                    checked={editedPerms.includes(perm)}
+                    onChange={() => togglePerm(perm)}
+                  />
+                )
+              })}
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button leftIcon={<Icon name="X" size="sm" />} variant="secondary" onClick={() => setPermDialogOpen(false)}>Cancelar</Button>
+              <Button leftIcon={<Icon name="Save" size="sm" />} variant="primary" onClick={handleSavePermissions}>Salvar</Button>
+            </div>
+          </Dialog>
+
+          <ConfirmDeleteDialog
+            open={deleteTarget !== null}
+            onClose={cancelDelete}
+            onConfirm={confirmDelete}
+            deleting={deleting}
+            title="Excluir funcionário"
+            description={deleteTargetEmployee ? `Remover "${deleteTargetEmployee.name}"? Essa ação não pode ser desfeita.` : undefined}
+          />
+
+          <ConfirmDeleteDialog
+            open={bulkDeleteTarget !== null}
+            onClose={cancelBulkDelete}
+            onConfirm={confirmBulkDelete}
+            deleting={bulkDeleting}
+            title="Excluir funcionários"
+            description={bulkDeleteTarget ? `Remover ${bulkDeleteTarget.length} funcionário(s) selecionado(s)? Essa ação não pode ser desfeita.` : undefined}
+          />
+        </ManagementPageBody>
+      </Container>
     </PermissionGuard>
   )
 }

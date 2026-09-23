@@ -13,10 +13,10 @@ export default function EmployeeError({ error, reset }: Props) {
   }, [error])
 
   return (
-    <main>
+    <div>
       <h2>Erro na área de funcionários</h2>
       <p>{error.message}</p>
       <button onClick={reset}>Tentar novamente</button>
-    </main>
+    </div>
   )
 }

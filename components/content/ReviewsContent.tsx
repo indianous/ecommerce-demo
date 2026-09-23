@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Button, Dialog, Heading, Icon, Image, Skeleton, Text, useToast } from 'base-ds'
+import { Button, Container, Dialog, Heading, Icon, Image, Skeleton, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { ReviewForm } from '@/components/forms/ReviewForm'
 import { ProductReviewCard } from '@/components/product/ProductReviewCard'
@@ -128,16 +128,16 @@ export function ReviewsContent() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-8" role="status" aria-label="Carregando avaliações">
+      <Container width="3xl" role="status" aria-label="Carregando avaliações">
         {[1, 2, 3].map((i) => (
           <Skeleton key={i} variant="line" height={40} className="mb-2" />
         ))}
-      </main>
+      </Container>
     )
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
+    <Container width="3xl">
       <Heading as="h1" size="2xl" className="mb-6">
         Minhas Avaliações
       </Heading>
@@ -211,6 +211,6 @@ export function ReviewsContent() {
         title="Excluir avaliação"
         description="Essa ação não pode ser desfeita."
       />
-    </main>
+    </Container>
   )
 }

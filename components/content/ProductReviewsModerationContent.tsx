@@ -3,7 +3,7 @@
 import { useCallback, useRef } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
-import { Button, Icon, Image, Rating, Table, type TableColumn, useToast } from 'base-ds'
+import { Button, Container, Icon, Image, Rating, Table, type TableColumn, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
@@ -136,7 +136,7 @@ export function ProductReviewsModerationContent({ id, basePath = '/dashboard/pro
 
   return (
     <PermissionGuard permissions={['MANAGE_PRODUCTS']}>
-      <main className="mx-auto max-w-3xl px-4 py-8">
+      <Container>
         <ManagementPageHeader title="Avaliações do produto" />
         <ManagementPageBody
           actions={
@@ -191,7 +191,7 @@ export function ProductReviewsModerationContent({ id, basePath = '/dashboard/pro
           title="Excluir avaliações"
           description={bulkDeleteTarget ? `Remover ${bulkDeleteTarget.length} avaliação(ões) selecionada(s)? Essa ação não pode ser desfeita.` : undefined}
         />
-      </main>
+      </Container>
     </PermissionGuard>
   )
 }

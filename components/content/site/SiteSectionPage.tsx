@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { Heading, Skeleton } from 'base-ds'
+import { Container, Heading, Skeleton } from 'base-ds'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 
 interface Props {
@@ -16,7 +16,7 @@ interface Props {
 export function SiteSectionPage({ title, backPath, loading = false, children }: Props) {
   return (
     <PermissionGuard permissions={['MANAGE_SITE']}>
-      <main className="mx-auto max-w-3xl px-4 py-8">
+      <Container>
         <div className="mb-6 flex items-center gap-4">
           <Link href={backPath} className="text-sm text-muted-foreground hover:underline">
             ← Voltar
@@ -32,7 +32,7 @@ export function SiteSectionPage({ title, backPath, loading = false, children }: 
         ) : (
           children
         )}
-      </main>
+      </Container>
     </PermissionGuard>
   )
 }
