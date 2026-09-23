@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { RegisterContent } from '@/components/content/RegisterContent'
+import { RegisterContent } from '@/components/content/auth/RegisterContent'
 
 export const metadata: Metadata = { title: 'Cadastro' }
 

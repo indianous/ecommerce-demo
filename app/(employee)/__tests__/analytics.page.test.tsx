@@ -9,7 +9,7 @@ vi.mock('next/navigation', () => ({
 }))
 
 import { ToastProvider } from 'base-ds'
-import { AnalyticsContent } from '@/components/content/AnalyticsContent'
+import { AnalyticsContent } from '@/components/content/dashboard/system/AnalyticsContent'
 import { useAuthStore } from '@/stores/auth.store'
 
 const mockFunnel = {

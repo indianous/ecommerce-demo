@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { PaymentConfirmContent } from '@/components/content/PaymentConfirmContent'
+import { PaymentConfirmContent } from '@/components/content/dashboard/sales/PaymentConfirmContent'
 
 export const metadata: Metadata = { title: 'Confirmar pagamento' }
 

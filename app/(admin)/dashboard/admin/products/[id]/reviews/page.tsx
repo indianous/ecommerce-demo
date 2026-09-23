@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { ProductReviewsModerationContent } from '@/components/content/ProductReviewsModerationContent'
+import { ProductReviewsModerationContent } from '@/components/content/dashboard/catalog/ProductReviewsModerationContent'
 
 export const metadata: Metadata = { title: 'Avaliações do produto' }
 

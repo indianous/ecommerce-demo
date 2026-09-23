@@ -1,4 +1,4 @@
-import { NotFoundContent } from '@/components/content/NotFoundContent'
+import { NotFoundContent } from '@/components/content/shared/NotFoundContent'
 
 export default function PublicNotFound() {
   return <NotFoundContent />

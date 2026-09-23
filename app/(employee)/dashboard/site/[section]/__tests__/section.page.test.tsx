@@ -6,7 +6,7 @@ const notFoundMock = vi.hoisted(() =>
   }),
 )
 vi.mock('next/navigation', () => ({ notFound: notFoundMock }))
-vi.mock('@/components/content/site/SiteSectionContent', () => ({ SiteSectionContent: () => null }))
+vi.mock('@/components/content/dashboard/site/SiteSectionContent', () => ({ SiteSectionContent: () => null }))
 
 import SiteSectionPage, { generateMetadata } from '../page'
 

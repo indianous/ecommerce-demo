@@ -2,7 +2,7 @@ import { act, render, screen, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it, vi } from 'vitest'
 import { ToastProvider } from 'base-ds'
-import { SiteContent } from '@/components/content/SiteContent'
+import { SiteContent } from '@/components/content/dashboard/site/SiteContent'
 import { SITE_HUB_GROUPS, SITE_SECTIONS, SITE_STANDALONE_PAGES } from '@/lib/site-sections'
 import {
   emptySettings,
@@ -10,7 +10,7 @@ import {
   employeeWithoutSite,
   setupSiteServer,
   signIn,
-} from '@/components/content/site/__tests__/site-test-utils'
+} from '@/components/content/dashboard/site/__tests__/site-test-utils'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),

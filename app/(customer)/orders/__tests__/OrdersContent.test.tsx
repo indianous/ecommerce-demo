@@ -14,7 +14,7 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(mockSearch),
 }))
 
-import { CustomerOrdersContent } from '@/components/content/CustomerOrdersContent'
+import { CustomerOrdersContent } from '@/components/content/store/CustomerOrdersContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { OrderResponse } from '@/types'
 

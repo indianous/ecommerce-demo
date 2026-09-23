@@ -9,7 +9,7 @@ vi.mock('next/navigation', () => ({
 }))
 
 import { ToastProvider } from 'base-ds'
-import { CustomerDetailContent } from '@/components/content/CustomerDetailContent'
+import { CustomerDetailContent } from '@/components/content/dashboard/people/CustomerDetailContent'
 import { useAuthStore } from '@/stores/auth.store'
 
 // Nascido em 1º de janeiro há 30 anos: o aniversário já passou em qualquer

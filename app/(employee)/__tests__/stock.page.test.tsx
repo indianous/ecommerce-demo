@@ -14,7 +14,7 @@ vi.mock('next/navigation', () => ({
 }))
 
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { StockContent } from '@/components/content/StockContent'
+import { StockContent } from '@/components/content/dashboard/catalog/StockContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Product, StockLot } from '@/types'
 

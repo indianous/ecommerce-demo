@@ -13,7 +13,7 @@ vi.mock('next/navigation', () => ({
 }))
 
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { EmployeesContent } from '@/components/content/EmployeesContent'
+import { EmployeesContent } from '@/components/content/dashboard/people/EmployeesContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Employee } from '@/types'
 

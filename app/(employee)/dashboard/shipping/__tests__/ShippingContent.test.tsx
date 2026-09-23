@@ -4,7 +4,7 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { ShippingContent } from '@/components/content/ShippingContent'
+import { ShippingContent } from '@/components/content/dashboard/sales/ShippingContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { AdminOrderPage } from '@/types'
 

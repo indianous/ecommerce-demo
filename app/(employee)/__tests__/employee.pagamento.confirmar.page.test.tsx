@@ -4,7 +4,7 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { PaymentConfirmContent } from '@/components/content/PaymentConfirmContent'
+import { PaymentConfirmContent } from '@/components/content/dashboard/sales/PaymentConfirmContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { AdminOrderDetailResponse } from '@/types'
 

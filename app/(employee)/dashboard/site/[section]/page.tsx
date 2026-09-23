@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { SiteSectionContent } from '@/components/content/site/SiteSectionContent'
+import { SiteSectionContent } from '@/components/content/dashboard/site/SiteSectionContent'
 import { getSiteSection } from '@/lib/site-sections'
 
 interface Props {

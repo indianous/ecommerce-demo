@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { ProductEditContent } from '@/components/content/ProductEditContent'
+import { ProductEditContent } from '@/components/content/dashboard/catalog/ProductEditContent'
 
 export const metadata: Metadata = { title: 'Editar produto' }
 

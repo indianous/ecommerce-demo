@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { DeletedProductsContent } from '@/components/content/DeletedProductsContent'
+import { DeletedProductsContent } from '@/components/content/dashboard/catalog/DeletedProductsContent'
 
 export const metadata: Metadata = { title: 'Produtos excluídos' }
 

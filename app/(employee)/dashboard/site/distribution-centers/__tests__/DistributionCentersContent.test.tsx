@@ -9,7 +9,7 @@ vi.mock('next/navigation', () => ({
 }))
 
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { DistributionCentersContent } from '@/components/content/DistributionCentersContent'
+import { DistributionCentersContent } from '@/components/content/dashboard/site/DistributionCentersContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { DistributionCenter } from '@/types'
 

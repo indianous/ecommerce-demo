@@ -9,7 +9,7 @@ vi.mock('next/navigation', () => ({
 }))
 
 import { ToastProvider, ToastViewport } from 'base-ds'
-import { NavigationContent } from '@/components/content/NavigationContent'
+import { NavigationContent } from '@/components/content/dashboard/site/NavigationContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { SiteNavItem } from '@/types'
 

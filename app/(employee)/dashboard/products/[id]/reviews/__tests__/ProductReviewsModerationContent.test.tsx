@@ -14,7 +14,7 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(mockSearch),
 }))
 
-import { ProductReviewsModerationContent } from '@/components/content/ProductReviewsModerationContent'
+import { ProductReviewsModerationContent } from '@/components/content/dashboard/catalog/ProductReviewsModerationContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { ProductReview, ProductReviewPage } from '@/types'
 
