@@ -229,8 +229,9 @@ faixa passa a ser o único sinal de que a pessoa está logada como equipe.
 
 ### 3. O que entra no projeto
 
-1. **Issue no base-ds** pedindo o componente de faixa com ação (anotar o link da
-   issue aqui quando ela for aberta).
+1. **Issue no base-ds** pedindo o componente de faixa com ação: aberta em
+   [indianous/base-ds#45](https://github.com/indianous/base-ds/issues/45). Antes de
+   implementar, conferir se ela já saiu; se sim, usar o componente em vez da faixa local.
 2. **`components/layout/StaffPreviewBanner.tsx`** (novo): lê o `role` do
    `useAuthStore`; para `ADMIN`/`EMPLOYEE`, renderiza a faixa com `Icon name="Eye"`,
    `Text` e `Button` (`as="a"`, com o `href` de `homeFor(role)` de
@@ -410,7 +411,9 @@ próprio badge. Se não couber na linha, a tag inteira desce, sem se partir.
 
 ### 3. O que entra no projeto
 
-1. **Issue no base-ds** (anotar o link aqui quando ela for aberta).
+1. **Issue no base-ds**: aberta em
+   [indianous/base-ds#46](https://github.com/indianous/base-ds/issues/46). Antes de
+   implementar, conferir se ela já saiu; se sim, a classe local do passo 2 não é necessária.
 2. Até a issue sair: `className="w-fit whitespace-nowrap"` nos `Badge`s de
    categoria da página do produto e do `ProductCard` (o `className` é prop
    pública do `Badge`), e `flex-wrap` nos dois contêineres. Quando o base-ds
