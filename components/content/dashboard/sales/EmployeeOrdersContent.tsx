@@ -18,7 +18,7 @@ import { formatBRL } from '@/lib/format'
 import { sortTableData } from '@/lib/sortTableData'
 import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
-import type { AdminOrderResponse, OrderStatus } from '@/types'
+import type { AdminOrderResponse, OrderOrigin, OrderStatus } from '@/types'
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   PENDING: 'Pendente',
@@ -40,18 +40,30 @@ const STATUS_BADGE_VARIANT: Record<OrderStatus, 'default' | 'success' | 'warning
 
 const ALL_STATUSES: OrderStatus[] = ['PENDING', 'CONFIRMED', 'SHIPPED', 'RETURNED', 'DELIVERED', 'CANCELLED']
 
+const ORIGIN_LABELS: Record<OrderOrigin, string> = { WEB: 'Site', STAFF: 'Equipe' }
+
+/** Quem pode ver a lista (GET /admin/orders). Só CREATE_ORDERS registra pedido, mas não lista. */
+const LIST_PERMISSIONS = ['MANAGE_ORDERS', 'MANAGE_SHIPPING', 'MANAGE_ORDER_STATUS_REQUESTS'] as const
+
 export function EmployeeOrdersContent({ orderBasePath = '/dashboard/orders' }: { orderBasePath?: string }) {
-  const { accessToken } = useAuthStore()
+  const { accessToken, user } = useAuthStore()
+  const isAdmin = user?.role === 'ADMIN'
+  const canList = isAdmin || LIST_PERMISSIONS.some((p) => user?.permissions?.includes(p))
+  const canCreate = isAdmin || !!user?.permissions?.includes('CREATE_ORDERS')
   const { toast } = useToast()
   const router = useRouter()
   const searchRef = useRef('')
   const [statusFilter, setStatusFilter] = useState<string[]>([])
+  const [originFilter, setOriginFilter] = useState<string[]>([])
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<AdminOrderResponse> | null> => {
     if (!accessToken) return null
+    if (!canList) return { content: [], totalPages: 0 } as unknown as PageResult<AdminOrderResponse>
     if (searchRef.current) params.set('search', searchRef.current)
     statusFilter.forEach((s) => params.append('status', s))
+    // Uma origem só filtra; as duas marcadas equivalem a nenhuma
+    if (originFilter.length === 1) params.set('origin', originFilter[0])
     try {
       const res = await authFetch(`/api/admin/orders?${params.toString()}`)
       if (!res.ok) throw new Error()
@@ -60,7 +72,7 @@ export function EmployeeOrdersContent({ orderBasePath = '/dashboard/orders' }: {
       toast({ variant: 'destructive', description: 'Erro ao carregar pedidos.' })
       return null
     }
-  }, [accessToken, statusFilter, toast])
+  }, [accessToken, canList, statusFilter, originFilter, toast])
 
   const { page, items: orders, totalPages, loading, goToPage, reload } = usePaginatedFetch(fetchPage)
 
@@ -77,7 +89,17 @@ export function EmployeeOrdersContent({ orderBasePath = '/dashboard/orders' }: {
 
   const columns: TableColumn<AdminOrderResponse>[] = [
     makeSelectionColumn(sortedOrders, (o) => o.id, (o) => `pedido ${o.orderNumber}`, selection.selectedIds, selection.toggle, selection.selectAll),
-    { key: 'orderNumber', header: 'Nº', sortable: true, render: (o) => o.orderNumber },
+    {
+      key: 'orderNumber',
+      header: 'Nº',
+      sortable: true,
+      render: (o) => (
+        <span className="inline-flex items-center gap-2">
+          {o.orderNumber}
+          {o.origin === 'STAFF' && <Badge variant="info" size="sm">{ORIGIN_LABELS.STAFF}</Badge>}
+        </span>
+      ),
+    },
     {
       key: 'customerName',
       header: 'Cliente',
@@ -115,9 +137,16 @@ export function EmployeeOrdersContent({ orderBasePath = '/dashboard/orders' }: {
   ]
 
   return (
-    <PermissionGuard permissions={['MANAGE_ORDERS', 'MANAGE_SHIPPING', 'MANAGE_ORDER_STATUS_REQUESTS']}>
+    <PermissionGuard permissions={[...LIST_PERMISSIONS, 'CREATE_ORDERS']}>
       <Container>
-        <ManagementPageHeader title="Gestão de Pedidos" />
+        <ManagementPageHeader
+          title="Gestão de Pedidos"
+          action={canCreate ? (
+            <Button leftIcon={<Icon name="Plus" size="sm" />} variant="primary" onClick={() => router.push(`${orderBasePath}/new`)}>
+              Novo pedido
+            </Button>
+          ) : undefined}
+        />
         <ManagementPageBody>
           <ManagementContentHeader
             searchId="orders-search"
@@ -125,18 +154,26 @@ export function EmployeeOrdersContent({ orderBasePath = '/dashboard/orders' }: {
             searchPlaceholder="Buscar por nº do pedido, cliente ou e-mail..."
             onSearch={handleSearch}
             filters={
-              <FilterDropdown
-                label="Status"
-                options={ALL_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
-                value={statusFilter}
-                onApply={setStatusFilter}
-              />
+              <>
+                <FilterDropdown
+                  label="Status"
+                  options={ALL_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
+                  value={statusFilter}
+                  onApply={setStatusFilter}
+                />
+                <FilterDropdown
+                  label="Origem"
+                  options={(['WEB', 'STAFF'] as const).map((o) => ({ value: o, label: ORIGIN_LABELS[o] }))}
+                  value={originFilter}
+                  onApply={setOriginFilter}
+                />
+              </>
             }
           />
 
           <SelectionBar selectedCount={selection.selectedCount} onClear={selection.clear} />
 
-          <ManagementContentBody loading={loading} empty={orders.length === 0} emptyMessage="Nenhum pedido encontrado." loadingLabel="Carregando pedidos">
+          <ManagementContentBody loading={loading} empty={orders.length === 0} emptyMessage={canList ? 'Nenhum pedido encontrado.' : 'A lista de pedidos exige a permissão de gestão de pedidos. Você pode registrar um pedido novo.'} loadingLabel="Carregando pedidos">
             <Table
               columns={columns}
               data={sortedOrders}

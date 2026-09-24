@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -6,7 +6,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { ToastProvider, ToastViewport } from 'base-ds'
 import { EmployeeOrdersContent } from '@/components/content/dashboard/sales/EmployeeOrdersContent'
 import { useAuthStore } from '@/stores/auth.store'
-import type { AdminOrderPage } from '@/types'
+import type { AdminOrderPage, EmployeePermission } from '@/types'
 
 const pushMock = vi.fn()
 let mockSearch = ''
@@ -281,5 +281,64 @@ describe('EmployeeOrdersContent — paginação', () => {
     await user.click(screen.getByRole('button', { name: /next page/i }))
 
     expect(pushMock).toHaveBeenCalledWith('/dashboard/orders?page=2')
+  })
+})
+
+function setPermissions(permissions: EmployeePermission[]) {
+  const state = useAuthStore.getState()
+  useAuthStore.setState({ user: { ...state.user!, permissions } })
+}
+
+describe('EmployeeOrdersContent — pedidos da equipe', () => {
+  it('"Novo pedido" só aparece com CREATE_ORDERS e leva à tela de criação', async () => {
+    const user = userEvent.setup()
+    const { unmount } = renderContent()
+    await screen.findByRole('cell', { name: 'Bruno Souza' })
+    expect(screen.queryByRole('button', { name: /novo pedido/i })).not.toBeInTheDocument()
+    unmount()
+
+    setPermissions(['MANAGE_ORDERS', 'CREATE_ORDERS'])
+    renderContent('/dashboard/admin/orders')
+    await user.click(await screen.findByRole('button', { name: /novo pedido/i }))
+
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/admin/orders/new')
+  })
+
+  it('só CREATE_ORDERS: não busca a lista, explica e mostra o "Novo pedido"', async () => {
+    let calls = 0
+    server.use(http.get('/api/admin/orders', () => { calls += 1; return HttpResponse.json(mockPage) }))
+    setPermissions(['CREATE_ORDERS'])
+    renderContent()
+
+    expect(await screen.findByRole('button', { name: /novo pedido/i })).toBeInTheDocument()
+    expect(screen.getByText(/a lista de pedidos exige a permissão de gestão de pedidos/i)).toBeInTheDocument()
+    expect(calls).toBe(0)
+  })
+
+  it('filtro "Origem" com só "Equipe" repassa origin=STAFF', async () => {
+    let capturedUrl = ''
+    server.use(http.get('/api/admin/orders', ({ request }) => { capturedUrl = request.url; return HttpResponse.json(mockPage) }))
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByRole('cell', { name: 'Bruno Souza' })
+
+    await user.click(screen.getByRole('button', { name: /^origem/i }))
+    await user.click(screen.getByRole('checkbox', { name: 'Equipe' }))
+    await user.click(screen.getByRole('button', { name: /aplicar/i }))
+
+    await waitFor(() => expect(new URL(capturedUrl).searchParams.get('origin')).toBe('STAFF'))
+  })
+
+  it('pedido registrado pela equipe ganha o Badge "Equipe" na linha', async () => {
+    server.use(http.get('/api/admin/orders', () => HttpResponse.json({
+      ...mockPage,
+      content: [{ ...mockPage.content[0], origin: 'STAFF', createdByName: 'Vendedora' }, { ...mockPage.content[1], origin: 'WEB' }],
+    })))
+    renderContent()
+
+    const staffRow = (await screen.findByRole('cell', { name: 'Bruno Souza' })).closest('tr') as HTMLElement
+    expect(within(staffRow).getByText('Equipe')).toBeInTheDocument()
+    const webRow = screen.getByRole('cell', { name: 'Ana Lima' }).closest('tr') as HTMLElement
+    expect(within(webRow).queryByText('Equipe')).not.toBeInTheDocument()
   })
 })

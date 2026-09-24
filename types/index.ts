@@ -13,6 +13,7 @@ export type EmployeePermission =
   | 'MANAGE_SITE'
   | 'MANAGE_ANALYTICS'
   | 'MANAGE_COUPONS'
+  | 'CREATE_ORDERS'
 
 export type TaxRegime = 'SIMPLES_NACIONAL' | 'LUCRO_PRESUMIDO' | 'LUCRO_REAL'
 
@@ -434,7 +435,13 @@ export interface AdminOrderResponse {
   shippingServiceName?: string
   trackingCode?: string
   shippingLabelUrl?: string
+  /** WEB: checkout do cliente; STAFF: registrado pela equipe no painel. */
+  origin?: OrderOrigin
+  createdByName?: string | null
+  notes?: string | null
 }
+
+export type OrderOrigin = 'WEB' | 'STAFF'
 
 export interface AdminOrderPage {
   content: AdminOrderResponse[]
@@ -469,7 +476,10 @@ export interface Invoice {
 
 export interface AdminOrderDetailResponse extends AdminOrderResponse {
   items: OrderItemResponse[]
-  address: Address
+  /** Nulo em retirada registrada pela equipe sem endereço. */
+  address: Address | null
+  /** Link para o cliente pagar, quando o gateway gera um. */
+  paymentCheckoutUrl?: string | null
   statusHistory: OrderStatusHistoryResponse[]
   invoice?: Invoice
   deliveryMethod?: DeliveryMethod
@@ -765,3 +775,37 @@ export interface CouponValidation {
   subtotal: number
 }
 
+
+// ── Pedido manual (registrado pela equipe) ─────────────────────────────────
+
+export interface CustomerLookup {
+  id: string
+  name: string
+  email: string
+  phone: string | null
+  cpf: string | null
+}
+
+export interface QuickCustomerInput {
+  name: string
+  email: string
+  phone?: string | null
+  cpf?: string | null
+}
+
+export interface ManualOrderItemInput {
+  productId: string
+  quantity: number
+}
+
+export interface ManualOrderInput {
+  customerId: string
+  items: ManualOrderItemInput[]
+  deliveryMethod: DeliveryMethod
+  addressId?: string | null
+  pickupLocationId?: string | null
+  shippingServiceId?: string | null
+  paymentMethod: PaymentMethod
+  paymentReceived: boolean
+  notes?: string | null
+}

@@ -273,8 +273,23 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
                 Motivo: {order.paymentRejectionReason}
               </p>
             )}
+            {order.paymentStatus === 'PENDING' && order.paymentCheckoutUrl && (
+              <p className="mt-1 inline-flex flex-wrap items-center gap-2 break-all text-sm">
+                {order.paymentCheckoutUrl}
+                <CopyButton value={order.paymentCheckoutUrl} label="link de pagamento" />
+              </p>
+            )}
           </div>
         </div>
+
+        {order.origin === 'STAFF' && (
+          <div className="mb-6">
+            <p className="text-sm text-muted-foreground">
+              Criado pela equipe{order.createdByName ? `: ${order.createdByName}` : ''}
+            </p>
+            {order.notes && <p className="text-sm whitespace-pre-line">{order.notes}</p>}
+          </div>
+        )}
 
         <div className="mb-6">
           <h2 className="text-sm font-semibold mb-2">Itens</h2>

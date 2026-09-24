@@ -12,7 +12,7 @@ import { siteNavItems } from '@/lib/site-sections'
 import type { EmployeePermission } from '@/types'
 
 const ALL_NAV_ITEMS: (DashboardNavItem & { perms: EmployeePermission[] })[] = [
-  { label: 'Pedidos', href: '/dashboard/orders', icon: 'ClipboardList', perms: ['MANAGE_ORDERS', 'MANAGE_ORDER_STATUS_REQUESTS'], group: DASHBOARD_NAV_GROUPS.VENDAS },
+  { label: 'Pedidos', href: '/dashboard/orders', icon: 'ClipboardList', perms: ['MANAGE_ORDERS', 'MANAGE_ORDER_STATUS_REQUESTS', 'CREATE_ORDERS'], group: DASHBOARD_NAV_GROUPS.VENDAS },
   { label: 'Envios', href: '/dashboard/shipping', icon: 'Truck', perms: ['MANAGE_SHIPPING'], group: DASHBOARD_NAV_GROUPS.VENDAS },
   { label: 'Solicitações', href: '/dashboard/change-requests', icon: 'ListChecks', perms: ['MANAGE_ORDER_STATUS_REQUESTS'], group: DASHBOARD_NAV_GROUPS.VENDAS },
   { label: 'Pagamentos', href: '/dashboard/payments', icon: 'CreditCard', perms: ['MANAGE_PAYMENTS'], group: DASHBOARD_NAV_GROUPS.VENDAS },

@@ -244,3 +244,37 @@ describe('OrderDetailContent — dados de contato do cliente', () => {
     expect(await screen.findByText(/desconto \(DEZ\): −\s*R\$\s*19,99/i)).toBeInTheDocument()
   })
 })
+
+describe('OrderDetailContent — pedido registrado pela equipe', () => {
+  it('mostra "Criado por" e a observação quando a origem é STAFF', async () => {
+    detailToReturn = { ...baseDetail, origin: 'STAFF', createdByName: 'Vendedora', notes: 'Cliente pediu pelo WhatsApp' }
+    renderPage()
+
+    expect(await screen.findByText(/criado pela equipe: vendedora/i)).toBeInTheDocument()
+    expect(screen.getByText('Cliente pediu pelo WhatsApp')).toBeInTheDocument()
+  })
+
+  it('pedido do site não mostra o bloco de origem', async () => {
+    detailToReturn = { ...baseDetail, origin: 'WEB' }
+    renderPage()
+
+    await screen.findByText('Teclado')
+    expect(screen.queryByText(/criado pela equipe/i)).not.toBeInTheDocument()
+  })
+
+  it('pagamento pendente com link: mostra o link com botão de copiar', async () => {
+    detailToReturn = { ...baseDetail, paymentStatus: 'PENDING', paymentCheckoutUrl: 'https://pagamento.pagbank.com.br/pagamento?code=abc' }
+    renderPage()
+
+    expect(await screen.findByText('https://pagamento.pagbank.com.br/pagamento?code=abc')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /copiar link de pagamento/i })).toBeInTheDocument()
+  })
+
+  it('pagamento já pago não mostra o link', async () => {
+    detailToReturn = { ...baseDetail, paymentStatus: 'PAID', paymentCheckoutUrl: 'https://pagamento.pagbank.com.br/pagamento?code=abc' }
+    renderPage()
+
+    await screen.findByText('Teclado')
+    expect(screen.queryByText(/pagamento\.pagbank/)).not.toBeInTheDocument()
+  })
+})

@@ -7,6 +7,8 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useCartStore, selectCartTotal } from '@/stores/cart.store'
 import { ManualPaymentInstructions } from '@/components/payment/ManualPaymentInstructions'
 import { CouponField } from '@/components/forms/CouponField'
+import { PickupLocationList } from '@/components/checkout-shared/PickupLocationList'
+import { ShippingOptionsList } from '@/components/checkout-shared/ShippingOptionsList'
 import { PAYMENT_METHOD_LABELS } from '@/lib/payment-labels'
 import type {
   Address,
@@ -283,39 +285,17 @@ export function CheckoutForm({ addresses }: Props) {
       )}
 
       {isPickup ? (
-        <FormField label="Centro de distribuição" id="pickup-location-select">
-          <Select
-            id="pickup-location-select"
-            value={selectedPickupLocationId}
-            onChange={(e) => setSelectedPickupLocationId(e.target.value)}
-            required
-            options={distributionCenters.map((center) => ({
-              value: center.id,
-              label: `${center.name} — ${center.city}/${center.state}`,
-            }))}
-          />
-        </FormField>
+        <PickupLocationList centers={distributionCenters} value={selectedPickupLocationId} onChange={setSelectedPickupLocationId} />
       ) : (
         selectedAddressId && (
-          <fieldset>
-            <legend>Frete</legend>
-            {shippingLoading && <Text size="sm" color="muted">Calculando frete...</Text>}
-            {shippingError && <Text role="alert" size="sm" color="destructive">{shippingError}</Text>}
-            {!shippingLoading && !shippingError && shippingFree && (
-              <Text size="sm">Frete grátis</Text>
-            )}
-            {!shippingLoading && !shippingError && !shippingFree && shippingOptions.map((option) => (
-              <Radio
-                key={option.serviceId}
-                id={`shipping-${option.serviceId}`}
-                name="shippingServiceId"
-                value={option.serviceId}
-                label={`${option.carrierName} — ${option.serviceName} — ${formatBRL(option.price)} — ${option.deliveryDays} dia(s)`}
-                checked={selectedServiceId === option.serviceId}
-                onChange={() => setSelectedServiceId(option.serviceId)}
-              />
-            ))}
-          </fieldset>
+          <ShippingOptionsList
+            loading={shippingLoading}
+            error={shippingError}
+            free={shippingFree}
+            options={shippingOptions}
+            selectedServiceId={selectedServiceId}
+            onSelect={setSelectedServiceId}
+          />
         )
       )}
 

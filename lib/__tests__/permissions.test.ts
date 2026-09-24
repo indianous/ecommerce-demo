@@ -6,4 +6,9 @@ describe('permissões', () => {
     expect(PERMISSION_LABELS.MANAGE_COUPONS).toBe('Gestão de Cupons')
     expect(ALL_PERMISSIONS).toContain('MANAGE_COUPONS')
   })
+
+  it('CREATE_ORDERS aparece como "Criar pedidos"', () => {
+    expect(PERMISSION_LABELS.CREATE_ORDERS).toBe('Criar pedidos')
+    expect(ALL_PERMISSIONS).toContain('CREATE_ORDERS')
+  })
 })

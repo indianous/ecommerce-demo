@@ -13,6 +13,7 @@ export const PERMISSION_LABELS: Record<EmployeePermission, string> = {
   MANAGE_SITE: 'Gestão do Site',
   MANAGE_ANALYTICS: 'Analytics',
   MANAGE_COUPONS: 'Gestão de Cupons',
+  CREATE_ORDERS: 'Criar pedidos',
 }
 
 export const ALL_PERMISSIONS = Object.keys(PERMISSION_LABELS) as EmployeePermission[]

@@ -1,3 +1,5 @@
+import { isValidCpf } from './cpf'
+
 export type PixKeyType = 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE' | 'RANDOM'
 
 export interface ParsedPixKey {
@@ -23,17 +25,6 @@ const PHONE = /^\+55[1-9][0-9](9[0-9]{8}|[2-9][0-9]{7})$/
 
 function allSameDigit(digits: string): boolean {
   return new Set(digits).size === 1
-}
-
-function cpfCheckDigit(digits: string, length: number, firstWeight: number): number {
-  let sum = 0
-  for (let i = 0; i < length; i++) sum += Number(digits[i]) * (firstWeight - i)
-  return ((sum * 10) % 11) % 10
-}
-
-function isValidCpf(digits: string): boolean {
-  if (allSameDigit(digits)) return false
-  return cpfCheckDigit(digits, 9, 10) === Number(digits[9]) && cpfCheckDigit(digits, 10, 11) === Number(digits[10])
 }
 
 function cnpjCheckDigit(digits: string, weights: number[]): number {

@@ -129,6 +129,12 @@ describe('EmployeeShell — Sidebar (desktop)', () => {
     expect(screen.queryByRole('link', { name: /^cupons$/i })).not.toBeInTheDocument()
   })
 
+  it('só CREATE_ORDERS já exibe o item "Pedidos" (onde fica o "Novo pedido")', () => {
+    useAuthStore.setState(makeEmployee(['CREATE_ORDERS']))
+    renderEmployeeShell()
+    expect(screen.getByRole('link', { name: /^pedidos$/i })).toHaveAttribute('href', '/dashboard/orders')
+  })
+
   it('MANAGE_STOCK exibe item "Estoque"', () => {
     useAuthStore.setState(makeEmployee(['MANAGE_STOCK']))
     renderEmployeeShell()
