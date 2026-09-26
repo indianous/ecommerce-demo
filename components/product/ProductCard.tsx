@@ -56,7 +56,7 @@ export function ProductCard({ product }: Props) {
           <ImagePlaceholder name={product.name} />
         )}
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge variant="default" size="sm" className="w-fit">
             {product.categories[0]?.name}
           </Badge>

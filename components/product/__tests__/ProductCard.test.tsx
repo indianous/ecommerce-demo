@@ -233,4 +233,12 @@ describe('ProductCard — wishlist', () => {
       expect(screen.getByRole('button', { name: /adicionar aos favoritos/i })).toBeInTheDocument()
     })
   })
+
+  it('a tag de categoria fica num contêiner com flex-wrap e o texto não quebra (plano 66, etapa 6)', () => {
+    renderWithProviders(<ProductCard product={{ ...mockProduct, categories: [{ id: 'c', name: 'Casa e Jardim', slug: 'casa' }] }} />)
+
+    const tag = screen.getByText('Casa e Jardim')
+    expect(tag).toHaveClass('whitespace-nowrap')
+    expect(tag.parentElement).toHaveClass('flex', 'flex-wrap')
+  })
 })

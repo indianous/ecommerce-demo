@@ -31,7 +31,7 @@ Uma etapa não começa antes da anterior estar aprovada ou descartada. Cada etap
 | 3 | Faixa "visão do cliente" com botão para voltar ao painel | aprovada |
 | 4 | Loja mostrada como deslogada para a equipe | aprovada |
 | 5 | Produtos relacionados em grade: 4 por vez, 8 no total | aprovada |
-| 6 | Tags de categoria sem quebra de linha no texto | pendente |
+| 6 | Tags de categoria sem quebra de linha no texto | aprovada |
 | 7 | Tags de categoria da página do produto como link | pendente |
 | 8 | Layout da pesquisa do catálogo | pendente |
 | 9 | Header e footer próprios no login e no cadastro | pendente |

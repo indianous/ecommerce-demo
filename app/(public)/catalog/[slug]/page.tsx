@@ -109,7 +109,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
         <ProductImageGallery imageUrls={product.imageUrls} productName={product.name} />
 
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {product.categories.map((c) => (
               <Badge key={c.id} variant="default" size="sm" className="w-fit">
                 {c.name}

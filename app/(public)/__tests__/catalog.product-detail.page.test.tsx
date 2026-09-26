@@ -149,6 +149,26 @@ describe('ProductDetailPage', () => {
     expect(screen.getByText('Promoções')).toBeInTheDocument()
   })
 
+  it('as tags de categoria ficam num contêiner que quebra linha entre tags (flex-wrap), sem partir o texto', async () => {
+    server.use(
+      http.get('http://localhost:8080/api/v1/catalog/products/slug/mechanical-keyboard', () =>
+        HttpResponse.json({
+          ...mockProduct,
+          categories: [
+            { id: 'cat-1', name: 'Electronics', slug: 'electronics' },
+            { id: 'cat-2', name: 'Casa e Jardim', slug: 'casa-e-jardim' },
+          ],
+        }),
+      ),
+    )
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }), searchParams: Promise.resolve({}) })
+    renderWithToast(jsx)
+
+    const tag = screen.getByText('Casa e Jardim')
+    expect(tag).toHaveClass('whitespace-nowrap')
+    expect(tag.parentElement).toHaveClass('flex', 'flex-wrap')
+  })
+
   it('mostra "Seja o primeiro a avaliar" quando o produto não tem avaliações', async () => {
     server.use(
       http.get('http://localhost:8080/api/v1/catalog/products/slug/mechanical-keyboard', () =>
