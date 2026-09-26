@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import type { CartItem, ProductPrice } from '@/types'
 import { useAuthStore } from '@/stores/auth.store'
 import { authFetch } from '@/lib/authFetch'
+import { selectStorefrontSession } from '@/stores/storefront-session'
 
 interface ServerCartItem {
   productId: string
@@ -26,6 +27,11 @@ function mapServerCart(cart: ServerCart): CartItem[] {
     quantity: i.quantity,
     imageUrl: i.imageUrl ?? undefined,
   }))
+}
+
+/** Carrinho no servidor só para cliente logado; visitante e equipe na loja usam o do navegador. */
+function hasServerCart(): boolean {
+  return selectStorefrontSession(useAuthStore.getState()).isAuthenticated
 }
 
 async function fetchServerCart(path: string, init?: RequestInit): Promise<ServerCart> {
@@ -54,7 +60,7 @@ export const useCartStore = create<CartStore>()(
       items: [],
 
       addItem: async (item) => {
-        if (!useAuthStore.getState().isAuthenticated) {
+        if (!hasServerCart()) {
           set((state) => {
             const existing = state.items.find((i) => i.productId === item.productId)
             if (existing) {
@@ -76,7 +82,7 @@ export const useCartStore = create<CartStore>()(
       },
 
       removeItem: async (productId) => {
-        if (!useAuthStore.getState().isAuthenticated) {
+        if (!hasServerCart()) {
           set((state) => ({ items: state.items.filter((i) => i.productId !== productId) }))
           return
         }
@@ -85,7 +91,7 @@ export const useCartStore = create<CartStore>()(
       },
 
       updateQuantity: async (productId, quantity) => {
-        if (!useAuthStore.getState().isAuthenticated) {
+        if (!hasServerCart()) {
           set((state) => ({
             items:
               quantity <= 0
@@ -107,7 +113,8 @@ export const useCartStore = create<CartStore>()(
 
       mergeOnLogin: async () => {
         const localItems = get().items
-        if (localItems.length === 0) return
+        // login da equipe: o carrinho do navegador não vai para a conta dela
+        if (localItems.length === 0 || !hasServerCart()) return
         const cart = await fetchServerCart('/api/cart/merge', {
           method: 'POST',
           body: JSON.stringify({
@@ -119,7 +126,7 @@ export const useCartStore = create<CartStore>()(
 
       refreshGuestPrices: async () => {
         const items = get().items
-        if (useAuthStore.getState().isAuthenticated || items.length === 0) return { removed: [] }
+        if (hasServerCart() || items.length === 0) return { removed: [] }
         let prices: ProductPrice[]
         try {
           const res = await fetch('/api/catalog/prices', {

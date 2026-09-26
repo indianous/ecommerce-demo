@@ -48,7 +48,7 @@ afterEach(async () => {
   await act(async () => {
     useNotificationsStore.getState().stopPolling()
     useNotificationsStore.setState({ unreadCount: 0, items: [] })
-    useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
+    useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
   })
 })
 afterAll(() => server.close())
@@ -111,5 +111,12 @@ describe('NotificationBell', () => {
     await user.click(screen.getByRole('button', { name: /notificações/i }))
 
     expect(await screen.findByText('Nenhuma notificação por enquanto.')).toBeInTheDocument()
+  })
+
+  it.each([['ADMIN' as const], ['EMPLOYEE' as const]])('equipe (%s) na loja: não renderiza o sino', (role) => {
+    useAuthStore.setState({ accessToken: 'tok', isAuthenticated: true, role })
+    const { container } = render(<NotificationBell />)
+
+    expect(container).toBeEmptyDOMElement()
   })
 })

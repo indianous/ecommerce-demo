@@ -29,7 +29,7 @@ Uma etapa não começa antes da anterior estar aprovada ou descartada. Cada etap
 | 1 | Avatar do painel como botão flutuante no canto inferior direito | aprovada |
 | 2 | Botão flutuante de WhatsApp na loja | aprovada |
 | 3 | Faixa "visão do cliente" com botão para voltar ao painel | aprovada |
-| 4 | Loja mostrada como deslogada para a equipe | pendente |
+| 4 | Loja mostrada como deslogada para a equipe | aprovada |
 | 5 | Produtos relacionados em grade: 4 por vez, 8 no total | pendente |
 | 6 | Tags de categoria sem quebra de linha no texto | pendente |
 | 7 | Tags de categoria da página do produto como link | pendente |
@@ -332,6 +332,22 @@ equipe para `/` pelo `proxy.ts`, e isso continua igual.
    descartada, o item fica, porque seria o único caminho de volta.
 4. O painel, o `AuthHydrator`, o `authFetch` e o login **não mudam**: continuam
    usando a sessão real.
+
+### Notas da implementação
+
+- **`mergeOnLogin` do carrinho** também passou pela regra. Ele roda em todo login, inclusive o da equipe no
+  painel, e levaria o carrinho do navegador para a conta da equipe no servidor.
+- **`ProductViewTracker`** usa `fetch` (e não `authFetch`) quando a loja trata a pessoa como visitante: o
+  `authFetch` sempre anexa o token da sessão real.
+- **`CheckoutForm`** não mudou: ele só aparece quando o `CheckoutContent` considera a pessoa logada, e o
+  `CheckoutContent` já passa pela regra.
+- **`WishlistButton`**: para visitante, o botão não aparece (não "pede login"), e é esse o comportamento que a
+  equipe passa a ter.
+- O item do `UserMenu` se chamava "Dashboard" (não "Painel") e saiu.
+- `EmailVerificationBanner` não mudou: já só aparece para `CUSTOMER`. `/cart`, `/orders`, `/profile` e
+  `/reviews` continuam com o redirecionamento do `proxy.ts`.
+- O lint aponta `react-hooks/set-state-in-effect` em `CheckoutContent.tsx:18` e `ShippingPreview.tsx:65` e um
+  `beforeEach` sem uso no teste do `NotificationBell`. Os três já existiam antes da etapa e ficaram de fora.
 
 ### O que o usuário verifica
 

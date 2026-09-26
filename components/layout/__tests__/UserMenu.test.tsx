@@ -104,47 +104,20 @@ describe('UserMenu', () => {
     expect(link).toHaveAttribute('href', '/reviews')
   })
 
-  it('exibe link "Dashboard" apontando para /dashboard/admin quando role=ADMIN', async () => {
-    const user = userEvent.setup()
+  it.each([['ADMIN' as const], ['EMPLOYEE' as const]])('role=%s na loja → "Entrar", sem o menu (a loja trata a equipe como visitante)', (role) => {
     useAuthStore.setState({
       isAuthenticated: true,
       accessToken: 'tok',
-      role: 'ADMIN' as const,
-      user: { id: '1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN' as const, permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null },
+      role,
+      user: { id: '1', name: 'Equipe', email: 'equipe@test.com', role, permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null },
     })
     renderUserMenu()
 
-    await user.click(screen.getByRole('button', { name: /menu do usuário/i }))
-
-    const link = screen.getByRole('menuitem', { name: /dashboard/i })
-    expect(link).toBeInTheDocument()
-    expect(link).toHaveAttribute('href', '/dashboard/admin')
-    expect(screen.queryByRole('menuitem', { name: /^perfil$/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('menuitem', { name: /meus pedidos/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('menuitem', { name: /minhas avaliações/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /entrar/i })).toHaveAttribute('href', '/login')
+    expect(screen.queryByRole('button', { name: /menu do usuário/i })).not.toBeInTheDocument()
   })
 
-  it('exibe link "Dashboard" apontando para /dashboard quando role=EMPLOYEE', async () => {
-    const user = userEvent.setup()
-    useAuthStore.setState({
-      isAuthenticated: true,
-      accessToken: 'tok',
-      role: 'EMPLOYEE' as const,
-      user: { id: '1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE' as const, permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null },
-    })
-    renderUserMenu()
-
-    await user.click(screen.getByRole('button', { name: /menu do usuário/i }))
-
-    const link = screen.getByRole('menuitem', { name: /dashboard/i })
-    expect(link).toBeInTheDocument()
-    expect(link).toHaveAttribute('href', '/dashboard')
-    expect(screen.queryByRole('menuitem', { name: /^perfil$/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('menuitem', { name: /meus pedidos/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('menuitem', { name: /minhas avaliações/i })).not.toBeInTheDocument()
-  })
-
-  it('não exibe link "Dashboard" para role=CUSTOMER', async () => {
+  it('cliente: o menu não tem link para o painel', async () => {
     const user = userEvent.setup()
     useAuthStore.setState({
       isAuthenticated: true,
@@ -156,7 +129,7 @@ describe('UserMenu', () => {
 
     await user.click(screen.getByRole('button', { name: /menu do usuário/i }))
 
-    expect(screen.queryByRole('menuitem', { name: /dashboard/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('menuitem', { name: /dashboard|painel/i })).not.toBeInTheDocument()
   })
 
   it('calls logout and redirects to home when clicking Sair', async () => {

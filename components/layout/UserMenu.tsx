@@ -4,9 +4,11 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Avatar, Button, DropdownMenu } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
+import { useStorefrontSession } from '@/stores/storefront-session'
 
 export function UserMenu() {
-  const { isAuthenticated, user, logout } = useAuthStore()
+  const { isAuthenticated, user } = useStorefrontSession()
+  const logout = useAuthStore((s) => s.logout)
   const router = useRouter()
 
   const handleLogout = () => {
@@ -27,9 +29,6 @@ export function UserMenu() {
 
   const initials = user?.name?.charAt(0).toUpperCase() ?? '?'
 
-  const dashboardHref =
-    user?.role === 'ADMIN' ? '/dashboard/admin' : user?.role === 'EMPLOYEE' ? '/dashboard' : null
-
   return (
     <DropdownMenu
       align="end"
@@ -39,7 +38,6 @@ export function UserMenu() {
         </Button>
       }
       items={[
-        ...(dashboardHref ? [{ label: 'Dashboard', href: dashboardHref }, { type: 'separator' as const }] : []),
         ...(user?.role === 'CUSTOMER'
           ? [
               { label: 'Perfil', href: '/profile' },

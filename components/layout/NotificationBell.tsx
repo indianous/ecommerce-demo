@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Badge, Button, Drawer, Icon, Text, Tooltip } from 'base-ds'
-import { useAuthStore } from '@/stores/auth.store'
+import { useStorefrontSession } from '@/stores/storefront-session'
 import { useNotificationsStore } from '@/stores/notifications.store'
 import { formatRelativeTime } from '@/lib/relative-time'
 import type { AppNotification } from '@/types'
@@ -11,7 +11,7 @@ import type { AppNotification } from '@/types'
 export function NotificationBell() {
   const [open, setOpen] = useState(false)
   const router = useRouter()
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const { isAuthenticated } = useStorefrontSession()
   const unreadCount = useNotificationsStore((s) => s.unreadCount)
   const items = useNotificationsStore((s) => s.items)
   const fetchUnreadCount = useNotificationsStore((s) => s.fetchUnreadCount)

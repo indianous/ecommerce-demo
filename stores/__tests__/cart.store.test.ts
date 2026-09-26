@@ -24,7 +24,7 @@ afterEach(async () => {
   server.resetHandlers()
   await act(async () => {
     useCartStore.setState({ items: [] })
-    useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
+    useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
   })
 })
 afterAll(() => server.close())
@@ -130,5 +130,42 @@ describe('cart.store — clearCart', () => {
     await useCartStore.getState().clearCart()
 
     expect(useCartStore.getState().items).toHaveLength(0)
+  })
+})
+
+describe('cart.store — equipe na loja (plano 66, etapa 4)', () => {
+  let serverCalls = 0
+
+  beforeEach(async () => {
+    serverCalls = 0
+    server.use(
+      http.all('/api/cart/*', () => {
+        serverCalls++
+        return HttpResponse.json(serverCart)
+      }),
+    )
+    await act(async () => {
+      useAuthStore.setState({ accessToken: 'token-staff', isAuthenticated: true, role: 'ADMIN' })
+    })
+  })
+
+  it('addItem, updateQuantity e removeItem ficam no navegador, sem chamar /api/cart', async () => {
+    await useCartStore.getState().addItem({ productId: 'prod-9', name: 'Cabo', price: 10 })
+    await useCartStore.getState().updateQuantity('prod-9', 3)
+    expect(useCartStore.getState().items).toEqual([{ productId: 'prod-9', name: 'Cabo', price: 10, quantity: 3 }])
+
+    await useCartStore.getState().removeItem('prod-9')
+
+    expect(useCartStore.getState().items).toEqual([])
+    expect(serverCalls).toBe(0)
+  })
+
+  it('mergeOnLogin (login da equipe) não leva o carrinho do navegador para a conta da equipe', async () => {
+    useCartStore.setState({ items: [{ productId: 'prod-2', name: 'Mouse', price: 50, quantity: 1 }] })
+
+    await useCartStore.getState().mergeOnLogin()
+
+    expect(serverCalls).toBe(0)
+    expect(useCartStore.getState().items).toHaveLength(1)
   })
 })

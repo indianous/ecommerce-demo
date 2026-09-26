@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import { Button, Icon, useToast } from 'base-ds'
-import { useAuthStore } from '@/stores/auth.store'
+import { useStorefrontSession } from '@/stores/storefront-session'
 
 interface Props {
   productId: string
@@ -11,7 +11,7 @@ interface Props {
 }
 
 export function WishlistButton({ productId, initialWishlisted }: Props) {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated } = useStorefrontSession()
   const { toast } = useToast()
   const [isWishlisted, setIsWishlisted] = useState(initialWishlisted)
   const [isLoading, setIsLoading] = useState(false)

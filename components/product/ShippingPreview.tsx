@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import { Button, FormField, Icon, Input, Text } from 'base-ds'
-import { useAuthStore } from '@/stores/auth.store'
+import { useStorefrontSession } from '@/stores/storefront-session'
 import type { Address, ShippingQuote } from '@/types'
 
 export function isValidZipCodeFormat(raw: string): boolean {
@@ -22,7 +22,7 @@ function pickDefaultAddress(addresses: Address[]): Address | null {
 }
 
 export function ShippingPreview({ productId }: Props) {
-  const { accessToken } = useAuthStore()
+  const { accessToken } = useStorefrontSession()
 
   const [addressStatus, setAddressStatus] = useState<AddressStatus>(accessToken ? 'checking' : 'manual')
   const [savedAddress, setSavedAddress] = useState<Address | null>(null)

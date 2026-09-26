@@ -5,11 +5,11 @@ import { authFetch } from '@/lib/authFetch'
 import { Container, Heading, Skeleton } from 'base-ds'
 import { CheckoutAuth } from '@/components/forms/CheckoutAuth'
 import { CheckoutForm } from '@/components/forms/CheckoutForm'
-import { useAuthStore } from '@/stores/auth.store'
+import { useStorefrontSession } from '@/stores/storefront-session'
 import type { Address } from '@/types'
 
 export function CheckoutContent() {
-  const { accessToken } = useAuthStore()
+  const { accessToken } = useStorefrontSession()
   const [addresses, setAddresses] = useState<Address[]>([])
   const [loading, setLoading] = useState(false)
 

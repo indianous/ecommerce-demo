@@ -11,7 +11,7 @@ beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
   await act(async () => {
-    useAuthStore.setState({ accessToken: null, isAuthenticated: false })
+    useAuthStore.setState({ accessToken: null, isAuthenticated: false, role: null })
   })
 })
 afterAll(() => server.close())
@@ -202,5 +202,26 @@ describe('ShippingPreview — cliente autenticado com endereço cadastrado', () 
     render(<ShippingPreview productId="prod-1" />)
 
     expect(await screen.findByLabelText(/^cep$/i)).toBeInTheDocument()
+  })
+})
+
+describe('ShippingPreview — equipe na loja (plano 66, etapa 4)', () => {
+  it('não busca endereços com o token da equipe: mostra o CEP manual, como visitante', async () => {
+    let addressesCalled = false
+    server.use(
+      http.get('/api/addresses', () => {
+        addressesCalled = true
+        return HttpResponse.json([])
+      }),
+    )
+    await act(async () => {
+      useAuthStore.setState({ accessToken: 'token-staff', isAuthenticated: true, role: 'EMPLOYEE' })
+    })
+
+    render(<ShippingPreview productId="prod-1" />)
+
+    expect(screen.getByLabelText(/cep/i)).toBeInTheDocument()
+    await new Promise((r) => setTimeout(r, 50))
+    expect(addressesCalled).toBe(false)
   })
 })

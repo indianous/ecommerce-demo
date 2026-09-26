@@ -64,7 +64,7 @@ afterEach(async () => {
   shippingResponse = defaultShippingResponse
   shippingStatus = 200
   await act(async () => {
-    useAuthStore.setState({ accessToken: null, user: null, isAuthenticated: false })
+    useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
     useCartStore.getState().clearCart()
   })
 })
@@ -105,6 +105,14 @@ describe('CheckoutPage', () => {
 
     expect(screen.getByRole('tab', { name: /entrar/i })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /criar conta/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /finalizar/i })).not.toBeInTheDocument()
+  })
+
+  it('equipe logada (plano 66, etapa 4): mostra a tela de entrar/cadastrar, como visitante', () => {
+    useAuthStore.setState({ accessToken: 'token-staff', isAuthenticated: true, role: 'EMPLOYEE' })
+    renderCheckoutPage()
+
+    expect(screen.getByRole('tab', { name: /entrar/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /finalizar/i })).not.toBeInTheDocument()
   })
 })

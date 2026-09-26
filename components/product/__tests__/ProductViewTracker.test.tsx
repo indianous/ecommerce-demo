@@ -13,7 +13,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals()
   fetchMock.mockReset()
-  useAuthStore.setState({ accessToken: null, isAuthenticated: false })
+  useAuthStore.setState({ accessToken: null, isAuthenticated: false, role: null })
 })
 
 describe('ProductViewTracker', () => {
@@ -54,5 +54,14 @@ describe('ProductViewTracker', () => {
 
     expect(() => render(<ProductViewTracker productId="prod-1" />)).not.toThrow()
     await Promise.resolve()
+  })
+
+  it('equipe (ADMIN) na loja: dispara sem Authorization, como visitante', () => {
+    useAuthStore.setState({ accessToken: 'token-staff', isAuthenticated: true, role: 'ADMIN' })
+
+    render(<ProductViewTracker productId="prod-1" />)
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(new Headers(init?.headers).get('Authorization')).toBeNull()
   })
 })
