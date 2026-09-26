@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Container } from 'base-ds'
+import { Container, Heading, Text } from 'base-ds'
 import { ProductGrid } from '@/components/product/ProductGrid'
 
 export const metadata: Metadata = {
@@ -49,6 +49,18 @@ async function fetchCategories(): Promise<Category[]> {
   }
 }
 
+/** "12 produtos" · "1 produto · resultados para "camisa"". */
+function summary(total: number, search?: string) {
+  const count = total === 1 ? '1 produto' : `${total} produtos`
+  return search ? `${count} · resultados para "${search}"` : count
+}
+
+function categoryLinkClass(current: boolean) {
+  return current
+    ? 'rounded-full border border-primary bg-primary px-4 py-1 text-sm text-primary-foreground'
+    : 'rounded-full border border-border px-4 py-1 text-sm text-foreground hover:bg-muted'
+}
+
 interface Props {
   searchParams: Promise<{ category?: string; search?: string; sort?: ProductSort; page?: string; onSale?: string }>
 }
@@ -64,26 +76,38 @@ export default async function CatalogPage({ searchParams }: Props) {
 
   return (
     <Container width="7xl">
-      <h1 className="mb-6 text-2xl font-bold">Catálogo</h1>
+      <div className="mb-6 flex flex-col gap-1">
+        <Heading as="h1" size="2xl">
+          Catálogo
+        </Heading>
+        <Text color="muted">{summary(data.totalElements, search)}</Text>
+      </div>
 
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <CatalogSearch defaultValue={search ?? ''} category={category} sort={sort} onSale={onSale} />
-        <div className="flex items-center gap-4">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end">
+        <div className="flex-1 sm:max-w-xl">
+          <CatalogSearch defaultValue={search ?? ''} category={category} sort={sort} onSale={onSale} />
+        </div>
+        <div className="flex flex-wrap items-end gap-4 sm:ml-auto">
           <CatalogOnSaleToggle checked={onSale} category={category} search={search} sort={sort} />
           <CatalogSort value={sort ?? 'NAME_ASC'} category={category} search={search} onSale={onSale} />
         </div>
       </div>
 
       {categories.length > 0 && (
-        <nav className="mb-6 flex flex-wrap gap-2">
-          <Link href="/catalog" className="rounded-full border px-4 py-1 text-sm hover:bg-gray-100">
+        <nav aria-label="Categorias" className="mb-6 flex flex-wrap gap-2">
+          <Link
+            href={buildCatalogUrl({ search, sort, onSale })}
+            aria-current={!category ? 'page' : undefined}
+            className={categoryLinkClass(!category)}
+          >
             Todos
           </Link>
           {categories.map((cat) => (
             <Link
               key={cat.id}
               href={buildCatalogUrl({ category: cat.slug, search, sort, onSale })}
-              className="rounded-full border px-4 py-1 text-sm hover:bg-gray-100"
+              aria-current={cat.slug === category ? 'page' : undefined}
+              className={categoryLinkClass(cat.slug === category)}
             >
               {cat.name}
             </Link>

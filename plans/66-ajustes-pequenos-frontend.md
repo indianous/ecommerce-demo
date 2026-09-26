@@ -33,7 +33,7 @@ Uma etapa não começa antes da anterior estar aprovada ou descartada. Cada etap
 | 5 | Produtos relacionados em grade: 4 por vez, 8 no total | aprovada |
 | 6 | Tags de categoria sem quebra de linha no texto | aprovada |
 | 7 | Tags de categoria da página do produto como link | aprovada |
-| 8 | Layout da pesquisa do catálogo | pendente |
+| 8 | Layout da pesquisa do catálogo | aprovada |
 | 9 | Header e footer próprios no login e no cadastro | pendente |
 
 ---
@@ -576,6 +576,13 @@ Catálogo
    (`SelectProps` estende os atributos de `<select>`), então ele fica dentro de um
    `FormField` do base-ds com `label="Ordenar por"` e `id="catalog-sort"`, e o
    `aria-label` sai.
+
+### Notas da implementação
+
+- O filtro "Em promoção" (`CatalogOnSaleToggle`), que já existia e o plano não citava, fica junto da
+  ordenação, à direita. O "Todos" também preserva ele, além da busca e da ordenação.
+- O `nav` das categorias ganhou `aria-label="Categorias"`, para não se confundir com o da paginação.
+- O `key` para remontar a busca ficou dentro do `CatalogSearch`, no próprio `SearchField`.
 
 ### O que o usuário verifica
 

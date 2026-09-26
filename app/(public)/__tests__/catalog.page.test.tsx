@@ -215,4 +215,68 @@ describe('CatalogPage', () => {
 
     expect(screen.getByRole('link', { name: 'Electronics' })).toHaveAttribute('href', '/catalog?category=electronics&onSale=true')
   })
+
+  describe('layout do topo (plano 66, etapa 8)', () => {
+    const categories = [
+      { id: 'cat-1', name: 'Electronics', slug: 'electronics' },
+      { id: 'cat-2', name: 'Casa', slug: 'casa' },
+    ]
+
+    function withCategories() {
+      server.use(http.get('http://localhost:8080/api/v1/catalog/categories', () => HttpResponse.json(categories)))
+    }
+
+    function withTotal(totalElements: number) {
+      server.use(
+        http.get('http://localhost:8080/api/v1/catalog/products', () =>
+          HttpResponse.json({ ...mockPage, totalElements, totalPages: 1, last: true }),
+        ),
+      )
+    }
+
+    it('título é o heading de nível 1 "Catálogo"', async () => {
+      renderWithProviders(await CatalogPage({ searchParams: Promise.resolve({}) }))
+
+      expect(screen.getByRole('heading', { level: 1, name: 'Catálogo' })).toBeInTheDocument()
+    })
+
+    it('linha de apoio com a quantidade de produtos', async () => {
+      withTotal(12)
+      renderWithProviders(await CatalogPage({ searchParams: Promise.resolve({}) }))
+
+      expect(screen.getByText('12 produtos')).toBeInTheDocument()
+    })
+
+    it('com busca, a linha de apoio mostra o termo; com 1 resultado, fica no singular', async () => {
+      withTotal(1)
+      renderWithProviders(await CatalogPage({ searchParams: Promise.resolve({ search: 'camisa' }) }))
+
+      expect(screen.getByText('1 produto · resultados para "camisa"')).toBeInTheDocument()
+    })
+
+    it('a categoria atual tem aria-current="page"; as outras e "Todos" não', async () => {
+      withCategories()
+      renderWithProviders(await CatalogPage({ searchParams: Promise.resolve({ category: 'casa' }) }))
+
+      expect(screen.getByRole('link', { name: 'Casa' })).toHaveAttribute('aria-current', 'page')
+      expect(screen.getByRole('link', { name: 'Electronics' })).not.toHaveAttribute('aria-current')
+      expect(screen.getByRole('link', { name: 'Todos' })).not.toHaveAttribute('aria-current')
+    })
+
+    it('sem categoria na URL, "Todos" é o atual', async () => {
+      withCategories()
+      renderWithProviders(await CatalogPage({ searchParams: Promise.resolve({}) }))
+
+      expect(screen.getByRole('link', { name: 'Todos' })).toHaveAttribute('aria-current', 'page')
+    })
+
+    it('"Todos" tira só a categoria: mantém busca, ordenação e "Em promoção"', async () => {
+      withCategories()
+      renderWithProviders(
+        await CatalogPage({ searchParams: Promise.resolve({ category: 'casa', search: 'mesa', sort: 'NEWEST', onSale: 'true' }) }),
+      )
+
+      expect(screen.getByRole('link', { name: 'Todos' })).toHaveAttribute('href', '/catalog?search=mesa&sort=NEWEST&onSale=true')
+    })
+  })
 })

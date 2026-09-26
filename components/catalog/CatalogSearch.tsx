@@ -19,5 +19,6 @@ export function CatalogSearch({ defaultValue, category, sort, onSale }: Props) {
     router.push(buildCatalogUrl({ category, search: value, sort, onSale }))
   }
 
-  return <SearchField defaultValue={defaultValue} onSearch={handleSearch} placeholder="Buscar produtos..." />
+  // key: o SearchField não é controlado; remonta quando a busca muda por outro caminho (a busca da navbar)
+  return <SearchField key={defaultValue} defaultValue={defaultValue} onSearch={handleSearch} placeholder="Buscar produtos..." />
 }

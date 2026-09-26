@@ -44,4 +44,13 @@ describe('CatalogSort', () => {
 
     expect(pushMock).toHaveBeenCalledWith('/catalog?sort=PRICE_ASC&onSale=true')
   })
+
+  it('tem o rótulo visível "Ordenar por", associado ao select (plano 66, etapa 8)', () => {
+    render(<CatalogSort value="NAME_ASC" category={undefined} search={undefined} />)
+
+    const label = screen.getByText('Ordenar por')
+    expect(label.tagName).toBe('LABEL')
+    expect(label).toHaveAttribute('for', 'catalog-sort')
+    expect(screen.getByRole('combobox', { name: 'Ordenar por' })).toHaveAttribute('id', 'catalog-sort')
+  })
 })

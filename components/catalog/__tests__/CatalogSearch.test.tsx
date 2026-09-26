@@ -49,4 +49,13 @@ describe('CatalogSearch', () => {
 
     expect(pushMock).toHaveBeenCalledWith('/catalog?search=mouse&onSale=true')
   })
+
+  it('quando a busca muda por outro caminho (navbar), o campo mostra o termo novo (plano 66, etapa 8)', () => {
+    const { rerender } = render(<CatalogSearch defaultValue="teclado" category={undefined} />)
+    expect(screen.getByRole('textbox', { name: /search input/i })).toHaveValue('teclado')
+
+    rerender(<CatalogSearch defaultValue="mouse" category={undefined} />)
+
+    expect(screen.getByRole('textbox', { name: /search input/i })).toHaveValue('mouse')
+  })
 })

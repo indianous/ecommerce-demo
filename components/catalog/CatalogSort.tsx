@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Select } from 'base-ds'
+import { FormField, Select } from 'base-ds'
 import { buildCatalogUrl } from './catalogUrl'
 import type { ProductSort } from '@/types'
 
@@ -28,12 +28,8 @@ export function CatalogSort({ value, category, search, onSale }: Props) {
   }
 
   return (
-    <Select
-      id="catalog-sort"
-      aria-label="Ordenar por"
-      value={value}
-      onChange={handleChange}
-      options={SORT_OPTIONS}
-    />
+    <FormField label="Ordenar por" id="catalog-sort">
+      <Select id="catalog-sort" value={value} onChange={handleChange} options={SORT_OPTIONS} />
+    </FormField>
   )
 }
