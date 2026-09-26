@@ -163,14 +163,15 @@ describe('AdminShell — Sidebar recolhível (desktop)', () => {
     expect(pedidosLink.querySelector('span.sr-only')).toHaveTextContent('Pedidos')
   })
 
-  it('recolher também esconde o nome no SidebarAvatar (fica sr-only)', async () => {
+  it('recolher a sidebar não altera o menu do usuário no header', async () => {
     const user = userEvent.setup()
     useAuthStore.setState(authenticatedAdmin)
     renderAdminShell()
 
     await user.click(screen.getByRole('button', { name: /toggle sidebar/i }))
 
-    expect(screen.getByText('Admin')).toHaveClass('sr-only')
+    const menu = screen.getByRole('button', { name: /menu do usuário/i })
+    expect(menu.closest('.fixed')).toHaveClass('bottom-4', 'right-4')
   })
 })
 
@@ -343,5 +344,37 @@ describe('AdminShell — área de conteúdo', () => {
       </ToastProvider>,
     )
     expect(screen.getAllByRole('main')).toHaveLength(1)
+  })
+})
+
+describe('AdminShell — Avatar flutuante (plano 66, etapa 1)', () => {
+  it('o menu do usuário aparece uma vez só, fixo no canto inferior direito (fora da sidebar e do header)', () => {
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell()
+
+    const [menu] = screen.getAllByRole('button', { name: /menu do usuário/i })
+    expect(screen.getAllByRole('button', { name: /menu do usuário/i })).toHaveLength(1)
+    expect(menu.closest('.fixed')).toHaveClass('bottom-4', 'right-4')
+    expect(within(screen.getByRole('banner')).queryByRole('button', { name: /menu do usuário/i })).not.toBeInTheDocument()
+  })
+
+  it('o header continua só no celular (md:hidden), com o ☰', () => {
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell()
+
+    const header = screen.getByRole('banner')
+    expect(header).toHaveClass('md:hidden')
+    expect(within(header).getByRole('button', { name: /abrir menu/i })).toBeInTheDocument()
+  })
+
+  it('o drawer aberto não tem o menu do usuário, e o botão flutuante continua lá', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState(authenticatedAdmin)
+    renderAdminShell()
+
+    await user.click(screen.getByRole('button', { name: /abrir menu/i }))
+
+    expect(within(screen.getByRole('dialog')).queryByRole('button', { name: /menu do usuário/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /menu do usuário/i })).toBeInTheDocument()
   })
 })

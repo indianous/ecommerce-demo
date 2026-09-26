@@ -2,10 +2,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { SidebarAvatar } from '@/components/admin/SidebarAvatar'
 import { Button, Icon, Sidebar } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { DashboardMobileNavList } from '@/components/layout/DashboardMobileNavList'
+import { DashboardUserMenu } from '@/components/layout/DashboardUserMenu'
 import { DASHBOARD_NAV_GROUPS, type DashboardNavItem } from '@/components/layout/dashboard-nav-groups'
 import { isNavItemActive } from '@/components/layout/dashboard-nav-active'
 import { siteNavItems } from '@/lib/site-sections'
@@ -72,7 +72,6 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
           }))}
           collapsed={collapsed}
           onCollapse={setCollapsed}
-          footer={<SidebarAvatar profileHref="/dashboard/profile" collapsed={collapsed} />}
         />
       </div>
 
@@ -96,15 +95,15 @@ export function EmployeeShell({ children }: { children: React.ReactNode }) {
               aria-label="Menu de navegação"
               className="fixed inset-y-0 left-0 z-50 w-64 bg-background border-r border-border p-4 flex flex-col gap-2 overflow-y-auto"
             >
-              <div className="mb-4">
-                <SidebarAvatar profileHref="/dashboard/profile" />
-              </div>
               <DashboardMobileNavList items={navItems} pathname={pathname} onNavigate={closeDrawer} />
             </div>
           </>
         )}
 
         <main className="flex-1">{children}</main>
+
+        {/* Menu do usuário flutuante, no canto inferior direito, no desktop e no celular */}
+        <DashboardUserMenu profileHref="/dashboard/profile" />
       </div>
     </div>
   )

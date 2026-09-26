@@ -26,7 +26,7 @@ Uma etapa não começa antes da anterior estar aprovada ou descartada. Cada etap
 
 | Etapa | Alteração | Situação |
 | --- | --- | --- |
-| 1 | Avatar do painel no header, no topo direito | pendente |
+| 1 | Avatar do painel como botão flutuante no canto inferior direito | aprovada |
 | 2 | Botão flutuante de WhatsApp na loja | pendente |
 | 3 | Faixa "visão do cliente" com botão para voltar ao painel | pendente |
 | 4 | Loja mostrada como deslogada para a equipe | pendente |
@@ -98,6 +98,17 @@ no celular, nos dois painéis (admin e funcionário).
    `sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-background px-4 py-3`,
    com o ☰ (que mantém `md:hidden`) à esquerda e o `DashboardUserMenu` com
    `ml-auto` à direita.
+
+### Ajuste 1 — botão flutuante (pedido na verificação)
+
+O avatar no header não ficou como o esperado: ele passa a ser um **botão flutuante
+no canto inferior direito** (`fixed bottom-4 right-4 z-30`), igual no desktop e no
+celular, com o menu ("Perfil" e "Sair") abrindo **para cima** e alinhado à direita
+(`DropdownMenu` com `position="top"` e `align="end"`). Só o avatar aparece, sem o
+nome (que fica em `sr-only` e no `title`). O header volta a ser só do celular
+(`md:hidden`, com o ☰), como antes da etapa. O `DashboardUserMenu` é renderizado
+uma vez no shell, fora da sidebar, do header e do drawer. O drawer aberto (z-50)
+fica por cima do botão.
 
 ### O que o usuário verifica
 
