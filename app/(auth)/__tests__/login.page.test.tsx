@@ -188,4 +188,17 @@ describe('LoginPage', () => {
     expect(column).toHaveClass('mx-auto', 'max-w-sm')
     expect(column).toContainElement(screen.getByRole('button', { name: /entrar/i }))
   })
+
+  it('link "Esqueci minha senha" para /forgot-password', () => {
+    renderLoginPage()
+
+    expect(screen.getByRole('link', { name: /esqueci minha senha/i })).toHaveAttribute('href', '/forgot-password')
+  })
+
+  it('?passwordReset=1 → aviso de senha alterada', () => {
+    searchParamsString = 'passwordReset=1'
+    renderLoginPage()
+
+    expect(screen.getByText('Senha alterada. Entre com a nova senha.')).toBeInTheDocument()
+  })
 })

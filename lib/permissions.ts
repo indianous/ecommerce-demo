@@ -1,4 +1,4 @@
-import type { EmployeePermission } from '@/types'
+import type { EmployeePermission, UserRole } from '@/types'
 
 export const PERMISSION_LABELS: Record<EmployeePermission, string> = {
   MANAGE_PRODUCTS: 'Gerenciamento de Produtos',
@@ -17,3 +17,18 @@ export const PERMISSION_LABELS: Record<EmployeePermission, string> = {
 }
 
 export const ALL_PERMISSIONS = Object.keys(PERMISSION_LABELS) as EmployeePermission[]
+
+type InviteActor = { role: UserRole; permissions: EmployeePermission[] } | null
+
+/**
+ * Quem pode mandar o convite/link de senha, pela mesma regra do backend: admin para qualquer um;
+ * cliente exige MANAGE_CUSTOMERS; funcionário exige MANAGE_EMPLOYEES; admin só por admin.
+ */
+export function canSendPasswordInvite(actor: InviteActor, targetRole: UserRole): boolean {
+  if (!actor) return false
+  if (actor.role === 'ADMIN') return true
+  if (actor.role !== 'EMPLOYEE') return false
+  if (targetRole === 'CUSTOMER') return actor.permissions.includes('MANAGE_CUSTOMERS')
+  if (targetRole === 'EMPLOYEE') return actor.permissions.includes('MANAGE_EMPLOYEES')
+  return false
+}

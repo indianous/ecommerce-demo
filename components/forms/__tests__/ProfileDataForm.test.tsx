@@ -105,3 +105,18 @@ describe('ProfileDataForm', () => {
     expect(props.onSubmit).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('ProfileDataForm — troca de e-mail (plano 64)', () => {
+  const HINT = 'Você vai precisar confirmar o novo e-mail antes do próximo pedido'
+
+  it('e-mail igual ao atual → sem dica', () => {
+    renderForm({ originalEmail: 'joao@test.com' })
+    expect(screen.queryByText(HINT)).not.toBeInTheDocument()
+  })
+
+  it('e-mail diferente do atual → dica de confirmação', () => {
+    renderForm({ email: 'joao.novo@test.com', originalEmail: 'joao@test.com' })
+    expect(screen.getByText(HINT)).toBeInTheDocument()
+  })
+})
+

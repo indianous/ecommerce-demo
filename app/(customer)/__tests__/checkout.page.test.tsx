@@ -314,3 +314,47 @@ describe('CheckoutPage — cupom de desconto', () => {
     expect(screen.getByText(/desconto \(DEZ\)/i)).toBeInTheDocument()
   })
 })
+
+describe('CheckoutPage — e-mail não confirmado (plano 64)', () => {
+  const customer = {
+    id: 'u1', name: 'Bia', email: 'bia@test.com', role: 'CUSTOMER' as const, permissions: [],
+    phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null,
+  }
+
+  it('cliente não verificado → Card "Confirme seu e-mail" no lugar do botão; endereço e frete continuam visíveis', async () => {
+    useAuthStore.setState({ user: { ...customer, emailVerified: false } })
+    renderCheckoutPage()
+
+    expect(await screen.findByLabelText(/correios — pac/i)).toBeInTheDocument()
+    expect(screen.getByText(/Rua das Flores/)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Confirme seu e-mail para finalizar' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /reenviar e-mail/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /finalizar/i })).not.toBeInTheDocument()
+  })
+
+  it('403 EMAIL_NOT_VERIFIED no pedido → mostra o mesmo Card, sem toast genérico', async () => {
+    useAuthStore.setState({ user: { ...customer, emailVerified: true } })
+    server.use(http.post('/api/orders', () => HttpResponse.json(
+      { status: 403, code: 'EMAIL_NOT_VERIFIED', message: 'Confirme seu e-mail para finalizar o pedido' },
+      { status: 403 },
+    )))
+    const user = userEvent.setup()
+    renderCheckoutPage()
+
+    await user.click(await screen.findByLabelText(/correios — pac/i))
+    await user.click(screen.getByRole('button', { name: /finalizar/i }))
+
+    expect(await screen.findByRole('heading', { name: 'Confirme seu e-mail para finalizar' })).toBeInTheDocument()
+    expect(screen.queryByText('Confirme seu e-mail para finalizar o pedido')).not.toBeInTheDocument()
+    expect(useAuthStore.getState().user?.emailVerified).toBe(false)
+  })
+
+  it('cliente verificado → botão "Finalizar Pedido" como hoje', async () => {
+    useAuthStore.setState({ user: { ...customer, emailVerified: true } })
+    renderCheckoutPage()
+
+    await screen.findByLabelText(/correios — pac/i)
+    expect(screen.getByRole('button', { name: /finalizar/i })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Confirme seu e-mail para finalizar' })).not.toBeInTheDocument()
+  })
+})

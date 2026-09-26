@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Container, Heading, Text } from 'base-ds'
+import { Alert, Container, Heading, Text } from 'base-ds'
 import { LoginForm } from '@/components/forms/LoginForm'
 import { postLoginPath } from '@/lib/post-login-path'
 import { useAuthStore } from '@/stores/auth.store'
@@ -12,6 +12,7 @@ export function LoginContent() {
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl')
   const sessionExpired = searchParams.get('sessionExpired') === '1'
+  const passwordReset = searchParams.get('passwordReset') === '1'
 
   const handleSuccess = () => {
     router.push(postLoginPath(callbackUrl, useAuthStore.getState().role))
@@ -29,7 +30,15 @@ export function LoginContent() {
         </Text>
       )}
 
+      {passwordReset && <Alert variant="success">Senha alterada. Entre com a nova senha.</Alert>}
+
       <LoginForm onSuccess={handleSuccess} />
+
+      <Text size="sm">
+        <Link href="/forgot-password" className="text-primary hover:underline">
+          Esqueci minha senha
+        </Link>
+      </Text>
 
       <Text size="sm" color="muted">
         Não tem conta?{' '}

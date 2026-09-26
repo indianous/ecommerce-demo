@@ -5,6 +5,9 @@ import Link from 'next/link'
 import { Badge, Container, Heading, Image, Rating, Skeleton, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
+import { AccountStatusBadges } from '@/components/admin/AccountStatusBadges'
+import { PasswordInviteButton } from '@/components/admin/PasswordInviteButton'
+import { canSendPasswordInvite } from '@/lib/permissions'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { calculateAge } from '@/lib/age'
 import { formatBRL } from '@/lib/format'
@@ -51,6 +54,7 @@ function formatDateTime(value: string | null): string {
 
 export function CustomerDetailContent({ id, backPath = '/dashboard/customers' }: { id: string; backPath?: string }) {
   const { accessToken } = useAuthStore()
+  const currentUser = useAuthStore((s) => s.user)
   const { toast } = useToast()
   const [customer, setCustomer] = useState<CustomerDetailResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -95,10 +99,19 @@ export function CustomerDetailContent({ id, backPath = '/dashboard/customers' }:
           </Heading>
         </div>
 
-        <p className="text-sm text-muted-foreground mb-6 inline-flex items-center gap-2">
-          {customer.email}
-          <CopyButton value={customer.email} label="e-mail" />
-        </p>
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <p className="text-sm text-muted-foreground inline-flex items-center gap-2">
+            {customer.email}
+            <CopyButton value={customer.email} label="e-mail" />
+          </p>
+          <AccountStatusBadges passwordSet={customer.passwordSet} emailVerified={customer.emailVerified} />
+          <PasswordInviteButton
+            userId={customer.id}
+            email={customer.email}
+            passwordSet={customer.passwordSet}
+            canInvite={canSendPasswordInvite(currentUser, 'CUSTOMER')}
+          />
+        </div>
 
         <Heading as="h2" size="xl" className="mb-3">Dados pessoais</Heading>
         <dl className="mb-6 grid grid-cols-2 gap-3 text-sm">

@@ -114,6 +114,26 @@ export interface User {
   birthDate: string | null
   gender: Gender
   cpf: string | null
+  /**
+   * false até o cliente confirmar o e-mail; sem isso o checkout não fecha pedido (plano 64). O backend sempre
+   * envia; ausente conta como verificado (só `=== false` bloqueia).
+   */
+  emailVerified?: boolean
+}
+
+export type PasswordTokenPurpose = 'RESET' | 'SET_PASSWORD'
+
+export interface PasswordTokenInfo {
+  purpose: PasswordTokenPurpose
+  /** Mascarado pelo backend, ex. j***@gmail.com */
+  email: string
+  expiresAt: string
+}
+
+export interface ResetPasswordInput {
+  token: string
+  newPassword: string
+  confirmPassword: string
 }
 
 export interface Address {
@@ -536,12 +556,15 @@ export interface Employee {
   role: 'EMPLOYEE' | 'ADMIN'
   permissions: EmployeePermission[]
   photoUrl?: string
+  passwordSet: boolean
+  emailVerified: boolean
 }
 
-export interface EmployeeFormData {
+/** Sem {@code password}, a conta nasce sem senha e a pessoa recebe o convite por e-mail. */
+export interface EmployeeInput {
   name: string
   email: string
-  password: string
+  password?: string
 }
 
 export interface EmployeePage {
@@ -675,6 +698,8 @@ export interface CustomerDetailResponse {
   trafficSource: TrafficSourceSummary | null
   recentPageViews: PageViewSummary[]
   recentlyViewedProducts: RecentlyViewedProduct[]
+  passwordSet: boolean
+  emailVerified: boolean
 }
 
 export type AuditEntityType = 'PRODUCT' | 'CATEGORY' | 'PROMOTION' | 'COUPON' | 'ORDER' | 'USER' | 'ADDRESS'
@@ -685,6 +710,7 @@ export type AuditAction =
   | 'DEACTIVATED'
   | 'STATUS_UPDATED'
   | 'PASSWORD_CHANGED'
+  | 'PASSWORD_INVITE_SENT'
 
 export interface AuditLogResponse {
   id: number
@@ -791,6 +817,8 @@ export interface QuickCustomerInput {
   email: string
   phone?: string | null
   cpf?: string | null
+  /** Envia o convite para o cliente definir a senha (plano 64). */
+  sendInvite?: boolean
 }
 
 export interface ManualOrderItemInput {

@@ -4,7 +4,7 @@ import { authFetch } from '@/lib/authFetch'
 import { Button, Container, Dialog, Icon, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { EmployeeManagementTable } from '@/components/admin/EmployeeManagementTable'
-import { EmployeeForm } from '@/components/forms/EmployeeForm'
+import { EMPTY_EMPLOYEE_FORM, EmployeeForm, toEmployeeInput, type EmployeeFormState } from '@/components/forms/EmployeeForm'
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
 import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
@@ -15,13 +15,15 @@ import { SelectionBar } from '@/components/layout/SelectionBar'
 import { useConfirmDelete } from '@/lib/useConfirmDelete'
 import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
-import type { BulkOperationResult, Employee, EmployeeFormData } from '@/types'
+import type { BulkOperationResult, Employee } from '@/types'
 
 export function AdminsContent() {
   const { accessToken } = useAuthStore()
   const { toast } = useToast()
   const searchRef = useRef('')
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [employeeForm, setEmployeeForm] = useState<EmployeeFormState>(EMPTY_EMPLOYEE_FORM)
+  const [creating, setCreating] = useState(false)
 
   const fetchPage = useCallback(async (params: URLSearchParams): Promise<PageResult<Employee> | null> => {
     if (!accessToken) return null
@@ -43,23 +45,37 @@ export function AdminsContent() {
     reload()
   }
 
-  const handleCreate = async (data: EmployeeFormData) => {
+  const openCreateDialog = () => {
+    setEmployeeForm(EMPTY_EMPLOYEE_FORM)
+    setCreateDialogOpen(true)
+  }
+
+  const handleCreate = async () => {
     if (!accessToken) return
-    const res = await authFetch('/api/admin/admins', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-    if (res.ok) {
-      const created: Employee = await res.json()
-      setAdmins((prev) => [...prev, created])
-      setCreateDialogOpen(false)
-      toast({ variant: 'success', description: 'Administrador criado com sucesso.' })
-    } else {
-      const body = await res.json().catch(() => ({ message: 'Erro ao criar administrador.' }))
-      toast({ variant: 'destructive', description: body.message ?? 'Erro ao criar administrador.' })
+    const input = toEmployeeInput(employeeForm)
+    setCreating(true)
+    try {
+      const res = await authFetch('/api/admin/admins', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(input),
+      })
+      if (res.ok) {
+        const created: Employee = await res.json()
+        setAdmins((prev) => [...prev, created])
+        setCreateDialogOpen(false)
+        toast({
+          variant: 'success',
+          description: input.password ? 'Administrador criado com sucesso.' : `Convite enviado para ${input.email}`,
+        })
+      } else {
+        const body = await res.json().catch(() => ({ message: 'Erro ao criar administrador.' }))
+        toast({ variant: 'destructive', description: body.message ?? 'Erro ao criar administrador.' })
+      }
+    } finally {
+      setCreating(false)
     }
   }
 
@@ -126,7 +142,7 @@ export function AdminsContent() {
       <ManagementPageHeader title="Gestão de Administradores" />
       <ManagementPageBody
         actions={
-          <Button leftIcon={<Icon name="UserPlus" size="sm" />} variant="primary" onClick={() => setCreateDialogOpen(true)}>Novo administrador</Button>
+          <Button leftIcon={<Icon name="UserPlus" size="sm" />} variant="primary" onClick={openCreateDialog}>Novo administrador</Button>
         }
       >
         <ManagementContentHeader
@@ -167,8 +183,11 @@ export function AdminsContent() {
           title="Novo administrador"
         >
           <EmployeeForm
-            onSave={handleCreate}
+            value={employeeForm}
+            onChange={(patch) => setEmployeeForm((f) => ({ ...f, ...patch }))}
+            onSave={() => void handleCreate()}
             onCancel={() => setCreateDialogOpen(false)}
+            saving={creating}
           />
         </Dialog>
 

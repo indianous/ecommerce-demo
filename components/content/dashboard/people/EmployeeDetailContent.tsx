@@ -5,11 +5,14 @@ import { authFetch } from '@/lib/authFetch'
 import { Avatar, Badge, Button, Container, Heading, Icon, Skeleton, TransferList, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { CopyButton } from '@/components/ui/CopyButton'
-import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions'
+import { AccountStatusBadges } from '@/components/admin/AccountStatusBadges'
+import { PasswordInviteButton } from '@/components/admin/PasswordInviteButton'
+import { ALL_PERMISSIONS, PERMISSION_LABELS, canSendPasswordInvite } from '@/lib/permissions'
 import type { AuditLogResponse, EmployeeDetailResponse, EmployeePermission } from '@/types'
 
 export function EmployeeDetailPage({ id }: { id: string }) {
   const { accessToken } = useAuthStore()
+  const currentUser = useAuthStore((s) => s.user)
   const { toast } = useToast()
   const [employee, setEmployee] = useState<EmployeeDetailResponse | null>(null)
   const [permissions, setPermissions] = useState<EmployeePermission[]>([])
@@ -79,7 +82,16 @@ export function EmployeeDetailPage({ id }: { id: string }) {
             {employee.email}
             <CopyButton value={employee.email} label="e-mail" />
           </p>
-          <Badge variant="default">{employee.role}</Badge>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <Badge variant="default">{employee.role}</Badge>
+            <AccountStatusBadges passwordSet={employee.passwordSet} emailVerified={employee.emailVerified} />
+            <PasswordInviteButton
+              userId={employee.id}
+              email={employee.email}
+              passwordSet={employee.passwordSet}
+              canInvite={canSendPasswordInvite(currentUser, employee.role)}
+            />
+          </div>
         </div>
       </div>
 

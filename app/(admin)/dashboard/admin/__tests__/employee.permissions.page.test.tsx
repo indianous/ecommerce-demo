@@ -22,6 +22,8 @@ const mockEmployees: Employee[] = [
     email: 'ana@test.com',
     role: 'EMPLOYEE',
     permissions: ['MANAGE_ORDERS', 'MANAGE_PRODUCTS'],
+    passwordSet: true,
+    emailVerified: true,
   },
   {
     id: 'emp-2',
@@ -29,6 +31,8 @@ const mockEmployees: Employee[] = [
     email: 'bruno@test.com',
     role: 'EMPLOYEE',
     permissions: [],
+    passwordSet: true,
+    emailVerified: true,
   },
 ]
 

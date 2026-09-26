@@ -1,10 +1,10 @@
-import { Button, FormField, Icon, Input } from 'base-ds'
+import { Button, FormField, Icon, Input, Switch } from 'base-ds'
 import { isValidCpf } from '@/lib/cpf'
 import type { QuickCustomerInput } from '@/types'
 
-export type QuickCustomerFormState = { name: string; email: string; phone: string; cpf: string }
+export type QuickCustomerFormState = { name: string; email: string; phone: string; cpf: string; sendInvite: boolean }
 
-export const EMPTY_QUICK_CUSTOMER: QuickCustomerFormState = { name: '', email: '', phone: '', cpf: '' }
+export const EMPTY_QUICK_CUSTOMER: QuickCustomerFormState = { name: '', email: '', phone: '', cpf: '', sendInvite: false }
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -14,6 +14,7 @@ export function toQuickCustomerInput(form: QuickCustomerFormState): QuickCustome
     email: form.email.trim(),
     phone: form.phone.trim() || null,
     cpf: form.cpf.trim() || null,
+    sendInvite: form.sendInvite,
   }
 }
 
@@ -46,6 +47,12 @@ export function QuickCustomerForm({ form, onChange, onSubmit, saving }: Props) {
           <Input id="quick-customer-cpf" value={form.cpf} onChange={(e) => onChange({ cpf: e.target.value })} maxLength={14} />
         </FormField>
       </div>
+      <Switch
+        id="quick-customer-invite"
+        label="Enviar convite para criar senha"
+        checked={form.sendInvite}
+        onChange={(checked) => onChange({ sendInvite: checked })}
+      />
       <div>
         <Button leftIcon={<Icon name="UserPlus" size="sm" />} type="submit" variant="primary" disabled={!canSubmit} isLoading={saving}>
           Cadastrar cliente

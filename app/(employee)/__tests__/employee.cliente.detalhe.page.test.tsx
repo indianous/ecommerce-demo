@@ -301,3 +301,25 @@ describe('CustomerDetailContent', () => {
     expect(replaceMock).toHaveBeenCalledWith('/dashboard')
   })
 })
+
+describe('CustomerDetailContent — conta (plano 64)', () => {
+  it('senha não definida e e-mail não confirmado → Badges e botão "Enviar convite" (MANAGE_CUSTOMERS)', async () => {
+    server.use(http.get('/api/admin/customers/:id', () =>
+      HttpResponse.json({ ...mockDetail, passwordSet: false, emailVerified: false })))
+    renderDetail()
+
+    expect(await screen.findByText('Senha não definida')).toBeInTheDocument()
+    expect(screen.getByText('E-mail não confirmado')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Enviar convite' })).toBeInTheDocument()
+  })
+
+  it('conta com senha e verificada → sem Badges e botão "Enviar link de redefinição"', async () => {
+    server.use(http.get('/api/admin/customers/:id', () =>
+      HttpResponse.json({ ...mockDetail, passwordSet: true, emailVerified: true })))
+    renderDetail()
+
+    expect(await screen.findByRole('button', { name: 'Enviar link de redefinição' })).toBeInTheDocument()
+    expect(screen.queryByText('Senha não definida')).not.toBeInTheDocument()
+    expect(screen.queryByText('E-mail não confirmado')).not.toBeInTheDocument()
+  })
+})

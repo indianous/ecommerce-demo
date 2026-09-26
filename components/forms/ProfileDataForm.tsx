@@ -44,6 +44,8 @@ type Props = {
   onCpfChange: (value: string) => void
   onSubmit: (e: React.FormEvent) => void
   saving: boolean
+  /** E-mail salvo hoje; trocar exige confirmar o novo antes do próximo pedido (plano 64). */
+  originalEmail?: string
 }
 
 export function ProfileDataForm({
@@ -61,6 +63,7 @@ export function ProfileDataForm({
   onCpfChange,
   onSubmit,
   saving,
+  originalEmail,
 }: Props) {
   const [birthDateError, setBirthDateError] = useState('')
   const [cpfError, setCpfError] = useState('')
@@ -85,7 +88,15 @@ export function ProfileDataForm({
       <FormField label="Nome" id="profile-name">
         <Input id="profile-name" value={name} onChange={(e) => onNameChange(e.target.value)} />
       </FormField>
-      <FormField label="Email" id="profile-email">
+      <FormField
+        label="Email"
+        id="profile-email"
+        hint={
+          originalEmail && email.trim().toLowerCase() !== originalEmail.toLowerCase()
+            ? 'Você vai precisar confirmar o novo e-mail antes do próximo pedido'
+            : undefined
+        }
+      >
         <Input id="profile-email" type="email" value={email} onChange={(e) => onEmailChange(e.target.value)} />
       </FormField>
       <FormField label="Telefone" id="profile-phone" hint="Opcional">

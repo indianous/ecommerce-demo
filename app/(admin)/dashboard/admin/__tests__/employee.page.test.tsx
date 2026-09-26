@@ -16,7 +16,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import type { Employee } from '@/types'
 
 const mockEmployees: Employee[] = [
-  { id: 'emp-1', name: 'Ana Costa', email: 'ana@test.com', role: 'EMPLOYEE', permissions: [] },
+  { id: 'emp-1', name: 'Ana Costa', email: 'ana@test.com', role: 'EMPLOYEE', permissions: [], passwordSet: true, emailVerified: true },
 ]
 
 const newEmployee: Employee = {
@@ -25,6 +25,8 @@ const newEmployee: Employee = {
   email: 'carlos@test.com',
   role: 'EMPLOYEE',
   permissions: [],
+  passwordSet: true,
+  emailVerified: true,
 }
 
 const server = setupServer(
@@ -93,11 +95,53 @@ describe('EmployeesPage — Gestão de Funcionários', () => {
 
     await user.type(within(dialog).getByLabelText(/nome/i), 'Carlos Melo')
     await user.type(within(dialog).getByLabelText(/e-mail/i), 'carlos@test.com')
-    await user.type(within(dialog).getByLabelText(/senha/i), 'senhaSegura1')
     await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
 
     expect(await screen.findByText('Carlos Melo')).toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('criar com convite (padrão) → POST sem senha e toast "Convite enviado"', async () => {
+    let body: Record<string, unknown> = {}
+    server.use(http.post('/api/admin/employees', async ({ request }) => {
+      body = (await request.json()) as Record<string, unknown>
+      return HttpResponse.json(newEmployee, { status: 201 })
+    }))
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Ana Costa')
+
+    await user.click(screen.getByRole('button', { name: /novo funcionário/i }))
+    const dialog = screen.getByRole('dialog')
+    await user.type(within(dialog).getByLabelText(/nome/i), 'Carlos Melo')
+    await user.type(within(dialog).getByLabelText(/e-mail/i), 'carlos@test.com')
+    await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
+
+    expect(await screen.findByText('Convite enviado para carlos@test.com')).toBeInTheDocument()
+    expect(body).toEqual({ name: 'Carlos Melo', email: 'carlos@test.com' })
+  })
+
+  it('criar com senha → POST com password, como antes', async () => {
+    let body: Record<string, unknown> = {}
+    server.use(http.post('/api/admin/employees', async ({ request }) => {
+      body = (await request.json()) as Record<string, unknown>
+      return HttpResponse.json(newEmployee, { status: 201 })
+    }))
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Ana Costa')
+
+    await user.click(screen.getByRole('button', { name: /novo funcionário/i }))
+    const dialog = screen.getByRole('dialog')
+    await user.type(within(dialog).getByLabelText(/nome/i), 'Carlos Melo')
+    await user.type(within(dialog).getByLabelText(/e-mail/i), 'carlos@test.com')
+    await user.click(within(dialog).getByRole('switch', { name: /enviar convite para criar senha/i }))
+    await user.type(within(dialog).getByLabelText(/^senha$/i), 'senhaSegura1')
+    await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
+
+    await screen.findByText('Carlos Melo')
+    expect(body).toEqual({ name: 'Carlos Melo', email: 'carlos@test.com', password: 'senhaSegura1' })
+    expect(screen.queryByText(/convite enviado/i)).not.toBeInTheDocument()
   })
 
   it('botão Excluir abre confirmação; confirmar chama DELETE e remove o funcionário da lista', async () => {

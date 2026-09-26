@@ -16,7 +16,7 @@ const mockUser: User = {
   permissions: [],
   phone: null,
   birthDate: null,
-  gender: 'PREFIRO_NAO_DIZER', cpf: null,
+  gender: 'PREFIRO_NAO_DIZER', cpf: null, emailVerified: true,
 }
 
 const mockAddress: Address = {
@@ -177,3 +177,22 @@ describe('ProfilePage', () => {
     await screen.findByDisplayValue('João Victor')
   })
 })
+
+describe('ProfilePage — troca de e-mail (plano 64)', () => {
+  it('salvar com e-mail novo → toast do link enviado e o store fica não verificado', async () => {
+    server.use(http.patch('/api/auth/me', async ({ request }) =>
+      HttpResponse.json({ ...mockUser, ...(await request.json() as object), emailVerified: false })))
+    const user = userEvent.setup()
+    renderProfilePage()
+    const emailInput = await screen.findByDisplayValue('joao@test.com')
+
+    await user.clear(emailInput)
+    await user.type(emailInput, 'joao.novo@test.com')
+    expect(screen.getByText('Você vai precisar confirmar o novo e-mail antes do próximo pedido')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /salvar/i }))
+
+    expect(await screen.findByText('Enviamos um link de confirmação para joao.novo@test.com')).toBeInTheDocument()
+    expect(useAuthStore.getState().user?.emailVerified).toBe(false)
+  })
+})
+

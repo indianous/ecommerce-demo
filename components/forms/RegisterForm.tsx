@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { Button, FormField, Icon, Input, PasswordInput, Select, useToast } from 'base-ds'
-import { useAuthStore } from '@/stores/auth.store'
+import { AuthError, useAuthStore } from '@/stores/auth.store'
 import { readAttribution } from '@/lib/traffic-attribution'
 import type { Gender } from '@/types'
 
@@ -13,10 +13,12 @@ const GENDER_OPTIONS: { value: Gender; label: string }[] = [
 ]
 
 interface Props {
-  onSuccess: () => void
+  onSuccess: (email: string) => void
+  /** Já existe uma conta criada pela equipe com este e-mail: o backend reenviou o convite de senha. */
+  onPasswordNotSet?: (message: string) => void
 }
 
-export function RegisterForm({ onSuccess }: Props) {
+export function RegisterForm({ onSuccess, onPasswordNotSet }: Props) {
   const register = useAuthStore((s) => s.register)
   const { toast } = useToast()
   const [name, setName] = useState('')
@@ -53,8 +55,12 @@ export function RegisterForm({ onSuccess }: Props) {
         gender: gender || undefined,
         ...readAttribution(),
       })
-      onSuccess()
+      onSuccess(email.trim())
     } catch (err) {
+      if (err instanceof AuthError && err.code === 'PASSWORD_NOT_SET' && onPasswordNotSet) {
+        onPasswordNotSet(err.message)
+        return
+      }
       toast({
         variant: 'destructive',
         description: err instanceof Error ? err.message : 'Erro ao cadastrar',

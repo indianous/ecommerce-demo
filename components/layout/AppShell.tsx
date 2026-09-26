@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import { Footer, Image, Navbar } from 'base-ds'
 import type { FooterSocialLink } from 'base-ds'
 import { CartDrawer } from '@/components/cart/CartDrawer'
+import { EmailVerificationBanner } from '@/components/layout/EmailVerificationBanner'
 import { NavbarSearch } from '@/components/layout/NavbarSearch'
 import { NotificationBell } from '@/components/layout/NotificationBell'
 import { UserMenu } from '@/components/layout/UserMenu'
@@ -60,6 +61,7 @@ export function AppShell({ children }: AppShellProps) {
         actions={[<NotificationBell key="notifications" />, <CartDrawer key="cart" />, <UserMenu key="user" />]}
         sticky
       />
+      <EmailVerificationBanner />
       <main className="flex-1">{children}</main>
       <Footer
         columns={footerColumns.length > 0 ? footerColumns : undefined}

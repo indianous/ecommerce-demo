@@ -15,6 +15,7 @@ export function CustomerProfileContent() {
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [savedEmail, setSavedEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [birthDate, setBirthDate] = useState('')
   const [gender, setGender] = useState<Gender>('PREFIRO_NAO_DIZER')
@@ -33,6 +34,7 @@ export function CustomerProfileContent() {
         if (data) {
           setName(data.name)
           setEmail(data.email)
+          setSavedEmail(data.email)
           setPhone(data.phone ?? '')
           setBirthDate(data.birthDate ?? '')
           setGender(data.gender)
@@ -60,12 +62,18 @@ export function CustomerProfileContent() {
       const updated: User = await res.json()
       setName(updated.name)
       setEmail(updated.email)
+      setSavedEmail(updated.email)
       setPhone(updated.phone ?? '')
       setBirthDate(updated.birthDate ?? '')
       setGender(updated.gender)
       setCpf(updated.cpf ?? '')
       setUser(updated)
-      toast({ variant: 'success', description: 'Dados atualizados com sucesso.' })
+      // Trocar o e-mail volta a conta para não confirmada: o link vai para o e-mail novo.
+      const emailChanged = updated.email.toLowerCase() !== savedEmail.toLowerCase()
+      toast({
+        variant: 'success',
+        description: emailChanged ? `Enviamos um link de confirmação para ${updated.email}` : 'Dados atualizados com sucesso.',
+      })
     } catch {
       toast({ variant: 'destructive', description: 'Erro ao atualizar dados.' })
     } finally {
@@ -123,6 +131,7 @@ export function CustomerProfileContent() {
           onCpfChange={setCpf}
           onSubmit={handleSaveUser}
           saving={savingUser}
+          originalEmail={savedEmail}
         />
       </section>
 

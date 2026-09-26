@@ -23,6 +23,8 @@ const mockEmployees: Employee[] = [
     email: 'carlos@test.com',
     role: 'EMPLOYEE',
     permissions: ['MANAGE_ORDERS', 'MANAGE_PRODUCTS'],
+    passwordSet: true,
+    emailVerified: true,
   },
   {
     id: 'emp-2',
@@ -30,6 +32,8 @@ const mockEmployees: Employee[] = [
     email: 'fernanda@test.com',
     role: 'EMPLOYEE',
     permissions: [],
+    passwordSet: true,
+    emailVerified: true,
   },
 ]
 
@@ -39,6 +43,8 @@ const newEmployee: Employee = {
   email: 'lucas@test.com',
   role: 'EMPLOYEE',
   permissions: [],
+  passwordSet: true,
+  emailVerified: true,
 }
 
 const server = setupServer(
@@ -120,7 +126,6 @@ describe('Employee Funcionários Page — criação', () => {
 
     await user.type(within(dialog).getByLabelText(/nome/i), 'Lucas Ramos')
     await user.type(within(dialog).getByLabelText(/e-mail/i), 'lucas@test.com')
-    await user.type(within(dialog).getByLabelText(/senha/i), 'senhaSegura1')
     await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
 
     expect(await screen.findByText('Lucas Ramos')).toBeInTheDocument()

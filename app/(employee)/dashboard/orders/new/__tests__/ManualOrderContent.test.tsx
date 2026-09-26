@@ -146,7 +146,7 @@ describe('ManualOrderContent — cliente', () => {
     await user.type(within(dialog).getByLabelText(/^e-mail/i), 'bia@test.com')
     await user.click(within(dialog).getByRole('button', { name: /cadastrar cliente/i }))
 
-    await waitFor(() => expect(lastCustomer).toEqual({ name: 'Bia Lima', email: 'bia@test.com', phone: null, cpf: null }))
+    await waitFor(() => expect(lastCustomer).toEqual({ name: 'Bia Lima', email: 'bia@test.com', phone: null, cpf: null, sendInvite: false }))
     expect(await screen.findByText('bia@test.com')).toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })

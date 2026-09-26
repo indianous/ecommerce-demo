@@ -32,6 +32,7 @@ const ACTION_OPTIONS = [
   { value: 'DEACTIVATED', label: 'Desativação' },
   { value: 'STATUS_UPDATED', label: 'Status atualizado' },
   { value: 'PASSWORD_CHANGED', label: 'Senha alterada' },
+  { value: 'PASSWORD_INVITE_SENT', label: 'Link de senha enviado' },
 ]
 
 const ACTION_LABELS: Record<AuditAction, string> = {
@@ -41,6 +42,7 @@ const ACTION_LABELS: Record<AuditAction, string> = {
   DEACTIVATED: 'Desativação',
   STATUS_UPDATED: 'Status atualizado',
   PASSWORD_CHANGED: 'Senha alterada',
+  PASSWORD_INVITE_SENT: 'Link de senha enviado',
 }
 
 const ENTITY_TYPE_LABELS: Record<AuditEntityType, string> = {

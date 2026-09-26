@@ -9,6 +9,20 @@ contas, sessões encerradas, o que a conta não verificada pode fazer). Este lad
 depende dele para funcionar de ponta a ponta. Os testes daqui usam MSW e podem
 ser escritos antes.
 
+## Pendência — não excluir este plano ainda
+
+Implementado e commitado, mas o **envio real de e-mail ainda não foi testado**: no ambiente
+local não há SMTP (`spring.mail.host` vazio), então o backend usa o `LoggingEmailSender` e os
+links (verificação de e-mail, "Esqueci minha senha" e convite para a primeira senha) só vão
+para o log. O usuário vai testar o envio de verdade futuramente (SMTP real ou Mailpit).
+
+**Este plano só pode ser excluído depois desse teste**, nos dois repositórios
+(`backend/plans/` e `frontend/plans/`). Ao testar, conferir também:
+
+- `SmtpEmailSender` não define remetente (`setFrom`): provedores como SES, SendGrid e Resend
+  podem recusar a mensagem;
+- falha de envio só vai para o log (`log.error`), sem aviso para quem pediu o e-mail.
+
 ## Contexto
 
 Hoje o site só oferece "trocar senha" para quem está logado e sabe a atual, e
@@ -299,3 +313,25 @@ O form tem validação própria.
   - criar um funcionário com convite, abrir o link, ver "Definir sua senha" e entrar;
   - "Enviar link de redefinição" no detalhe de um cliente;
   - que a sessão aberta em outro navegador cai depois da troca de senha.
+
+---
+
+## Notas da implementação
+
+- **`User.emailVerified` é opcional no tipo.** O backend sempre envia o campo, e ausente conta
+  como verificado (só `=== false` bloqueia). Isso evitou mexer em cerca de 50 mocks de teste. Os
+  campos do painel (`Employee`, `CustomerDetailResponse`) são obrigatórios.
+- **Onde ficou cada peça**: `EmailVerificationBanner` e `EmailVerificationCard` (checkout) em
+  `components/layout/`; o reenvio com espera de 60 s em `lib/useResendVerification.ts`; as Badges
+  em `components/admin/AccountStatusBadges.tsx`. Os testes do BFF de auth ficaram num arquivo só
+  (`app/api/auth/__tests__/account-links.route.test.ts`).
+- **Rótulo do switch** no `EmployeeForm`: "Enviar convite para criar senha", o mesmo do cadastro
+  rápido de cliente. "Enviar convite por e-mail" colidia com o rótulo do campo E-mail.
+- **Cadastro rápido de cliente (plano 63)** ganhou o mesmo switch, desligado por padrão, que manda
+  `sendInvite`.
+- **`PasswordInput` do base-ds** tem o `aria-label` do botão mostrar/ocultar fixo em inglês
+  ("Show password"). Aberta a issue
+  [indianous/base-ds#47](https://github.com/indianous/base-ds/issues/47); até lá, o teste procura
+  por `/show password/i`.
+- **Troca de e-mail no perfil**: o access token carrega o e-mail antigo e deixa de valer. O
+  `authFetch` renova pela sessão, e o refresh emite um token com o e-mail novo. A sessão continua.

@@ -22,6 +22,8 @@ const mockEmployee: EmployeeDetailResponse = {
   permissions: ['MANAGE_ORDERS'],
   createdAt: '2024-01-01T00:00:00Z',
   photoUrl: 'https://example.com/avatar.jpg',
+  passwordSet: true,
+  emailVerified: true,
 }
 
 const mockAuditLogs: AuditLogPage = {
@@ -171,5 +173,26 @@ describe('EmployeeFuncionarioDetailContent', () => {
       render(<ToastProvider><EmployeeFuncionarioDetailContent id="emp-1" /></ToastProvider>)
     })
     expect(replaceMock).toHaveBeenCalledWith('/dashboard')
+  })
+})
+
+describe('EmployeeFuncionarioDetailContent — conta (plano 64)', () => {
+  it('MANAGE_EMPLOYEES vendo funcionário sem senha → Badge e "Enviar convite"', async () => {
+    server.use(http.get('/api/admin/employees/:id', () =>
+      HttpResponse.json({ ...mockEmployee, passwordSet: false, emailVerified: false })))
+    renderDetail()
+
+    expect(await screen.findByText('Senha não definida')).toBeInTheDocument()
+    expect(screen.getByText('E-mail não confirmado')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Enviar convite' })).toBeInTheDocument()
+  })
+
+  it('MANAGE_EMPLOYEES vendo um admin → sem botão (admin só por admin)', async () => {
+    server.use(http.get('/api/admin/employees/:id', () =>
+      HttpResponse.json({ ...mockEmployee, role: 'ADMIN', passwordSet: true, emailVerified: true })))
+    renderDetail()
+
+    await screen.findByText('Carlos Dias')
+    expect(screen.queryByRole('button', { name: /enviar (convite|link)/i })).not.toBeInTheDocument()
   })
 })

@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { useAuthStore } from '../auth.store'
+import { AuthError, useAuthStore } from '../auth.store'
 
 const mockUser = { id: 'user-1', name: 'João Victor', email: 'valid@test.com', role: 'CUSTOMER' }
 
@@ -23,6 +23,12 @@ const server = setupServer(
     const body = (await request.json()) as { name: string; email: string }
     if (body.email === 'taken@test.com') {
       return HttpResponse.json({ message: 'Email já cadastrado' }, { status: 409 })
+    }
+    if (body.email === 'balcao@test.com') {
+      return HttpResponse.json(
+        { status: 409, code: 'PASSWORD_NOT_SET', message: 'Já existe uma conta com este e-mail. Enviamos um link para você definir sua senha.' },
+        { status: 409 },
+      )
     }
     return HttpResponse.json(
       { accessToken: 'new-token', refreshToken: 'new-refresh', tokenType: 'Bearer', expiresIn: 900, role: 'CUSTOMER' },
@@ -100,6 +106,48 @@ describe('AuthStore', () => {
       await expect(
         getStore().register({ name: 'Test', email: 'taken@test.com', password: 'SecurePass123!' })
       ).rejects.toThrow()
+    })
+  })
+
+  describe('erros com código (plano 64)', () => {
+    it('postAuth lança AuthError com status e code, mantendo a mensagem', async () => {
+      const error = await getStore()
+        .register({ name: 'Bia', email: 'balcao@test.com', password: 'SecurePass123!' })
+        .catch((e: unknown) => e)
+
+      expect(error).toBeInstanceOf(AuthError)
+      expect(error).toBeInstanceOf(Error)
+      expect((error as AuthError).status).toBe(409)
+      expect((error as AuthError).code).toBe('PASSWORD_NOT_SET')
+      expect((error as AuthError).message).toBe('Já existe uma conta com este e-mail. Enviamos um link para você definir sua senha.')
+    })
+
+    it('erro sem code → code undefined e a mensagem do backend', async () => {
+      const error = await getStore()
+        .register({ name: 'Test', email: 'taken@test.com', password: 'SecurePass123!' })
+        .catch((e: unknown) => e)
+
+      expect((error as AuthError).status).toBe(409)
+      expect((error as AuthError).code).toBeUndefined()
+      expect((error as AuthError).message).toBe('Email já cadastrado')
+    })
+  })
+
+  describe('markEmailVerified / markEmailUnverified', () => {
+    it('atualiza user.emailVerified sem tocar no resto', () => {
+      useAuthStore.setState({ user: { ...mockUser, emailVerified: false } as never })
+
+      getStore().markEmailVerified()
+      expect(getStore().user?.emailVerified).toBe(true)
+      expect(getStore().user?.email).toBe('valid@test.com')
+
+      getStore().markEmailUnverified()
+      expect(getStore().user?.emailVerified).toBe(false)
+    })
+
+    it('sem user → não faz nada', () => {
+      getStore().markEmailVerified()
+      expect(getStore().user).toBeNull()
     })
   })
 

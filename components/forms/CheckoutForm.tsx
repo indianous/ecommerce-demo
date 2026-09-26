@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useCartStore, selectCartTotal } from '@/stores/cart.store'
 import { ManualPaymentInstructions } from '@/components/payment/ManualPaymentInstructions'
 import { CouponField } from '@/components/forms/CouponField'
+import { EmailVerificationCard } from '@/components/layout/EmailVerificationCard'
 import { PickupLocationList } from '@/components/checkout-shared/PickupLocationList'
 import { ShippingOptionsList } from '@/components/checkout-shared/ShippingOptionsList'
 import { PAYMENT_METHOD_LABELS } from '@/lib/payment-labels'
@@ -30,6 +31,8 @@ const formatBRL = (v: number) =>
 
 export function CheckoutForm({ addresses }: Props) {
   const { accessToken } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
+  const markEmailUnverified = useAuthStore((s) => s.markEmailUnverified)
   const { items, clearCart } = useCartStore()
   const cartTotal = useCartStore(selectCartTotal)
   const { toast } = useToast()
@@ -55,6 +58,10 @@ export function CheckoutForm({ addresses }: Props) {
   const [appliedCoupon, setAppliedCoupon] = useState<CouponValidation | null>(null)
   const [couponError, setCouponError] = useState<string | null>(null)
   const [couponApplying, setCouponApplying] = useState(false)
+  // O backend pode barrar mesmo com o store dizendo verificado (ex.: e-mail trocado em outra aba).
+  const [blockedByVerification, setBlockedByVerification] = useState(false)
+  const needsEmailVerification =
+    blockedByVerification || (user?.role === 'CUSTOMER' && user.emailVerified === false)
 
   useEffect(() => {
     fetch('/api/site/payment-methods')
@@ -199,6 +206,12 @@ export function CheckoutForm({ addresses }: Props) {
 
       const data = await res.json()
 
+      if (res.status === 403 && data.code === 'EMAIL_NOT_VERIFIED') {
+        setBlockedByVerification(true)
+        markEmailUnverified()
+        return
+      }
+
       if (!res.ok) {
         toast({ variant: 'destructive', description: data.message ?? 'Erro ao criar pedido' })
         // 422 também vem de falta de estoque: só tira o cupom se ele deixou mesmo de valer
@@ -335,7 +348,11 @@ export function CheckoutForm({ addresses }: Props) {
       )}
       <p>Total: {formatBRL(total)}</p>
 
-      <Button leftIcon={<Icon name="Check" size="sm" />} type="submit" variant="primary" disabled={items.length === 0 || !selectedAddressId || !shippingChosen || !effectiveMethod} isLoading={loading}>Finalizar Pedido</Button>
+      {needsEmailVerification ? (
+        <EmailVerificationCard email={user?.email} />
+      ) : (
+        <Button leftIcon={<Icon name="Check" size="sm" />} type="submit" variant="primary" disabled={items.length === 0 || !selectedAddressId || !shippingChosen || !effectiveMethod} isLoading={loading}>Finalizar Pedido</Button>
+      )}
     </form>
   )
 }

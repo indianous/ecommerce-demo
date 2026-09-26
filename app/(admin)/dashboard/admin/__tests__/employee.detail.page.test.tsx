@@ -16,6 +16,8 @@ const mockEmployee: EmployeeDetailResponse = {
   permissions: ['MANAGE_ORDERS'],
   createdAt: '2024-01-01T00:00:00Z',
   photoUrl: 'https://example.com/avatar.jpg',
+  passwordSet: true,
+  emailVerified: true,
 }
 
 const mockAuditLogs: AuditLogPage = {
@@ -157,5 +159,18 @@ describe('Employee Detail Page', () => {
     const btn = screen.getByRole('button', { name: /redefinir senha/i })
     expect(btn).toBeInTheDocument()
     expect(btn).toBeDisabled()
+  })
+})
+
+describe('Employee Detail Page — conta (plano 64)', () => {
+  it('admin vendo outro admin com senha → "Enviar link de redefinição"', async () => {
+    useAuthStore.setState({
+      user: { id: 'a-1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN', permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER', cpf: null, emailVerified: true },
+    })
+    server.use(http.get('/api/admin/employees/:id', () =>
+      HttpResponse.json({ ...mockEmployee, role: 'ADMIN', passwordSet: true, emailVerified: true })))
+    renderPage()
+
+    expect(await screen.findByRole('button', { name: 'Enviar link de redefinição' })).toBeInTheDocument()
   })
 })

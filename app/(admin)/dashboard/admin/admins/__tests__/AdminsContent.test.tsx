@@ -18,11 +18,11 @@ import { useAuthStore } from '@/stores/auth.store'
 import type { Employee } from '@/types'
 
 const mockAdmins: Employee[] = [
-  { id: 'admin-1', name: 'Ana Costa', email: 'ana@test.com', role: 'ADMIN', permissions: [] },
-  { id: 'admin-2', name: 'Bruno Lima', email: 'bruno@test.com', role: 'ADMIN', permissions: [] },
+  { id: 'admin-1', name: 'Ana Costa', email: 'ana@test.com', role: 'ADMIN', permissions: [], passwordSet: true, emailVerified: true },
+  { id: 'admin-2', name: 'Bruno Lima', email: 'bruno@test.com', role: 'ADMIN', permissions: [], passwordSet: true, emailVerified: true },
 ]
 
-const newAdmin: Employee = { id: 'admin-3', name: 'Carlos Melo', email: 'carlos@test.com', role: 'ADMIN', permissions: [] }
+const newAdmin: Employee = { id: 'admin-3', name: 'Carlos Melo', email: 'carlos@test.com', role: 'ADMIN', permissions: [], passwordSet: true, emailVerified: true }
 
 let lastDeletedId = ''
 let lastListUrl = ''
@@ -120,7 +120,7 @@ describe('AdminsContent — busca', () => {
 })
 
 describe('AdminsContent — criar administrador', () => {
-  it('botão "Novo administrador" abre dialog com EmployeeForm (nome/e-mail/senha)', async () => {
+  it('botão "Novo administrador" abre dialog com EmployeeForm (nome/e-mail/convite)', async () => {
     const user = userEvent.setup()
     renderContent()
     await screen.findByText('Ana Costa')
@@ -130,7 +130,7 @@ describe('AdminsContent — criar administrador', () => {
 
     expect(within(dialog).getByLabelText(/nome/i)).toBeInTheDocument()
     expect(within(dialog).getByLabelText(/e-mail/i)).toBeInTheDocument()
-    expect(within(dialog).getByLabelText(/senha/i)).toBeInTheDocument()
+    expect(within(dialog).getByRole('switch', { name: /enviar convite para criar senha/i })).toBeChecked()
   })
 
   it('submissão do form chama POST /api/admin/admins e adiciona à lista', async () => {
@@ -143,10 +143,32 @@ describe('AdminsContent — criar administrador', () => {
 
     await user.type(within(dialog).getByLabelText(/nome/i), 'Carlos Melo')
     await user.type(within(dialog).getByLabelText(/e-mail/i), 'carlos@test.com')
-    await user.type(within(dialog).getByLabelText(/senha/i), 'senhaSegura1')
     await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
 
     expect(await screen.findByText('Carlos Melo')).toBeInTheDocument()
+    expect(await screen.findByText('Convite enviado para carlos@test.com')).toBeInTheDocument()
+  })
+
+  it('criar com senha → POST com password e o toast de sempre', async () => {
+    let body: Record<string, unknown> = {}
+    server.use(http.post('/api/admin/admins', async ({ request }) => {
+      body = (await request.json()) as Record<string, unknown>
+      return HttpResponse.json(newAdmin, { status: 201 })
+    }))
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByText('Ana Costa')
+
+    await user.click(screen.getByRole('button', { name: 'Novo administrador' }))
+    const dialog = screen.getByRole('dialog', { name: 'Novo administrador' })
+    await user.type(within(dialog).getByLabelText(/nome/i), 'Carlos Melo')
+    await user.type(within(dialog).getByLabelText(/e-mail/i), 'carlos@test.com')
+    await user.click(within(dialog).getByRole('switch', { name: /enviar convite para criar senha/i }))
+    await user.type(within(dialog).getByLabelText(/^senha$/i), 'senhaSegura1')
+    await user.click(within(dialog).getByRole('button', { name: /salvar/i }))
+
+    expect(await screen.findByText('Administrador criado com sucesso.')).toBeInTheDocument()
+    expect(body).toEqual({ name: 'Carlos Melo', email: 'carlos@test.com', password: 'senhaSegura1' })
   })
 })
 

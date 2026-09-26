@@ -39,8 +39,22 @@ interface AuthState {
   logout: () => void
   setAccessToken: (token: string) => void
   setUser: (user: User) => void
+  markEmailVerified: () => void
+  markEmailUnverified: () => void
   hydrateSession: () => Promise<void>
   refreshAccessToken: () => Promise<string | null>
+}
+
+/** Erro do login/cadastro com o status e o {@code code} do backend (ex.: PASSWORD_NOT_SET). */
+export class AuthError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly code?: string,
+  ) {
+    super(message)
+    this.name = 'AuthError'
+  }
 }
 
 async function postAuth(path: string, body: unknown): Promise<AuthTokens> {
@@ -51,7 +65,7 @@ async function postAuth(path: string, body: unknown): Promise<AuthTokens> {
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: 'Erro inesperado' }))
-    throw new Error(err.message ?? 'Erro inesperado')
+    throw new AuthError(err.message ?? 'Erro inesperado', res.status, err.code ?? undefined)
   }
   return res.json()
 }
@@ -108,6 +122,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   setAccessToken: (token) => set({ accessToken: token, isAuthenticated: true }),
   setUser: (user) => set({ user }),
+  markEmailVerified: () => set((s) => (s.user ? { user: { ...s.user, emailVerified: true } } : {})),
+  markEmailUnverified: () => set((s) => (s.user ? { user: { ...s.user, emailVerified: false } } : {})),
 
   hydrateSession: async () => {
     const token = await get().refreshAccessToken()

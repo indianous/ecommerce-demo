@@ -5,7 +5,7 @@ import { Button, Checkbox, Container, Dialog, FilterDropdown, Icon, useToast } f
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { EmployeeManagementTable } from '@/components/admin/EmployeeManagementTable'
-import { EmployeeForm } from '@/components/forms/EmployeeForm'
+import { EMPTY_EMPLOYEE_FORM, EmployeeForm, toEmployeeInput, type EmployeeFormState } from '@/components/forms/EmployeeForm'
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
 import { ManagementPageBody } from '@/components/layout/ManagementPageBody'
@@ -17,7 +17,7 @@ import { useConfirmDelete } from '@/lib/useConfirmDelete'
 import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions'
-import type { BulkOperationResult, Employee, EmployeeFormData, EmployeePermission } from '@/types'
+import type { BulkOperationResult, Employee, EmployeePermission } from '@/types'
 
 export function EmployeesContent() {
   const { accessToken } = useAuthStore()
@@ -26,6 +26,8 @@ export function EmployeesContent() {
   const [permissionFilter, setPermissionFilter] = useState<string[]>([])
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [employeeForm, setEmployeeForm] = useState<EmployeeFormState>(EMPTY_EMPLOYEE_FORM)
+  const [creating, setCreating] = useState(false)
   const [permDialogOpen, setPermDialogOpen] = useState(false)
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const [editedPerms, setEditedPerms] = useState<EmployeePermission[]>([])
@@ -52,19 +54,36 @@ export function EmployeesContent() {
     reload()
   }
 
-  const handleCreate = async (data: EmployeeFormData) => {
+  const openCreateDialog = () => {
+    setEmployeeForm(EMPTY_EMPLOYEE_FORM)
+    setCreateDialogOpen(true)
+  }
+
+  const handleCreate = async () => {
     if (!accessToken) return
-    const res = await authFetch('/api/admin/employees', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-    if (res.ok) {
-      const created: Employee = await res.json()
-      setEmployees((prev) => [...prev, created])
-      setCreateDialogOpen(false)
+    const input = toEmployeeInput(employeeForm)
+    setCreating(true)
+    try {
+      const res = await authFetch('/api/admin/employees', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(input),
+      })
+      if (res.ok) {
+        const created: Employee = await res.json()
+        setEmployees((prev) => [...prev, created])
+        setCreateDialogOpen(false)
+        if (!input.password) {
+          toast({ variant: 'success', description: `Convite enviado para ${input.email}` })
+        }
+      } else {
+        const body = await res.json().catch(() => ({ message: 'Erro ao criar funcionário.' }))
+        toast({ variant: 'destructive', description: body.message ?? 'Erro ao criar funcionário.' })
+      }
+    } finally {
+      setCreating(false)
     }
   }
 
@@ -165,7 +184,7 @@ export function EmployeesContent() {
         <ManagementPageHeader title="Gestão de Funcionários" />
         <ManagementPageBody
           actions={
-            <Button leftIcon={<Icon name="UserPlus" size="sm" />} variant="primary" onClick={() => setCreateDialogOpen(true)}>Novo funcionário</Button>
+            <Button leftIcon={<Icon name="UserPlus" size="sm" />} variant="primary" onClick={openCreateDialog}>Novo funcionário</Button>
           }
         >
           <ManagementContentHeader
@@ -215,8 +234,11 @@ export function EmployeesContent() {
             title="Novo funcionário"
           >
             <EmployeeForm
-              onSave={handleCreate}
+              value={employeeForm}
+              onChange={(patch) => setEmployeeForm((f) => ({ ...f, ...patch }))}
+              onSave={() => void handleCreate()}
               onCancel={() => setCreateDialogOpen(false)}
+              saving={creating}
             />
           </Dialog>
 

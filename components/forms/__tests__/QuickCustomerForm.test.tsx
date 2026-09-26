@@ -51,4 +51,15 @@ describe('QuickCustomerForm', () => {
 
     expect(onChange).toHaveBeenCalledWith({ phone: '1' })
   })
+
+  it('switch "Enviar convite para criar senha" desligado por padrão; ligar repassa sendInvite', async () => {
+    const user = userEvent.setup()
+    const { onChange } = renderForm()
+    const toggle = screen.getByRole('switch', { name: /enviar convite para criar senha/i })
+    expect(toggle).not.toBeChecked()
+
+    await user.click(toggle)
+
+    expect(onChange).toHaveBeenCalledWith({ sendInvite: true })
+  })
 })
