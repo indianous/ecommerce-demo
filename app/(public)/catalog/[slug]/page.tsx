@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { Badge, Breadcrumb, Container, Heading, Text } from 'base-ds'
+import { buildCatalogUrl } from '@/components/catalog/catalogUrl'
 import { AddToCartButton } from '@/components/product/AddToCartButton'
 import { ProductCarousel } from '@/components/product/ProductCarousel'
 import { ProductImageGallery } from '@/components/product/ProductImageGallery'
@@ -111,9 +113,15 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             {product.categories.map((c) => (
-              <Badge key={c.id} variant="default" size="sm" className="w-fit">
-                {c.name}
-              </Badge>
+              <Link
+                key={c.id}
+                href={buildCatalogUrl({ category: c.slug })}
+                className="rounded-full hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Badge variant="default" size="sm" className="w-fit">
+                  {c.name}
+                </Badge>
+              </Link>
             ))}
             {onPromotion && (
               <Badge variant="danger" size="sm" className="w-fit">

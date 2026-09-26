@@ -166,7 +166,31 @@ describe('ProductDetailPage', () => {
 
     const tag = screen.getByText('Casa e Jardim')
     expect(tag).toHaveClass('whitespace-nowrap')
-    expect(tag.parentElement).toHaveClass('flex', 'flex-wrap')
+    // desde a etapa 7, cada tag fica dentro de um link, e o link é que está no contêiner
+    expect(tag.closest('a')?.parentElement).toHaveClass('flex', 'flex-wrap')
+  })
+
+  it('cada tag de categoria é um link para o catálogo filtrado por ela; "Promoção" continua sem link (plano 66, etapa 7)', async () => {
+    server.use(
+      http.get('http://localhost:8080/api/v1/catalog/products/slug/mechanical-keyboard', () =>
+        HttpResponse.json({
+          ...mockProduct,
+          effectivePrice: 399.9,
+          onPromotion: true,
+          categories: [
+            { id: 'cat-1', name: 'Electronics', slug: 'electronics' },
+            { id: 'cat-2', name: 'Casa e Jardim', slug: 'casa-e-jardim' },
+          ],
+        }),
+      ),
+    )
+    const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }), searchParams: Promise.resolve({}) })
+    renderWithToast(jsx)
+
+    const tags = screen.getByText('Casa e Jardim').closest('a')!.parentElement!
+    expect(within(tags).getByRole('link', { name: 'Electronics' })).toHaveAttribute('href', '/catalog?category=electronics')
+    expect(within(tags).getByRole('link', { name: 'Casa e Jardim' })).toHaveAttribute('href', '/catalog?category=casa-e-jardim')
+    expect(within(tags).getByText('Promoção').closest('a')).toBeNull()
   })
 
   it('mostra "Seja o primeiro a avaliar" quando o produto não tem avaliações', async () => {
