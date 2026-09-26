@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { forwardedForHeader } from '@/lib/client-ip'
+import { sessionBody, setSessionCookies } from '@/lib/session-cookies'
 
 const API = process.env.API_INTERNAL_URL ?? 'http://localhost:8080/api/v1'
 
@@ -28,27 +29,7 @@ export async function POST(req: NextRequest) {
 
   // O backend só devolve um refresh token novo quando rotaciona. Dentro da janela de tolerância
   // (outra aba acabou de renovar) ele vem nulo — o cookie que a outra aba gravou continua valendo.
-  if (data.refreshToken) {
-    cookieStore.set('session', data.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7,
-      path: '/',
-    })
-  }
-  cookieStore.set('role', data.role ?? 'CUSTOMER', {
-    httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7,
-    path: '/',
-  })
+  setSessionCookies(cookieStore, data)
 
-  return NextResponse.json({
-    accessToken: data.accessToken,
-    tokenType: data.tokenType,
-    expiresIn: data.expiresIn,
-    role: data.role,
-  })
+  return NextResponse.json(sessionBody(data))
 }

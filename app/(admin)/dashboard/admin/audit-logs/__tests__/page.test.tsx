@@ -261,4 +261,22 @@ describe('AuditLogsPage — paginação', () => {
 
     expect(pushMock).toHaveBeenCalledWith('/dashboard/admin/audit-logs?page=2')
   })
+
+  it.each([
+    ['MFA_ENABLED', '2FA ativado'],
+    ['MFA_DISABLED', '2FA desativado'],
+    ['MFA_RESET', '2FA resetado'],
+    ['MFA_RECOVERY_CODE_USED', 'Código de recuperação usado'],
+    ['MFA_RECOVERY_CODES_REGENERATED', 'Códigos de recuperação gerados'],
+  ] as const)('ação %s aparece como "%s"', async (action, label) => {
+    server.use(
+      http.get('/api/admin/audit-logs', () =>
+        HttpResponse.json(makePage([makeLog({ entityType: 'USER', action, entityId: 'uuid-user-1' })])),
+      ),
+    )
+    renderPage()
+
+    await screen.findByText('uuid-user-1')
+    expect(screen.getByRole('table')).toHaveTextContent(label)
+  })
 })

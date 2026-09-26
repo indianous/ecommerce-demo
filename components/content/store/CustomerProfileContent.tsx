@@ -6,6 +6,7 @@ import { Container, Heading, Text, useToast } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Address, Gender, User } from '@/types'
 import { ChangePasswordForm } from '@/components/forms/ChangePasswordForm'
+import { SecuritySection } from '@/components/profile/SecuritySection'
 import { ProfileDataForm } from '@/components/forms/ProfileDataForm'
 import { AddressForm, EMPTY_ADDRESS, type NewAddress } from '@/components/forms/AddressForm'
 
@@ -32,6 +33,7 @@ export function CustomerProfileContent() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data: User | null) => {
         if (data) {
+          useAuthStore.getState().setUser(data)
           setName(data.name)
           setEmail(data.email)
           setSavedEmail(data.email)
@@ -170,6 +172,8 @@ export function CustomerProfileContent() {
         </Heading>
         <ChangePasswordForm />
       </section>
+
+      <SecuritySection />
     </Container>
   )
 }

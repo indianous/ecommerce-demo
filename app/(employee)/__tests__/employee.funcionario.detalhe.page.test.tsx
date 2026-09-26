@@ -23,7 +23,7 @@ const mockEmployee: EmployeeDetailResponse = {
   createdAt: '2024-01-01T00:00:00Z',
   photoUrl: 'https://example.com/avatar.jpg',
   passwordSet: true,
-  emailVerified: true,
+  emailVerified: true, mfaEnabled: true,
 }
 
 const mockAuditLogs: AuditLogPage = {
@@ -179,7 +179,7 @@ describe('EmployeeFuncionarioDetailContent', () => {
 describe('EmployeeFuncionarioDetailContent — conta (plano 64)', () => {
   it('MANAGE_EMPLOYEES vendo funcionário sem senha → Badge e "Enviar convite"', async () => {
     server.use(http.get('/api/admin/employees/:id', () =>
-      HttpResponse.json({ ...mockEmployee, passwordSet: false, emailVerified: false })))
+      HttpResponse.json({ ...mockEmployee, passwordSet: false, emailVerified: false, mfaEnabled: true })))
     renderDetail()
 
     expect(await screen.findByText('Senha não definida')).toBeInTheDocument()
@@ -189,10 +189,21 @@ describe('EmployeeFuncionarioDetailContent — conta (plano 64)', () => {
 
   it('MANAGE_EMPLOYEES vendo um admin → sem botão (admin só por admin)', async () => {
     server.use(http.get('/api/admin/employees/:id', () =>
-      HttpResponse.json({ ...mockEmployee, role: 'ADMIN', passwordSet: true, emailVerified: true })))
+      HttpResponse.json({ ...mockEmployee, role: 'ADMIN', passwordSet: true, emailVerified: true, mfaEnabled: true })))
     renderDetail()
 
     await screen.findByText('Carlos Dias')
     expect(screen.queryByRole('button', { name: /enviar (convite|link)/i })).not.toBeInTheDocument()
+  })
+})
+
+describe('EmployeeFuncionarioDetailContent — 2FA (plano 65)', () => {
+  it('MANAGE_EMPLOYEES vê o estado do 2FA, mas não reseta (só admin reseta a equipe)', async () => {
+    server.use(http.get('/api/admin/employees/:id', () =>
+      HttpResponse.json({ ...mockEmployee, mfaEnabled: false })))
+    renderDetail()
+
+    expect(await screen.findByText('2FA pendente')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Resetar 2FA' })).not.toBeInTheDocument()
   })
 })

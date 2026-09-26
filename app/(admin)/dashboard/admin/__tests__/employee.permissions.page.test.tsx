@@ -23,7 +23,7 @@ const mockEmployees: Employee[] = [
     role: 'EMPLOYEE',
     permissions: ['MANAGE_ORDERS', 'MANAGE_PRODUCTS'],
     passwordSet: true,
-    emailVerified: true,
+    emailVerified: true, mfaEnabled: true,
   },
   {
     id: 'emp-2',
@@ -32,7 +32,7 @@ const mockEmployees: Employee[] = [
     role: 'EMPLOYEE',
     permissions: [],
     passwordSet: true,
-    emailVerified: true,
+    emailVerified: true, mfaEnabled: true,
   },
 ]
 

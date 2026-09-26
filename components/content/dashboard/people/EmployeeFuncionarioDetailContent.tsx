@@ -8,8 +8,10 @@ import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { AccountStatusBadges } from '@/components/admin/AccountStatusBadges'
+import { MfaResetButton } from '@/components/admin/MfaResetButton'
+import { MfaStatusBadge } from '@/components/admin/MfaStatusBadge'
 import { PasswordInviteButton } from '@/components/admin/PasswordInviteButton'
-import { ALL_PERMISSIONS, PERMISSION_LABELS, canSendPasswordInvite } from '@/lib/permissions'
+import { ALL_PERMISSIONS, PERMISSION_LABELS, canResetMfa, canSendPasswordInvite } from '@/lib/permissions'
 import type { AuditLogResponse, EmployeeDetailResponse, EmployeePermission } from '@/types'
 
 export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/employees' }: { id: string; backPath?: string }) {
@@ -92,11 +94,19 @@ export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/em
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <Badge variant="default">{employee.role}</Badge>
               <AccountStatusBadges passwordSet={employee.passwordSet} emailVerified={employee.emailVerified} />
+              <MfaStatusBadge mfaEnabled={employee.mfaEnabled} role={employee.role} />
               <PasswordInviteButton
                 userId={employee.id}
                 email={employee.email}
                 passwordSet={employee.passwordSet}
                 canInvite={canSendPasswordInvite(currentUser, employee.role)}
+              />
+              <MfaResetButton
+                userId={employee.id}
+                name={employee.name}
+                mfaEnabled={employee.mfaEnabled}
+                canReset={canResetMfa(currentUser, { id: employee.id, role: employee.role })}
+                onReset={() => setEmployee((current) => (current ? { ...current, mfaEnabled: false } : current))}
               />
             </div>
           </div>

@@ -16,7 +16,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import type { Employee } from '@/types'
 
 const mockEmployees: Employee[] = [
-  { id: 'emp-1', name: 'Ana Costa', email: 'ana@test.com', role: 'EMPLOYEE', permissions: [], passwordSet: true, emailVerified: true },
+  { id: 'emp-1', name: 'Ana Costa', email: 'ana@test.com', role: 'EMPLOYEE', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: true },
 ]
 
 const newEmployee: Employee = {
@@ -26,7 +26,7 @@ const newEmployee: Employee = {
   role: 'EMPLOYEE',
   permissions: [],
   passwordSet: true,
-  emailVerified: true,
+  emailVerified: true, mfaEnabled: true,
 }
 
 const server = setupServer(

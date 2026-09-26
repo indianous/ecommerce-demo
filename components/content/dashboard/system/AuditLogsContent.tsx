@@ -33,6 +33,11 @@ const ACTION_OPTIONS = [
   { value: 'STATUS_UPDATED', label: 'Status atualizado' },
   { value: 'PASSWORD_CHANGED', label: 'Senha alterada' },
   { value: 'PASSWORD_INVITE_SENT', label: 'Link de senha enviado' },
+  { value: 'MFA_ENABLED', label: '2FA ativado' },
+  { value: 'MFA_DISABLED', label: '2FA desativado' },
+  { value: 'MFA_RESET', label: '2FA resetado' },
+  { value: 'MFA_RECOVERY_CODE_USED', label: 'Código de recuperação usado' },
+  { value: 'MFA_RECOVERY_CODES_REGENERATED', label: 'Códigos de recuperação gerados' },
 ]
 
 const ACTION_LABELS: Record<AuditAction, string> = {
@@ -43,6 +48,11 @@ const ACTION_LABELS: Record<AuditAction, string> = {
   STATUS_UPDATED: 'Status atualizado',
   PASSWORD_CHANGED: 'Senha alterada',
   PASSWORD_INVITE_SENT: 'Link de senha enviado',
+  MFA_ENABLED: '2FA ativado',
+  MFA_DISABLED: '2FA desativado',
+  MFA_RESET: '2FA resetado',
+  MFA_RECOVERY_CODE_USED: 'Código de recuperação usado',
+  MFA_RECOVERY_CODES_REGENERATED: 'Códigos de recuperação gerados',
 }
 
 const ENTITY_TYPE_LABELS: Record<AuditEntityType, string> = {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ALL_PERMISSIONS, PERMISSION_LABELS, canSendPasswordInvite } from '../permissions'
+import { ALL_PERMISSIONS, PERMISSION_LABELS, canResetMfa, canSendPasswordInvite } from '../permissions'
 
 describe('permissões', () => {
   it('MANAGE_COUPONS tem rótulo e aparece na lista de permissões atribuíveis', () => {
@@ -34,5 +34,30 @@ describe('canSendPasswordInvite', () => {
   it('sem usuário ou cliente → false', () => {
     expect(canSendPasswordInvite(null, 'CUSTOMER')).toBe(false)
     expect(canSendPasswordInvite({ role: 'CUSTOMER', permissions: [] }, 'CUSTOMER')).toBe(false)
+  })
+})
+
+describe('canResetMfa', () => {
+  const admin = { id: 'a-1', role: 'ADMIN' as const, permissions: [] }
+  const clientes = { id: 'e-1', role: 'EMPLOYEE' as const, permissions: ['MANAGE_CUSTOMERS' as const] }
+  const equipe = { id: 'e-2', role: 'EMPLOYEE' as const, permissions: ['MANAGE_EMPLOYEES' as const] }
+
+  it('admin reseta cliente, funcionário e outro admin, mas não a si mesmo', () => {
+    expect(canResetMfa(admin, { id: 'c-1', role: 'CUSTOMER' })).toBe(true)
+    expect(canResetMfa(admin, { id: 'e-9', role: 'EMPLOYEE' })).toBe(true)
+    expect(canResetMfa(admin, { id: 'a-2', role: 'ADMIN' })).toBe(true)
+    expect(canResetMfa(admin, { id: 'a-1', role: 'ADMIN' })).toBe(false)
+  })
+
+  it('MANAGE_CUSTOMERS só reseta cliente; MANAGE_EMPLOYEES não reseta ninguém da equipe', () => {
+    expect(canResetMfa(clientes, { id: 'c-1', role: 'CUSTOMER' })).toBe(true)
+    expect(canResetMfa(clientes, { id: 'e-9', role: 'EMPLOYEE' })).toBe(false)
+    expect(canResetMfa(equipe, { id: 'e-9', role: 'EMPLOYEE' })).toBe(false)
+    expect(canResetMfa(equipe, { id: 'c-1', role: 'CUSTOMER' })).toBe(false)
+  })
+
+  it('sem usuário ou cliente → false', () => {
+    expect(canResetMfa(null, { id: 'c-1', role: 'CUSTOMER' })).toBe(false)
+    expect(canResetMfa({ id: 'c-2', role: 'CUSTOMER', permissions: [] }, { id: 'c-1', role: 'CUSTOMER' })).toBe(false)
   })
 })

@@ -18,11 +18,11 @@ import { useAuthStore } from '@/stores/auth.store'
 import type { Employee } from '@/types'
 
 const mockAdmins: Employee[] = [
-  { id: 'admin-1', name: 'Ana Costa', email: 'ana@test.com', role: 'ADMIN', permissions: [], passwordSet: true, emailVerified: true },
-  { id: 'admin-2', name: 'Bruno Lima', email: 'bruno@test.com', role: 'ADMIN', permissions: [], passwordSet: true, emailVerified: true },
+  { id: 'admin-1', name: 'Ana Costa', email: 'ana@test.com', role: 'ADMIN', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: true },
+  { id: 'admin-2', name: 'Bruno Lima', email: 'bruno@test.com', role: 'ADMIN', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: true },
 ]
 
-const newAdmin: Employee = { id: 'admin-3', name: 'Carlos Melo', email: 'carlos@test.com', role: 'ADMIN', permissions: [], passwordSet: true, emailVerified: true }
+const newAdmin: Employee = { id: 'admin-3', name: 'Carlos Melo', email: 'carlos@test.com', role: 'ADMIN', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: true }
 
 let lastDeletedId = ''
 let lastListUrl = ''

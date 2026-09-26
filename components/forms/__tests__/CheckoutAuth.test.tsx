@@ -2,7 +2,7 @@ import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { CheckoutAuth } from '../CheckoutAuth'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -26,7 +26,7 @@ beforeAll(() => server.listen())
 afterEach(async () => {
   server.resetHandlers()
   await act(async () => {
-    useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
+    useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false, mfaToken: null })
   })
 })
 afterAll(() => server.close())
@@ -120,5 +120,77 @@ describe('CheckoutAuth', () => {
     await user.click(screen.getByRole('tab', { name: /criar conta/i }))
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  describe('cliente com 2FA (plano 65)', () => {
+    async function loginWithPassword(user: ReturnType<typeof userEvent.setup>) {
+      await user.type(screen.getByLabelText(/e-mail/i), 'joao@test.com')
+      await user.type(screen.getByLabelText(/senha/i), 'password123')
+      await user.click(screen.getByRole('button', { name: /^entrar$/i }))
+    }
+
+    it('mfaRequired: mostra o campo do código no lugar do formulário; código certo autentica sem sair da página', async () => {
+      server.use(
+        http.post('/api/auth/login', () => HttpResponse.json({ mfaRequired: true, mfaToken: 'm-1' })),
+        http.post('/api/auth/mfa/verify', () => HttpResponse.json({ ...mockTokens, recoveryCodesRemaining: 10 })),
+      )
+      const user = userEvent.setup()
+      render(<CheckoutAuth />)
+
+      await loginWithPassword(user)
+
+      expect(await screen.findByText(/digite o código do seu app autenticador/i)).toBeInTheDocument()
+      expect(screen.queryByLabelText(/senha/i)).not.toBeInTheDocument()
+
+      const [first] = screen.getAllByRole('textbox', { name: /pin digit/i })
+      await user.click(first)
+      await user.keyboard('123456')
+
+      await vi.waitFor(() => expect(useAuthStore.getState().isAuthenticated).toBe(true))
+    })
+
+    it('código errado: mostra o erro e continua na etapa do código', async () => {
+      server.use(
+        http.post('/api/auth/login', () => HttpResponse.json({ mfaRequired: true, mfaToken: 'm-1' })),
+        http.post('/api/auth/mfa/verify', () =>
+          HttpResponse.json({ status: 401, message: 'Código inválido', attemptsRemaining: 4 }, { status: 401 }),
+        ),
+      )
+      const user = userEvent.setup()
+      render(<CheckoutAuth />)
+
+      await loginWithPassword(user)
+      const [first] = await screen.findAllByRole('textbox', { name: /pin digit/i })
+      await user.click(first)
+      await user.keyboard('000000')
+
+      expect(await screen.findByText('Código inválido')).toBeInTheDocument()
+      expect(screen.getByText('4 tentativas restantes')).toBeInTheDocument()
+      expect(useAuthStore.getState().isAuthenticated).toBe(false)
+    })
+
+    it('"Voltar" retorna ao formulário de login', async () => {
+      server.use(http.post('/api/auth/login', () => HttpResponse.json({ mfaRequired: true, mfaToken: 'm-1' })))
+      const user = userEvent.setup()
+      render(<CheckoutAuth />)
+
+      await loginWithPassword(user)
+      await user.click(await screen.findByRole('button', { name: /voltar/i }))
+
+      expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
+      expect(useAuthStore.getState().mfaToken).toBeNull()
+    })
+
+    it('mfaSetupRequired (conta da equipe): manda entrar pelo login da equipe', async () => {
+      server.use(http.post('/api/auth/login', () => HttpResponse.json({ mfaSetupRequired: true, mfaToken: 's-1' })))
+      const user = userEvent.setup()
+      render(<CheckoutAuth />)
+
+      await loginWithPassword(user)
+
+      expect(await screen.findByText(/entre pelo login da equipe/i)).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /login da equipe/i })).toHaveAttribute('href', '/login')
+      expect(useAuthStore.getState().mfaToken).toBeNull()
+    })
   })
 })

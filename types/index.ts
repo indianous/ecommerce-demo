@@ -119,6 +119,19 @@ export interface User {
    * envia; ausente conta como verificado (só `=== false` bloqueia).
    */
   emailVerified?: boolean
+  /** 2FA ativo (plano 65). Obrigatório para a equipe; o cliente ativa no perfil. */
+  mfaEnabled?: boolean
+  mfaEnabledAt?: string | null
+  recoveryCodesRemaining?: number
+}
+
+/** Resultado do login: sessão aberta, ou a segunda etapa que falta (plano 65). */
+export type LoginResult = { status: 'authenticated' } | { status: 'mfaRequired' } | { status: 'mfaSetupRequired' }
+
+/** Segredo em base32 (para digitar no app) e o otpauth:// que vira QR code. */
+export interface MfaSetupInfo {
+  secret: string
+  otpauthUri: string
 }
 
 export type PasswordTokenPurpose = 'RESET' | 'SET_PASSWORD'
@@ -558,6 +571,7 @@ export interface Employee {
   photoUrl?: string
   passwordSet: boolean
   emailVerified: boolean
+  mfaEnabled: boolean
 }
 
 /** Sem {@code password}, a conta nasce sem senha e a pessoa recebe o convite por e-mail. */
@@ -700,6 +714,7 @@ export interface CustomerDetailResponse {
   recentlyViewedProducts: RecentlyViewedProduct[]
   passwordSet: boolean
   emailVerified: boolean
+  mfaEnabled: boolean
 }
 
 export type AuditEntityType = 'PRODUCT' | 'CATEGORY' | 'PROMOTION' | 'COUPON' | 'ORDER' | 'USER' | 'ADDRESS'
@@ -711,6 +726,11 @@ export type AuditAction =
   | 'STATUS_UPDATED'
   | 'PASSWORD_CHANGED'
   | 'PASSWORD_INVITE_SENT'
+  | 'MFA_ENABLED'
+  | 'MFA_DISABLED'
+  | 'MFA_RESET'
+  | 'MFA_RECOVERY_CODE_USED'
+  | 'MFA_RECOVERY_CODES_REGENERATED'
 
 export interface AuditLogResponse {
   id: number

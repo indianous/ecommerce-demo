@@ -194,5 +194,11 @@ describe('ProfilePage — troca de e-mail (plano 64)', () => {
     expect(await screen.findByText('Enviamos um link de confirmação para joao.novo@test.com')).toBeInTheDocument()
     expect(useAuthStore.getState().user?.emailVerified).toBe(false)
   })
-})
 
+  it('renderiza a seção "Verificação em duas etapas" com o estado vindo de /api/auth/me', async () => {
+    renderProfilePage()
+
+    expect(await screen.findByRole('heading', { name: /verificação em duas etapas/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^ativar$/i })).toBeInTheDocument()
+  })
+})

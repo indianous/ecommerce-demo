@@ -7,8 +7,8 @@ import { EmployeeManagementTable } from '../EmployeeManagementTable'
 import type { Employee } from '@/types'
 
 const mockEmployees: Employee[] = [
-  { id: 'emp-1', name: 'Ana Costa', email: 'ana@test.com', role: 'EMPLOYEE', permissions: [], passwordSet: true, emailVerified: true },
-  { id: 'emp-2', name: 'Bruno Lima', email: 'bruno@test.com', role: 'EMPLOYEE', permissions: [], passwordSet: true, emailVerified: true },
+  { id: 'emp-1', name: 'Ana Costa', email: 'ana@test.com', role: 'EMPLOYEE', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: true },
+  { id: 'emp-2', name: 'Bruno Lima', email: 'bruno@test.com', role: 'EMPLOYEE', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: false },
 ]
 
 function renderTable(props: {
@@ -127,5 +127,14 @@ describe('EmployeeManagementTable', () => {
 
     await user.click(screen.getByRole('checkbox', { name: /selecionar todos/i }))
     expect(onToggleAll).toHaveBeenCalledWith(['emp-1', 'emp-2'])
+  })
+
+  it('coluna "2FA": Ativo para quem configurou, Pendente para quem ainda vai configurar no próximo login', () => {
+    renderTable()
+
+    expect(screen.getByRole('columnheader', { name: '2FA' })).toBeInTheDocument()
+    const rows = screen.getAllByRole('row').slice(1)
+    expect(rows[0]).toHaveTextContent('Ativo')
+    expect(rows[1]).toHaveTextContent('Pendente')
   })
 })

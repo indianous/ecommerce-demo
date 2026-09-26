@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { forwardedForHeader } from '@/lib/client-ip'
+import { sessionBody, setSessionCookies } from '@/lib/session-cookies'
 
 const API = process.env.API_INTERNAL_URL ?? 'http://localhost:8080/api/v1'
 
@@ -20,27 +21,15 @@ export async function POST(req: NextRequest) {
 
   const data = await upstream.json()
 
-  const cookieStore = await cookies()
-  cookieStore.set('session', data.refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7,
-    path: '/',
-  })
-  // Non-sensitive role cookie read by the proxy for route protection
-  cookieStore.set('role', data.role ?? 'CUSTOMER', {
-    httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7,
-    path: '/',
-  })
+  // Senha certa, mas falta o segundo fator (ou a configuração dele): nenhuma sessão ainda
+  if (!data.refreshToken) {
+    return NextResponse.json({
+      ...(data.mfaRequired ? { mfaRequired: true } : {}),
+      ...(data.mfaSetupRequired ? { mfaSetupRequired: true } : {}),
+      mfaToken: data.mfaToken,
+    })
+  }
 
-  return NextResponse.json({
-    accessToken: data.accessToken,
-    tokenType: data.tokenType,
-    expiresIn: data.expiresIn,
-    role: data.role,
-  })
+  setSessionCookies(await cookies(), data)
+  return NextResponse.json(sessionBody(data))
 }

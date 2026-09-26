@@ -52,7 +52,7 @@ const server = setupServer(
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 afterEach(() => {
   server.resetHandlers()
-  useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
+  useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false, mfaToken: null })
 })
 afterAll(() => server.close())
 
@@ -258,6 +258,154 @@ describe('AuthStore', () => {
       await getStore().refreshAccessToken()
 
       expect(counter.calls).toBe(2)
+    })
+  })
+
+  describe('login com 2FA (plano 65)', () => {
+    const session = { accessToken: 'mfa-access', tokenType: 'Bearer', expiresIn: 900, role: 'EMPLOYEE' }
+
+    function loginReturns(body: Record<string, unknown>) {
+      server.use(http.post('/api/auth/login', () => HttpResponse.json(body)))
+    }
+
+    it('sem 2FA: login devolve { status: authenticated }', async () => {
+      await expect(getStore().login({ email: 'valid@test.com', password: 'pass123' })).resolves.toEqual({
+        status: 'authenticated',
+      })
+    })
+
+    it('mfaRequired: não autentica e guarda o mfaToken só em memória', async () => {
+      loginReturns({ mfaRequired: true, mfaToken: 'tok-1' })
+
+      const result = await getStore().login({ email: 'valid@test.com', password: 'pass123' })
+
+      expect(result).toEqual({ status: 'mfaRequired' })
+      expect(getStore().isAuthenticated).toBe(false)
+      expect(getStore().accessToken).toBeNull()
+      expect(getStore().mfaToken).toBe('tok-1')
+      expect(JSON.stringify(localStorage)).not.toContain('tok-1')
+      expect(JSON.stringify(sessionStorage)).not.toContain('tok-1')
+    })
+
+    it('mfaSetupRequired: não autentica e guarda o mfaToken', async () => {
+      loginReturns({ mfaSetupRequired: true, mfaToken: 'tok-2' })
+
+      const result = await getStore().login({ email: 'valid@test.com', password: 'pass123' })
+
+      expect(result).toEqual({ status: 'mfaSetupRequired' })
+      expect(getStore().isAuthenticated).toBe(false)
+      expect(getStore().mfaToken).toBe('tok-2')
+    })
+
+    it('verifyMfa: código certo abre a sessão, busca o usuário e limpa o mfaToken', async () => {
+      let sent: unknown
+      server.use(
+        http.post('/api/auth/mfa/verify', async ({ request }) => {
+          sent = await request.json()
+          return HttpResponse.json({ ...session, recoveryCodesRemaining: 10 })
+        }),
+      )
+      useAuthStore.setState({ mfaToken: 'tok-1' })
+
+      const result = await getStore().verifyMfa('123456')
+
+      expect(sent).toEqual({ mfaToken: 'tok-1', code: '123456' })
+      expect(result).toEqual({ recoveryCodesRemaining: 10 })
+      expect(getStore().isAuthenticated).toBe(true)
+      expect(getStore().accessToken).toBe('mfa-access')
+      expect(getStore().role).toBe('EMPLOYEE')
+      expect(getStore().user).toEqual(mockUser)
+      expect(getStore().mfaToken).toBeNull()
+    })
+
+    it('verifyRecoveryCode: envia recoveryCode no lugar do code', async () => {
+      let sent: unknown
+      server.use(
+        http.post('/api/auth/mfa/verify', async ({ request }) => {
+          sent = await request.json()
+          return HttpResponse.json({ ...session, recoveryCodesRemaining: 2 })
+        }),
+      )
+      useAuthStore.setState({ mfaToken: 'tok-1' })
+
+      const result = await getStore().verifyRecoveryCode('ABCD-EFGH')
+
+      expect(sent).toEqual({ mfaToken: 'tok-1', recoveryCode: 'ABCD-EFGH' })
+      expect(result).toEqual({ recoveryCodesRemaining: 2 })
+      expect(getStore().isAuthenticated).toBe(true)
+    })
+
+    it('código errado (401): AuthError com attemptsRemaining, sem autenticar e mantendo o mfaToken', async () => {
+      server.use(
+        http.post('/api/auth/mfa/verify', () =>
+          HttpResponse.json({ status: 401, code: 'INVALID_MFA_CODE', message: 'Código inválido', attemptsRemaining: 3 }, { status: 401 }),
+        ),
+      )
+      useAuthStore.setState({ mfaToken: 'tok-1' })
+
+      const error = await getStore().verifyMfa('000000').catch((e) => e)
+
+      expect(error).toBeInstanceOf(AuthError)
+      expect(error.status).toBe(401)
+      expect(error.attemptsRemaining).toBe(3)
+      expect(getStore().isAuthenticated).toBe(false)
+      expect(getStore().mfaToken).toBe('tok-1')
+    })
+
+    it('410: limpa o mfaToken e avisa que a sessão de login expirou', async () => {
+      server.use(
+        http.post('/api/auth/mfa/verify', () =>
+          HttpResponse.json({ status: 410, code: 'MFA_CHALLENGE_EXPIRED', message: 'x' }, { status: 410 }),
+        ),
+      )
+      useAuthStore.setState({ mfaToken: 'tok-1' })
+
+      const error = await getStore().verifyMfa('123456').catch((e) => e)
+
+      expect(error).toBeInstanceOf(AuthError)
+      expect(error.status).toBe(410)
+      expect(error.message).toBe('Sua sessão de login expirou, entre de novo')
+      expect(getStore().mfaToken).toBeNull()
+    })
+
+    it('startMfaSetup: devolve segredo e otpauthUri', async () => {
+      let sent: unknown
+      server.use(
+        http.post('/api/auth/mfa/setup/start', async ({ request }) => {
+          sent = await request.json()
+          return HttpResponse.json({ secret: 'ABCDEFGH', otpauthUri: 'otpauth://totp/x' })
+        }),
+      )
+      useAuthStore.setState({ mfaToken: 'tok-2' })
+
+      await expect(getStore().startMfaSetup()).resolves.toEqual({ secret: 'ABCDEFGH', otpauthUri: 'otpauth://totp/x' })
+      expect(sent).toEqual({ mfaToken: 'tok-2' })
+    })
+
+    it('confirmMfaSetup: devolve os códigos, mas só autentica depois de acknowledgeRecoveryCodes()', async () => {
+      const codes = ['AAAA-BBBB', 'CCCC-DDDD']
+      server.use(http.post('/api/auth/mfa/setup/confirm', () => HttpResponse.json({ ...session, recoveryCodes: codes })))
+      useAuthStore.setState({ mfaToken: 'tok-2' })
+
+      await expect(getStore().confirmMfaSetup('123456')).resolves.toEqual(codes)
+      expect(getStore().isAuthenticated).toBe(false)
+      expect(getStore().accessToken).toBeNull()
+
+      await getStore().acknowledgeRecoveryCodes()
+
+      expect(getStore().isAuthenticated).toBe(true)
+      expect(getStore().accessToken).toBe('mfa-access')
+      expect(getStore().role).toBe('EMPLOYEE')
+      expect(getStore().user).toEqual(mockUser)
+      expect(getStore().mfaToken).toBeNull()
+    })
+
+    it('cancelMfa: limpa o mfaToken', () => {
+      useAuthStore.setState({ mfaToken: 'tok-1' })
+
+      getStore().cancelMfa()
+
+      expect(getStore().mfaToken).toBeNull()
     })
   })
 })

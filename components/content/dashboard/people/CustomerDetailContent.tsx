@@ -6,8 +6,10 @@ import { Badge, Container, Heading, Image, Rating, Skeleton, Text, useToast } fr
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { AccountStatusBadges } from '@/components/admin/AccountStatusBadges'
+import { MfaResetButton } from '@/components/admin/MfaResetButton'
+import { MfaStatusBadge } from '@/components/admin/MfaStatusBadge'
 import { PasswordInviteButton } from '@/components/admin/PasswordInviteButton'
-import { canSendPasswordInvite } from '@/lib/permissions'
+import { canResetMfa, canSendPasswordInvite } from '@/lib/permissions'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { calculateAge } from '@/lib/age'
 import { formatBRL } from '@/lib/format'
@@ -105,11 +107,19 @@ export function CustomerDetailContent({ id, backPath = '/dashboard/customers' }:
             <CopyButton value={customer.email} label="e-mail" />
           </p>
           <AccountStatusBadges passwordSet={customer.passwordSet} emailVerified={customer.emailVerified} />
+          <MfaStatusBadge mfaEnabled={customer.mfaEnabled} role={'CUSTOMER'} />
           <PasswordInviteButton
             userId={customer.id}
             email={customer.email}
             passwordSet={customer.passwordSet}
             canInvite={canSendPasswordInvite(currentUser, 'CUSTOMER')}
+          />
+          <MfaResetButton
+            userId={customer.id}
+            name={customer.name}
+            mfaEnabled={customer.mfaEnabled}
+            canReset={canResetMfa(currentUser, { id: customer.id, role: 'CUSTOMER' })}
+            onReset={() => setCustomer((current) => (current ? { ...current, mfaEnabled: false } : current))}
           />
         </div>
 

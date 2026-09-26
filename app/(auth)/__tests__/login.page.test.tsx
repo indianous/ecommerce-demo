@@ -33,7 +33,8 @@ afterEach(() => {
   server.resetHandlers()
   pushMock.mockClear()
   searchParamsString = ''
-  useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
+  useAuthStore.getState().cancelMfa()
+  useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false, mfaToken: null })
   useCartStore.setState({ items: [] })
 })
 afterAll(() => server.close())
@@ -200,5 +201,201 @@ describe('LoginPage', () => {
     renderLoginPage()
 
     expect(screen.getByText('Senha alterada. Entre com a nova senha.')).toBeInTheDocument()
+  })
+
+  describe('verificação em duas etapas (plano 65)', () => {
+    const employeeSession = { accessToken: 'token', tokenType: 'Bearer', expiresIn: 900, role: 'EMPLOYEE' }
+
+    function loginAnswers(body: Record<string, unknown>) {
+      server.use(http.post('/api/auth/login', () => HttpResponse.json(body)))
+    }
+
+    async function submitPassword(user: ReturnType<typeof userEvent.setup>) {
+      await user.type(screen.getByLabelText(/email/i), 'func@test.com')
+      await user.type(screen.getByLabelText(/senha/i), 'password123')
+      await user.click(screen.getByRole('button', { name: /entrar/i }))
+    }
+
+    async function typeCode(user: ReturnType<typeof userEvent.setup>, code: string) {
+      const [first] = await screen.findAllByRole('textbox', { name: /pin digit/i })
+      await user.click(first)
+      await user.keyboard(code)
+    }
+
+    it('mfaRequired: troca para a etapa do código, mostra o e-mail e esconde a senha', async () => {
+      loginAnswers({ mfaRequired: true, mfaToken: 'm-1' })
+      const user = userEvent.setup()
+      renderLoginPage()
+
+      await submitPassword(user)
+
+      expect(await screen.findByText(/digite o código do seu app autenticador/i)).toBeInTheDocument()
+      expect(screen.getByText('func@test.com')).toBeInTheDocument()
+      expect(screen.queryByLabelText(/senha/i)).not.toBeInTheDocument()
+      expect(pushMock).not.toHaveBeenCalled()
+    })
+
+    it('código certo: entra e redireciona pelo postLoginPath (callbackUrl preservado)', async () => {
+      loginAnswers({ mfaRequired: true, mfaToken: 'm-1' })
+      server.use(http.post('/api/auth/mfa/verify', () => HttpResponse.json({ ...employeeSession, recoveryCodesRemaining: 10 })))
+      searchParamsString = 'callbackUrl=%2Fdashboard%2Forders'
+      const user = userEvent.setup()
+      renderLoginPage()
+
+      await submitPassword(user)
+      await typeCode(user, '123456')
+
+      await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/dashboard/orders'))
+      expect(pushMock.mock.calls.flat().join()).not.toContain('m-1')
+    })
+
+    it('código errado: mostra o erro com as tentativas restantes', async () => {
+      loginAnswers({ mfaRequired: true, mfaToken: 'm-1' })
+      server.use(
+        http.post('/api/auth/mfa/verify', () =>
+          HttpResponse.json({ status: 401, code: 'INVALID_MFA_CODE', message: 'Código inválido', attemptsRemaining: 3 }, { status: 401 }),
+        ),
+      )
+      const user = userEvent.setup()
+      renderLoginPage()
+
+      await submitPassword(user)
+      await typeCode(user, '000000')
+
+      expect(await screen.findByText('Código inválido')).toBeInTheDocument()
+      expect(screen.getByText('3 tentativas restantes')).toBeInTheDocument()
+      expect(pushMock).not.toHaveBeenCalled()
+    })
+
+    it('última tentativa errada (attemptsRemaining 0): volta direto para a senha', async () => {
+      loginAnswers({ mfaRequired: true, mfaToken: 'm-1' })
+      server.use(
+        http.post('/api/auth/mfa/verify', () =>
+          HttpResponse.json({ status: 401, code: 'INVALID_MFA_CODE', message: 'Código inválido', attemptsRemaining: 0 }, { status: 401 }),
+        ),
+      )
+      const user = userEvent.setup()
+      renderLoginPage()
+
+      await submitPassword(user)
+      await typeCode(user, '000000')
+
+      expect(await screen.findByText('Muitas tentativas com código errado. Entre de novo com a senha.')).toBeInTheDocument()
+      expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
+    })
+
+    it('410: volta para a senha com "Sua sessão de login expirou, entre de novo"', async () => {
+      loginAnswers({ mfaRequired: true, mfaToken: 'm-1' })
+      server.use(
+        http.post('/api/auth/mfa/verify', () =>
+          HttpResponse.json({ status: 410, code: 'MFA_CHALLENGE_EXPIRED', message: 'x' }, { status: 410 }),
+        ),
+      )
+      const user = userEvent.setup()
+      renderLoginPage()
+
+      await submitPassword(user)
+      await typeCode(user, '123456')
+
+      expect(await screen.findByText('Sua sessão de login expirou, entre de novo')).toBeInTheDocument()
+      expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
+    })
+
+    it('código de recuperação: entra e avisa quando restam poucos', async () => {
+      loginAnswers({ mfaRequired: true, mfaToken: 'm-1' })
+      let sent: unknown
+      server.use(
+        http.post('/api/auth/mfa/verify', async ({ request }) => {
+          sent = await request.json()
+          return HttpResponse.json({ ...employeeSession, recoveryCodesRemaining: 2 })
+        }),
+      )
+      const user = userEvent.setup()
+      renderLoginPage()
+
+      await submitPassword(user)
+      await user.click(await screen.findByRole('button', { name: /usar um código de recuperação/i }))
+      await user.type(screen.getByLabelText(/código de recuperação/i), 'abcdefgh')
+      await user.click(screen.getByRole('button', { name: /^entrar$/i }))
+
+      await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/dashboard'))
+      expect(sent).toEqual({ mfaToken: 'm-1', recoveryCode: 'ABCD-EFGH' })
+      expect(await screen.findByText('Restam 2 códigos de recuperação — gere novos no seu perfil')).toBeInTheDocument()
+    })
+
+    it('"Voltar" na etapa do código volta para a senha', async () => {
+      loginAnswers({ mfaRequired: true, mfaToken: 'm-1' })
+      const user = userEvent.setup()
+      renderLoginPage()
+
+      await submitPassword(user)
+      await user.click(await screen.findByRole('button', { name: /voltar/i }))
+
+      expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
+      expect(useAuthStore.getState().mfaToken).toBeNull()
+    })
+
+    it('mfaSetupRequired: configuração obrigatória → QR code → códigos de recuperação → painel', async () => {
+      loginAnswers({ mfaSetupRequired: true, mfaToken: 's-1' })
+      server.use(
+        http.post('/api/auth/mfa/setup/start', () =>
+          HttpResponse.json({ secret: 'JBSWY3DPEHPK3PXP', otpauthUri: 'otpauth://totp/Loja:func%40test.com?secret=JBSWY3DPEHPK3PXP' }),
+        ),
+        http.post('/api/auth/mfa/setup/confirm', () =>
+          HttpResponse.json({ ...employeeSession, recoveryCodes: ['AAAA-BBBB', 'CCCC-DDDD'] }),
+        ),
+      )
+      const user = userEvent.setup()
+      renderLoginPage()
+
+      await submitPassword(user)
+
+      expect(await screen.findByText(/para proteger o painel, configure a verificação em duas etapas/i)).toBeInTheDocument()
+      expect(await screen.findByRole('img', { name: /qr code/i })).toBeInTheDocument()
+
+      await typeCode(user, '123456')
+
+      expect(await screen.findByText('AAAA-BBBB')).toBeInTheDocument()
+      expect(pushMock).not.toHaveBeenCalled()
+      expect(useAuthStore.getState().isAuthenticated).toBe(false)
+
+      await user.click(screen.getByRole('checkbox', { name: /guardei os códigos/i }))
+      await user.click(screen.getByRole('button', { name: /continuar/i }))
+
+      await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/dashboard'))
+      expect(useAuthStore.getState().isAuthenticated).toBe(true)
+    })
+
+    it('configuração: 410 no confirm volta para a senha', async () => {
+      loginAnswers({ mfaSetupRequired: true, mfaToken: 's-1' })
+      server.use(
+        http.post('/api/auth/mfa/setup/start', () => HttpResponse.json({ secret: 'JBSWY3DPEHPK3PXP', otpauthUri: 'otpauth://x' })),
+        http.post('/api/auth/mfa/setup/confirm', () => HttpResponse.json({ status: 410, message: 'x' }, { status: 410 })),
+      )
+      const user = userEvent.setup()
+      renderLoginPage()
+
+      await submitPassword(user)
+      await typeCode(user, '123456')
+
+      expect(await screen.findByText('Sua sessão de login expirou, entre de novo')).toBeInTheDocument()
+      expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
+    })
+
+    it('configuração: "Voltar" encerra a tentativa de login (não dá para pular)', async () => {
+      loginAnswers({ mfaSetupRequired: true, mfaToken: 's-1' })
+      server.use(
+        http.post('/api/auth/mfa/setup/start', () => HttpResponse.json({ secret: 'JBSWY3DPEHPK3PXP', otpauthUri: 'otpauth://x' })),
+      )
+      const user = userEvent.setup()
+      renderLoginPage()
+
+      await submitPassword(user)
+      await user.click(await screen.findByRole('button', { name: /voltar/i }))
+
+      expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
+      expect(useAuthStore.getState().mfaToken).toBeNull()
+      expect(useAuthStore.getState().isAuthenticated).toBe(false)
+    })
   })
 })

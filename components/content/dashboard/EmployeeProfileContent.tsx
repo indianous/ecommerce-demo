@@ -3,6 +3,7 @@
 import { Container, Heading, Text } from 'base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { ChangePasswordForm } from '@/components/forms/ChangePasswordForm'
+import { SecuritySection } from '@/components/profile/SecuritySection'
 
 export function EmployeeProfileContent() {
   const user = useAuthStore((s) => s.user)
@@ -30,6 +31,8 @@ export function EmployeeProfileContent() {
         </Heading>
         <ChangePasswordForm />
       </section>
+
+      <SecuritySection />
     </Container>
   )
 }

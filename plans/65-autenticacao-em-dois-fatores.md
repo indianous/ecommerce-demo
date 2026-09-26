@@ -28,12 +28,20 @@ guiar cada um:
 | `POST /auth/mfa/setup/start` | `{ mfaToken }` | `{ secret, otpauthUri }` · `410` |
 | `POST /auth/mfa/setup/confirm` | `{ mfaToken, code }` | sessão + `recoveryCodes` · `401` · `410` |
 | `POST /users/me/mfa/setup/start` | — | `{ secret, otpauthUri }` |
-| `POST /users/me/mfa/setup/confirm` | `{ code, currentCode? }` | `{ recoveryCodes }` · `401` |
-| `POST /users/me/mfa/recovery-codes` | `{ code }` | `{ recoveryCodes }` · `401` |
-| `DELETE /users/me/mfa` | `{ password, code }` | `204` · `401` · `403` (equipe) |
-| `GET /users/me` | — | novos `mfaEnabled` e `recoveryCodesRemaining` |
+| `POST /users/me/mfa/setup/confirm` | `{ code, currentCode? }` | `{ recoveryCodes }` · `400` |
+| `POST /users/me/mfa/recovery-codes` | `{ code }` | `{ recoveryCodes }` · `400` |
+| `POST /users/me/mfa/disable` | `{ password, code }` | `204` · `400` · `403` (equipe) |
+| `GET /users/me` | — | novos `mfaEnabled`, `mfaEnabledAt` e `recoveryCodesRemaining` |
 | `POST /admin/users/{id}/mfa/reset` | — | `204` · `403` · `404` |
 | Cliente, funcionário e admin no painel | — | novo `mfaEnabled` |
+
+Código ou senha errados nas rotas `/users/me/mfa/*` respondem **400** (`code:
+INVALID_MFA_CODE`, `INVALID_CURRENT_MFA_CODE` na troca de celular quando o errado é o
+código do app atual, ou `INVALID_PASSWORD`), e não 401: o `authFetch` trata todo 401
+como sessão vencida e manda para o login, então errar um dígito no perfil
+deslogaria a pessoa. É o mesmo motivo de "Senha atual incorreta" ser 400. O 401
+com `attemptsRemaining` fica só em `/auth/mfa/verify` e `/auth/mfa/setup/confirm`,
+que são públicas e não passam pelo `authFetch`.
 
 "Sessão" é o mesmo corpo do login de hoje (`accessToken`, `refreshToken`,
 `role`…), e o BFF grava os cookies `session` e `role` do mesmo jeito.
@@ -144,7 +152,7 @@ Tem validação própria.
 - **Com 2FA:** "Ativada desde <data>", "Códigos de recuperação restantes: N",
   "Gerar novos códigos" (pede um código do app), "Trocar de celular" (pede o
   código do app atual e depois o do novo).
-- **Desativar** (só cliente): Dialog com senha + código → `DELETE` → toast.
+- **Desativar** (só cliente): Dialog com senha + código → `POST /users/me/mfa/disable` → toast.
 - **Admin/funcionário:** não mostra "Desativar", e mostra o texto "Obrigatória
   para a equipe".
 
@@ -182,8 +190,8 @@ Tem validação própria.
 4. **`app/api/auth/mfa/verify/route.ts`**, **`mfa/setup/start/route.ts`** e
    **`mfa/setup/confirm/route.ts`** (novos), com `forwardedForHeader` e os cookies
    pelo helper nas duas que terminam em sessão.
-5. **`app/api/users/me/mfa/setup/start`**, **`setup/confirm`**,
-   **`recovery-codes`** e **`route.ts`** (`DELETE`).
+5. **`app/api/auth/me/mfa/setup/start`** (junto do `auth/me/password` que já existe), **`setup/confirm`**,
+   **`recovery-codes`** e **`disable`**.
 6. **`app/api/admin/users/[id]/mfa/reset/route.ts`**.
 
 ### Store
@@ -228,3 +236,26 @@ Tem validação própria.
   - admin resetando o 2FA de um funcionário (a sessão dele cai e ele configura de
     novo no próximo login);
   - uma sessão de funcionário aberta antes do deploy cai no próximo refresh.
+
+---
+
+## Notas da implementação
+
+- **Rotas do BFF do perfil** ficaram em `app/api/auth/me/mfa/*`, ao lado do `auth/me/password` que já existia.
+- **`MfaSetupPanel.onConfirm`** devolve `Promise<void>`: o pai decide o que vem depois (códigos de recuperação
+  no login; pedir o código do app atual na troca de celular).
+- **Troca de celular**: primeiro o QR code do app novo e o código dele, **depois** o código do app atual. Pedir
+  o atual antes faria ele vencer (janela de ~30–90 s) enquanto a pessoa lê o QR code. Se o código novo vencer
+  nesse meio-tempo, a tela volta ao QR code com o aviso.
+- **Tentativas esgotadas**: com `attemptsRemaining: 0` o login (e o checkout) já volta para a senha, sem esperar
+  o 410 da próxima tentativa.
+- **`PinInput` do base-ds** tem `aria-label` fixo em inglês ("PIN digit N") e não aceita
+  `autoComplete="one-time-code"`. Aberta a issue
+  [indianous/base-ds#48](https://github.com/indianous/base-ds/issues/48); até lá, os testes procuram por
+  `/pin digit/i`.
+- **Estado do 2FA no painel**: `MfaStatusBadge` ("2FA ativo", "2FA pendente" para a equipe, "2FA desativado"
+  para o cliente) e coluna "2FA" (Ativo/Pendente) na tabela de funcionários e admins. O `MfaResetButton` só
+  aparece com o 2FA ativo (sem 2FA não há o que resetar).
+- **`CustomerProfileContent`** passou a gravar no store o usuário que carrega, para a seção de segurança
+  mostrar o estado atual.
+- **Auditoria**: rótulos das cinco ações novas (`MFA_*`) na listagem e no filtro.

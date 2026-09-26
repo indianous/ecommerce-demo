@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, Icon, Table, type TableColumn } from 'base-ds'
+import { Badge, Button, Icon, Table, type TableColumn } from 'base-ds'
 import type { Employee } from '@/types'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { makeSelectionColumn } from '@/components/layout/selectionColumn'
@@ -49,6 +49,13 @@ export function EmployeeManagementTable({ employees, onDelete, onManagePermissio
           {row.email}
           <CopyButton value={row.email} label="e-mail" />
         </span>
+      ),
+    },
+    {
+      key: 'mfaEnabled',
+      header: '2FA',
+      render: (row) => (
+        <Badge variant={row.mfaEnabled ? 'success' : 'warning'}>{row.mfaEnabled ? 'Ativo' : 'Pendente'}</Badge>
       ),
     },
     {

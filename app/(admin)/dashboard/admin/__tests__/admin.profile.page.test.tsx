@@ -51,4 +51,16 @@ describe('Admin ProfilePage', () => {
     expect(screen.getByRole('heading', { name: /trocar senha/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/senha atual/i)).toBeInTheDocument()
   })
+
+  it('renderiza a seção "Verificação em duas etapas", obrigatória e sem Desativar', () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      accessToken: 'tok',
+      user: { id: '1', name: 'Admin Silva', email: 'admin@test.com', role: 'ADMIN', permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null, mfaEnabled: true, mfaEnabledAt: '2026-09-24T12:00:00Z', recoveryCodesRemaining: 10 },
+    })
+    renderPage()
+    expect(screen.getByRole('heading', { name: /verificação em duas etapas/i })).toBeInTheDocument()
+    expect(screen.getByText(/obrigatória para a equipe/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^desativar$/i })).not.toBeInTheDocument()
+  })
 })

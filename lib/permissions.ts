@@ -32,3 +32,15 @@ export function canSendPasswordInvite(actor: InviteActor, targetRole: UserRole):
   if (targetRole === 'EMPLOYEE') return actor.permissions.includes('MANAGE_EMPLOYEES')
   return false
 }
+
+type ResetActor = { id: string; role: UserRole; permissions: EmployeePermission[] } | null
+
+/**
+ * Quem pode resetar o 2FA de alguém, pela mesma regra do backend: admin para qualquer um menos a si mesmo;
+ * cliente também por quem tem MANAGE_CUSTOMERS. A equipe só é resetada por admin.
+ */
+export function canResetMfa(actor: ResetActor, target: { id: string; role: UserRole }): boolean {
+  if (!actor || actor.id === target.id) return false
+  if (actor.role === 'ADMIN') return true
+  return actor.role === 'EMPLOYEE' && target.role === 'CUSTOMER' && actor.permissions.includes('MANAGE_CUSTOMERS')
+}

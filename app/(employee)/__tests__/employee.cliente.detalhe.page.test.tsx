@@ -323,3 +323,23 @@ describe('CustomerDetailContent — conta (plano 64)', () => {
     expect(screen.queryByText('E-mail não confirmado')).not.toBeInTheDocument()
   })
 })
+
+describe('CustomerDetailContent — 2FA (plano 65)', () => {
+  it('cliente com 2FA: Badge "2FA ativo" e MANAGE_CUSTOMERS pode resetar', async () => {
+    server.use(http.get('/api/admin/customers/:id', () =>
+      HttpResponse.json({ ...mockDetail, passwordSet: true, emailVerified: true, mfaEnabled: true })))
+    renderDetail()
+
+    expect(await screen.findByText('2FA ativo')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Resetar 2FA' })).toBeInTheDocument()
+  })
+
+  it('cliente sem 2FA: Badge "2FA desativado" e sem botão de reset', async () => {
+    server.use(http.get('/api/admin/customers/:id', () =>
+      HttpResponse.json({ ...mockDetail, passwordSet: true, emailVerified: true, mfaEnabled: false })))
+    renderDetail()
+
+    expect(await screen.findByText('2FA desativado')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Resetar 2FA' })).not.toBeInTheDocument()
+  })
+})

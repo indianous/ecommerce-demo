@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -17,7 +17,7 @@ const mockEmployee: EmployeeDetailResponse = {
   createdAt: '2024-01-01T00:00:00Z',
   photoUrl: 'https://example.com/avatar.jpg',
   passwordSet: true,
-  emailVerified: true,
+  emailVerified: true, mfaEnabled: true,
 }
 
 const mockAuditLogs: AuditLogPage = {
@@ -165,12 +165,30 @@ describe('Employee Detail Page', () => {
 describe('Employee Detail Page — conta (plano 64)', () => {
   it('admin vendo outro admin com senha → "Enviar link de redefinição"', async () => {
     useAuthStore.setState({
-      user: { id: 'a-1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN', permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER', cpf: null, emailVerified: true },
+      user: { id: 'a-1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN', permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER', cpf: null, emailVerified: true, mfaEnabled: true },
     })
     server.use(http.get('/api/admin/employees/:id', () =>
-      HttpResponse.json({ ...mockEmployee, role: 'ADMIN', passwordSet: true, emailVerified: true })))
+      HttpResponse.json({ ...mockEmployee, role: 'ADMIN', passwordSet: true, emailVerified: true, mfaEnabled: true })))
     renderPage()
 
     expect(await screen.findByRole('button', { name: 'Enviar link de redefinição' })).toBeInTheDocument()
+  })
+})
+
+describe('Employee Detail Page — 2FA (plano 65)', () => {
+  it('admin vendo funcionário com 2FA → Badge "2FA ativo" e "Resetar 2FA"; depois do reset, "2FA pendente"', async () => {
+    useAuthStore.setState({
+      user: { id: 'a-1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN', permissions: [], phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER', cpf: null, emailVerified: true, mfaEnabled: true },
+    })
+    server.use(http.post('/api/admin/users/:id/mfa/reset', () => new HttpResponse(null, { status: 204 })))
+    const user = userEvent.setup()
+    renderPage()
+
+    expect(await screen.findByText('2FA ativo')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Resetar 2FA' }))
+    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: /^resetar$/i }))
+
+    expect(await screen.findByText('2FA pendente')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Resetar 2FA' })).not.toBeInTheDocument()
   })
 })

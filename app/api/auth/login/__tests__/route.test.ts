@@ -58,4 +58,17 @@ describe('POST /api/auth/login (BFF route)', () => {
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
     expect((init.headers as Record<string, string>)['X-Forwarded-For']).toBeUndefined()
   })
+
+  it.each([
+    [{ mfaRequired: true, mfaToken: 'mfa-1' }],
+    [{ mfaSetupRequired: true, mfaToken: 'mfa-1' }],
+  ])('2FA pendente (%o): repassa o corpo e não grava cookie nenhum', async (body) => {
+    fetchMock.mockResolvedValueOnce(Response.json(body))
+
+    const response = await POST(makeRequest())
+    const data = await response.json()
+
+    expect(cookieStore.set).not.toHaveBeenCalled()
+    expect(data).toEqual(body)
+  })
 })
