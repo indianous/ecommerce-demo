@@ -8,6 +8,7 @@ import { CartDrawer } from '@/components/cart/CartDrawer'
 import { EmailVerificationBanner } from '@/components/layout/EmailVerificationBanner'
 import { NavbarSearch } from '@/components/layout/NavbarSearch'
 import { NotificationBell } from '@/components/layout/NotificationBell'
+import { StaffPreviewBanner } from '@/components/layout/StaffPreviewBanner'
 import { UserMenu } from '@/components/layout/UserMenu'
 import { WhatsAppButton } from '@/components/layout/WhatsAppButton'
 import { useSiteSettings } from '@/contexts/SiteSettingsContext'
@@ -47,6 +48,7 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <>
+      <StaffPreviewBanner />
       <Navbar
         logo={
           <Link href="/" className="flex items-center">

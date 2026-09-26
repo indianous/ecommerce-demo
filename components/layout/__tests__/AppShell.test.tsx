@@ -281,4 +281,29 @@ describe('AppShell — área de conteúdo', () => {
     const whatsapp = screen.getByRole('link', { name: 'Falar com a loja no WhatsApp' })
     expect(screen.getByRole('main')).not.toContainElement(whatsapp)
   })
+
+  it('equipe logada: a faixa "Visão do cliente" vem antes da navbar e fora do <main> (plano 66, etapa 3)', () => {
+    useAuthStore.setState({ role: 'ADMIN', isAuthenticated: true, accessToken: 'tok' })
+    render(
+      <AppShell>
+        <p>conteúdo</p>
+      </AppShell>,
+    )
+
+    const banner = screen.getByRole('region', { name: 'Visão do cliente' })
+    const nav = screen.getAllByRole('navigation')[0]
+    expect(banner.compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getByRole('main')).not.toContainElement(banner)
+  })
+
+  it('cliente logado: sem a faixa', () => {
+    useAuthStore.setState({ role: 'CUSTOMER', isAuthenticated: true, accessToken: 'tok' })
+    render(
+      <AppShell>
+        <p>conteúdo</p>
+      </AppShell>,
+    )
+
+    expect(screen.queryByRole('region', { name: 'Visão do cliente' })).not.toBeInTheDocument()
+  })
 })

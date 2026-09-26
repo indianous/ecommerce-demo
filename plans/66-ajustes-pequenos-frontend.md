@@ -28,7 +28,7 @@ Uma etapa não começa antes da anterior estar aprovada ou descartada. Cada etap
 | --- | --- | --- |
 | 1 | Avatar do painel como botão flutuante no canto inferior direito | aprovada |
 | 2 | Botão flutuante de WhatsApp na loja | aprovada |
-| 3 | Faixa "visão do cliente" com botão para voltar ao painel | pendente |
+| 3 | Faixa "visão do cliente" com botão para voltar ao painel | aprovada |
 | 4 | Loja mostrada como deslogada para a equipe | pendente |
 | 5 | Produtos relacionados em grade: 4 por vez, 8 no total | pendente |
 | 6 | Tags de categoria sem quebra de linha no texto | pendente |
