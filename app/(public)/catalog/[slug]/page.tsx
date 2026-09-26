@@ -55,7 +55,7 @@ async function fetchReviews(id: string, page: number): Promise<ProductReviewPage
 
 async function fetchRelatedProducts(id: string): Promise<Product[]> {
   try {
-    const res = await fetch(`${API}/catalog/products/${id}/related?limit=6`, { next: { revalidate: 60 } })
+    const res = await fetch(`${API}/catalog/products/${id}/related?limit=8`, { next: { revalidate: 60 } })
     if (!res.ok) return []
     return res.json()
   } catch {

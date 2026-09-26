@@ -30,7 +30,7 @@ Uma etapa não começa antes da anterior estar aprovada ou descartada. Cada etap
 | 2 | Botão flutuante de WhatsApp na loja | aprovada |
 | 3 | Faixa "visão do cliente" com botão para voltar ao painel | aprovada |
 | 4 | Loja mostrada como deslogada para a equipe | aprovada |
-| 5 | Produtos relacionados em grade: 4 por vez, 8 no total | pendente |
+| 5 | Produtos relacionados em grade: 4 por vez, 8 no total | aprovada |
 | 6 | Tags de categoria sem quebra de linha no texto | pendente |
 | 7 | Tags de categoria da página do produto como link | pendente |
 | 8 | Layout da pesquisa do catálogo | pendente |
@@ -408,6 +408,13 @@ Produtos relacionados                        ‹  ›
    `<div className="grid grid-cols-2 gap-4 md:grid-cols-4">`. `showArrows` e
    `showDots` só quando há mais de uma página.
 2. **`app/(public)/catalog/[slug]/page.tsx`**: `limit=8`.
+
+### Notas da implementação
+
+- O `Carousel` do base-ds tem os rótulos de acessibilidade fixos em inglês ("Slide 1 of 2", "Next slide",
+  "Go to slide N"). Já era assim antes; aberta a issue
+  [indianous/base-ds#49](https://github.com/indianous/base-ds/issues/49). Até lá, os testes procuram pelos
+  textos em inglês.
 
 ### O que o usuário verifica
 

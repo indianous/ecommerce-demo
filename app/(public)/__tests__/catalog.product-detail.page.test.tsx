@@ -225,6 +225,19 @@ describe('ProductDetailPage', () => {
     expect(screen.getByText('Mouse Sem Fio')).toBeInTheDocument()
   })
 
+  it('pede 8 relacionados (duas páginas de 4) ao backend', async () => {
+    let requestedLimit: string | null = null
+    server.use(
+      http.get('http://localhost:8080/api/v1/catalog/products/prod-1/related', ({ request }) => {
+        requestedLimit = new URL(request.url).searchParams.get('limit')
+        return HttpResponse.json([])
+      }),
+    )
+    await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }), searchParams: Promise.resolve({}) })
+
+    expect(requestedLimit).toBe('8')
+  })
+
   it('lista vazia de relacionados: a seção não aparece', async () => {
     const jsx = await ProductDetailPage({ params: Promise.resolve({ slug: 'mechanical-keyboard' }), searchParams: Promise.resolve({}) })
     renderWithToast(jsx)
