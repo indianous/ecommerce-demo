@@ -5,9 +5,9 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { SiteSettingsProvider, useSiteSettings } from '../SiteSettingsContext'
 
 function Probe() {
-  const { navbarItems, footerColumns, logoUrl } = useSiteSettings()
+  const { navbarItems, footerColumns, logoUrl, contactPhone } = useSiteSettings()
   return (
-    <pre data-testid="probe">{JSON.stringify({ navbarItems, footerColumns, logoUrl })}</pre>
+    <pre data-testid="probe">{JSON.stringify({ navbarItems, footerColumns, logoUrl, contactPhone })}</pre>
   )
 }
 
@@ -25,6 +25,7 @@ async function readProbe() {
     navbarItems: unknown[]
     footerColumns: unknown[]
     logoUrl: string | null
+    contactPhone: string | null
   }
 }
 
@@ -132,5 +133,23 @@ describe('SiteSettingsProvider — logoUrl', () => {
     const { logoUrl } = await readProbe()
 
     expect(logoUrl).toBe('https://cdn.example.com/logo.svg')
+  })
+})
+
+describe('SiteSettingsProvider — contactPhone (plano 66, etapa 2)', () => {
+  it('expõe o telefone de contato das configurações', async () => {
+    server.use(
+      http.get('/api/site/settings', () => HttpResponse.json({ ...emptySettings, contactPhone: '(11) 98765-4321' })),
+    )
+    renderProbe()
+
+    await expect.poll(async () => (await readProbe()).contactPhone).toBe('(11) 98765-4321')
+  })
+
+  it('sem o campo → null', async () => {
+    renderProbe()
+    const { contactPhone } = await readProbe()
+
+    expect(contactPhone).toBeNull()
   })
 })

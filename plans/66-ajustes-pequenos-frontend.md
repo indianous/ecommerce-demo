@@ -27,7 +27,7 @@ Uma etapa não começa antes da anterior estar aprovada ou descartada. Cada etap
 | Etapa | Alteração | Situação |
 | --- | --- | --- |
 | 1 | Avatar do painel como botão flutuante no canto inferior direito | aprovada |
-| 2 | Botão flutuante de WhatsApp na loja | pendente |
+| 2 | Botão flutuante de WhatsApp na loja | aprovada |
 | 3 | Faixa "visão do cliente" com botão para voltar ao painel | pendente |
 | 4 | Loja mostrada como deslogada para a equipe | pendente |
 | 5 | Produtos relacionados em grade: 4 por vez, 8 no total | pendente |
@@ -179,6 +179,14 @@ telefone de contato do site (`contactPhone`, editado em Site → Contato), que
 5. **`.claude/CLAUDE.md`** (repositório da raiz, `indianous/ecommerce`):
    acrescentar `contactPhone` à lista de campos do `SiteSettingsContext`. Commit
    separado nesse repositório, junto com a aprovação da etapa.
+
+### Notas da implementação
+
+- O `WhatsAppIcon` ficou dentro de `WhatsAppButton.tsx`, e não junto dos ícones do `AppShell`: o `AppShell`
+  importa o botão, e exportar o ícone de lá criaria um import circular.
+- O `.claude/CLAUDE.md` da raiz está no `.gitignore` do repositório `indianous/ecommerce`, então a
+  atualização do `contactPhone` ficou só local (não há commit a fazer).
+- A página 404 também usa o `AppShell`: o mock de `next/navigation` do teste dela ganhou `usePathname`.
 
 ### O que o usuário verifica
 

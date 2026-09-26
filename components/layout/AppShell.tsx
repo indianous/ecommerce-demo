@@ -9,6 +9,7 @@ import { EmailVerificationBanner } from '@/components/layout/EmailVerificationBa
 import { NavbarSearch } from '@/components/layout/NavbarSearch'
 import { NotificationBell } from '@/components/layout/NotificationBell'
 import { UserMenu } from '@/components/layout/UserMenu'
+import { WhatsAppButton } from '@/components/layout/WhatsAppButton'
 import { useSiteSettings } from '@/contexts/SiteSettingsContext'
 
 const InstagramIcon = () => (
@@ -68,6 +69,7 @@ export function AppShell({ children }: AppShellProps) {
         copyright={`© ${new Date().getFullYear()} Loja`}
         socialLinks={socialLinks.length > 0 ? socialLinks : undefined}
       />
+      <WhatsAppButton />
     </>
   )
 }

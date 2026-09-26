@@ -10,6 +10,7 @@ const pushMock = vi.fn()
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushMock }),
+  usePathname: () => '/',
 }))
 
 function ToastTrigger() {
@@ -109,6 +110,7 @@ describe('AppShell', () => {
           instagramUrl: 'https://instagram.com/loja',
           tiktokUrl: 'https://tiktok.com/@loja',
           facebookUrl: 'https://facebook.com/loja',
+          contactPhone: null,
           navbarItems: [],
           footerColumns: [],
         }}
@@ -133,6 +135,7 @@ describe('AppShell', () => {
           instagramUrl: 'https://instagram.com/loja',
           tiktokUrl: null,
           facebookUrl: null,
+          contactPhone: null,
           navbarItems: [],
           footerColumns: [],
         }}
@@ -157,6 +160,7 @@ describe('AppShell', () => {
           instagramUrl: null,
           tiktokUrl: null,
           facebookUrl: null,
+          contactPhone: null,
           navbarItems: [{ type: 'link', label: 'Catálogo', href: '/catalog' }],
           footerColumns: [{ title: 'Institucional', links: [{ label: 'Sobre nós', href: '/about-us' }] }],
         }}
@@ -182,6 +186,7 @@ describe('AppShell', () => {
           instagramUrl: null,
           tiktokUrl: null,
           facebookUrl: null,
+          contactPhone: null,
           navbarItems: [],
           footerColumns: [],
         }}
@@ -209,6 +214,7 @@ describe('AppShell', () => {
           instagramUrl: null,
           tiktokUrl: null,
           facebookUrl: null,
+          contactPhone: null,
           navbarItems: [],
           footerColumns: [],
         }}
@@ -249,5 +255,30 @@ describe('AppShell — área de conteúdo', () => {
       </AppShell>,
     )
     expect(screen.getAllByRole('main')).toHaveLength(1)
+  })
+
+  it('mostra o botão flutuante de WhatsApp, fora do <main> (plano 66, etapa 2)', () => {
+    render(
+      <SiteSettingsContext.Provider
+        value={{
+          placeholderImageUrl: null,
+          faviconUrl: null,
+          logoUrl: null,
+          instagramUrl: null,
+          tiktokUrl: null,
+          facebookUrl: null,
+          contactPhone: '(11) 98765-4321',
+          navbarItems: [],
+          footerColumns: [],
+        }}
+      >
+        <AppShell>
+          <p>conteúdo</p>
+        </AppShell>
+      </SiteSettingsContext.Provider>,
+    )
+
+    const whatsapp = screen.getByRole('link', { name: 'Falar com a loja no WhatsApp' })
+    expect(screen.getByRole('main')).not.toContainElement(whatsapp)
   })
 })

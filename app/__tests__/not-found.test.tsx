@@ -4,6 +4,7 @@ import NotFound from '../not-found'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => '/nao-existe',
 }))
 
 describe('NotFound', () => {

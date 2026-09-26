@@ -12,6 +12,8 @@ interface SiteSettingsContextValue {
   instagramUrl: string | null
   tiktokUrl: string | null
   facebookUrl: string | null
+  /** Telefone de contato do site, que também é o WhatsApp da loja. */
+  contactPhone: string | null
   navbarItems: NavbarNavItem[]
   footerColumns: FooterColumn[]
 }
@@ -23,6 +25,7 @@ export const SiteSettingsContext = createContext<SiteSettingsContextValue>({
   instagramUrl: null,
   tiktokUrl: null,
   facebookUrl: null,
+  contactPhone: null,
   navbarItems: [],
   footerColumns: [],
 })
@@ -61,6 +64,7 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
   const [instagramUrl, setInstagramUrl] = useState<string | null>(null)
   const [tiktokUrl, setTiktokUrl] = useState<string | null>(null)
   const [facebookUrl, setFacebookUrl] = useState<string | null>(null)
+  const [contactPhone, setContactPhone] = useState<string | null>(null)
   const [navbarItems, setNavbarItems] = useState<NavbarNavItem[]>([])
   const [footerColumns, setFooterColumns] = useState<FooterColumn[]>([])
 
@@ -76,6 +80,7 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
         if (settings?.instagramUrl) setInstagramUrl(settings.instagramUrl)
         if (settings?.tiktokUrl) setTiktokUrl(settings.tiktokUrl)
         if (settings?.facebookUrl) setFacebookUrl(settings.facebookUrl)
+        if (settings?.contactPhone) setContactPhone(settings.contactPhone)
 
         const tree = Array.isArray(navItems) ? navItems : []
         setNavbarItems(buildNavbarItems(tree))
@@ -93,6 +98,7 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
         instagramUrl,
         tiktokUrl,
         facebookUrl,
+        contactPhone,
         navbarItems,
         footerColumns,
       }}
