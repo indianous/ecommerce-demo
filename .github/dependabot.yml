@@ -1,0 +1,20 @@
+version: 2
+registries:
+  # base-ds vem do GitHub Packages, que exige token até para ler. BASE_DS_TOKEN é
+  # um segredo do Dependabot (não de Actions) com um PAT classic com read:packages.
+  github-packages:
+    type: npm-registry
+    url: https://npm.pkg.github.com
+    token: ${{ secrets.BASE_DS_TOKEN }}
+updates:
+  - package-ecosystem: npm
+    directory: /
+    registries: [github-packages]
+    schedule:
+      interval: weekly
+    # Por enquanto só o base-ds: verifica se o Dependabot entende o alias
+    # "base-ds": "npm:@indianous/base-ds@..." (indianous/base-ds#44). Os dois nomes
+    # porque não se sabe qual deles ele reconhece.
+    allow:
+      - dependency-name: base-ds
+      - dependency-name: '@indianous/base-ds'
