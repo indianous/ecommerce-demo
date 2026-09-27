@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Container, Heading, Skeleton } from 'base-ds'
+import { Container, Heading, Skeleton } from '@indianous/base-ds'
 import { CheckoutAuth } from '@/components/forms/CheckoutAuth'
 import { CheckoutForm } from '@/components/forms/CheckoutForm'
 import { useStorefrontSession } from '@/stores/storefront-session'

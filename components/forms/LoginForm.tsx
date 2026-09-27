@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Button, FormField, Icon, Input, PasswordInput, useToast } from 'base-ds'
+import { Button, FormField, Icon, Input, PasswordInput, useToast } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import type { LoginResult } from '@/types'
 

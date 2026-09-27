@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Avatar, Badge, Button, Container, Heading, Icon, Skeleton, TransferList, useToast } from 'base-ds'
+import { Avatar, Badge, Button, Container, Heading, Icon, Skeleton, TransferList, useToast } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { AccountStatusBadges } from '@/components/admin/AccountStatusBadges'

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
 import { describe, expect, it, vi } from 'vitest'
-import { ToastProvider } from 'base-ds'
+import { ToastProvider } from '@indianous/base-ds'
 import { EmployeeManagementTable } from '../EmployeeManagementTable'
 import type { Employee } from '@/types'
 

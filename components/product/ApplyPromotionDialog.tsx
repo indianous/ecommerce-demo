@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Button, Dialog, FormField, Icon, Radio, Select, Text, useToast } from 'base-ds'
+import { Button, Dialog, FormField, Icon, Radio, Select, Text, useToast } from '@indianous/base-ds'
 import { EMPTY_PROMOTION_FORM, PromotionForm, type PromotionFormState } from '@/components/forms/PromotionForm'
 import { authFetch } from '@/lib/authFetch'
 import { productsLabel, promotionDiscountLabel, responseMessage, toPromotionInput } from '@/lib/promotions'

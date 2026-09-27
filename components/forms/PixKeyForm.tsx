@@ -1,4 +1,4 @@
-import { Button, FormField, Icon, Input, Text } from 'base-ds'
+import { Button, FormField, Icon, Input, Text } from '@indianous/base-ds'
 import { parsePixKey, PIX_KEY_TYPE_LABELS } from '@/lib/pix-key'
 
 interface Props {

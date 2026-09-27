@@ -1,6 +1,6 @@
 'use client'
 import type { ReactNode } from 'react'
-import { ToastProvider, ToastViewport } from 'base-ds'
+import { ToastProvider, ToastViewport } from '@indianous/base-ds'
 import { AuthHydrator } from './AuthHydrator'
 import { PageViewBeacon } from './PageViewBeacon'
 import { TrafficAttributionCapture } from './TrafficAttributionCapture'

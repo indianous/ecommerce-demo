@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Container, FormField, Heading } from 'base-ds'
+import { Container, FormField, Heading } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { FunnelChart } from '@/components/analytics/FunnelChart'

@@ -1,4 +1,4 @@
-import { Button, Dialog } from 'base-ds'
+import { Button, Dialog } from '@indianous/base-ds'
 import type { ReactNode } from 'react'
 
 interface ConfirmDeleteDialogProps {

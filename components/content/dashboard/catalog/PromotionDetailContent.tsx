@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, Container, Dialog, Heading, Icon, Skeleton, Table, Text, useToast, type TableColumn } from 'base-ds'
+import { Badge, Button, Container, Dialog, Heading, Icon, Skeleton, Table, Text, useToast, type TableColumn } from '@indianous/base-ds'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { PromotionForm, type PromotionFormState } from '@/components/forms/PromotionForm'
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'

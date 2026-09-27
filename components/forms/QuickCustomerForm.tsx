@@ -1,4 +1,4 @@
-import { Button, FormField, Icon, Input, Switch } from 'base-ds'
+import { Button, FormField, Icon, Input, Switch } from '@indianous/base-ds'
 import { isValidCpf } from '@/lib/cpf'
 import type { QuickCustomerInput } from '@/types'
 

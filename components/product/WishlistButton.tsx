@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Button, Icon, useToast } from 'base-ds'
+import { Button, Icon, useToast } from '@indianous/base-ds'
 import { useStorefrontSession } from '@/stores/storefront-session'
 
 interface Props {

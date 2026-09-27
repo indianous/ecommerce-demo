@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { FooterColumn, NavItem as NavbarNavItem } from 'base-ds'
+import type { FooterColumn, NavItem as NavbarNavItem } from '@indianous/base-ds'
 import type { SiteNavItem } from '@/types'
 
 interface SiteSettingsContextValue {

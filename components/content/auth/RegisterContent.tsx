@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Alert, Container, Heading, Text, useToast } from 'base-ds'
+import { Alert, Container, Heading, Text, useToast } from '@indianous/base-ds'
 import { RegisterForm } from '@/components/forms/RegisterForm'
 
 export function RegisterContent() {

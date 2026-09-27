@@ -1,4 +1,4 @@
-import { Button, FormField, Icon, Input, NumberInput, Radio, Switch, Text } from 'base-ds'
+import { Button, FormField, Icon, Input, NumberInput, Radio, Switch, Text } from '@indianous/base-ds'
 import type { CouponInput, CouponType } from '@/types'
 
 /** Campos opcionais como texto: vazio quer dizer "sem limite". Datas no formato do datetime-local. */

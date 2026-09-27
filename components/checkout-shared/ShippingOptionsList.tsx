@@ -1,4 +1,4 @@
-import { Radio, Text } from 'base-ds'
+import { Radio, Text } from '@indianous/base-ds'
 import { formatBRL } from '@/lib/format'
 import type { ShippingQuote } from '@/types'
 

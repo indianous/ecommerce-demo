@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { Container, Heading } from 'base-ds'
+import { Container, Heading } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import type { EmployeePermission } from '@/types'
 

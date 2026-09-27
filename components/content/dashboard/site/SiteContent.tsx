@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, Container, Heading, Icon, Skeleton } from 'base-ds'
+import { Button, Card, Container, Heading, Icon, Skeleton } from '@indianous/base-ds'
 import { PermissionGuard } from "@/components/employee/PermissionGuard";
 import { useSiteSettings } from "@/lib/useSiteSettings";
 import {

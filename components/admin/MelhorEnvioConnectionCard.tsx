@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Button, Card, Heading, Icon, useToast } from 'base-ds'
+import { Button, Card, Heading, Icon, useToast } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 
 export function MelhorEnvioConnectionCard() {

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
-import { ToastProvider, ToastViewport } from 'base-ds'
+import { ToastProvider, ToastViewport } from '@indianous/base-ds'
 import CatalogPage from '../catalog/page'
 import type { Product, ProductPage } from '@/types'
 

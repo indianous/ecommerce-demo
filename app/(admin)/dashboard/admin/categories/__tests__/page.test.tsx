@@ -7,7 +7,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
 }))
 
-import { ToastProvider } from 'base-ds'
+import { ToastProvider } from '@indianous/base-ds'
 import AdminCategoriesPage, { metadata } from '../page'
 import { useAuthStore } from '@/stores/auth.store'
 

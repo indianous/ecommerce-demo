@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import { useRouter } from 'next/navigation'
-import { Button, Container, Icon, Table, type TableColumn, useToast } from 'base-ds'
+import { Button, Container, Icon, Table, type TableColumn, useToast } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'

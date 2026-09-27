@@ -9,7 +9,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: replaceMock, push: vi.fn() }),
 }))
 
-import { ToastProvider, ToastViewport } from 'base-ds'
+import { ToastProvider, ToastViewport } from '@indianous/base-ds'
 import { CategoriesContent } from '@/components/content/dashboard/catalog/CategoriesContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { AdminCategory, EmployeePermission } from '@/types'

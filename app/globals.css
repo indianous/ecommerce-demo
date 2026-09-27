@@ -1,16 +1,16 @@
 @import "tailwindcss";
-@import "base-ds/styles/v4";
+@import "@indianous/base-ds/styles/v4";
 
 /*
-  Tailwind v4 doesn't scan node_modules by default. base-ds ships its
+  Tailwind v4 doesn't scan node_modules by default. @indianous/base-ds ships its
   compiled components (with their Tailwind class names) in dist/ — without
   this, classes like bg-primary used only inside base-ds's own compiled
   code would never be generated here.
 */
-@source "../node_modules/base-ds/dist";
+@source "../node_modules/@indianous/base-ds/dist";
 
 /*
-  base-ds/styles/v4 already ships the @theme block that maps its tokens to
+  @indianous/base-ds/styles/v4 already ships the @theme block that maps its tokens to
   Tailwind v4 utilities (bg-primary, text-muted-foreground, rounded-md, ...).
   Only the brand font is overridden here; it must come after the import so it
   wins over base-ds's generic system-font fallback.

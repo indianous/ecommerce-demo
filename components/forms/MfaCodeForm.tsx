@@ -1,4 +1,4 @@
-import { Alert, Button, FormField, Icon, Input, PinInput, Text } from 'base-ds'
+import { Alert, Button, FormField, Icon, Input, PinInput, Text } from '@indianous/base-ds'
 
 interface Props {
   mode: 'code' | 'recovery'

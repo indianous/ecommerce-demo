@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Badge, Button, Icon, useToast } from 'base-ds'
+import { Badge, Button, Icon, useToast } from '@indianous/base-ds'
 import { useCartStore } from '@/stores/cart.store'
 import type { Product } from '@/types'
 

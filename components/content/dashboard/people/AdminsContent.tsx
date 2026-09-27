@@ -1,7 +1,7 @@
 'use client'
 import { useCallback, useRef, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Button, Container, Dialog, Icon, useToast } from 'base-ds'
+import { Button, Container, Dialog, Icon, useToast } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { EmployeeManagementTable } from '@/components/admin/EmployeeManagementTable'
 import { EMPTY_EMPLOYEE_FORM, EmployeeForm, toEmployeeInput, type EmployeeFormState } from '@/components/forms/EmployeeForm'

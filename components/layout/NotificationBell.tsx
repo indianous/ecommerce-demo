@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, Drawer, Icon, Text, Tooltip } from 'base-ds'
+import { Badge, Button, Drawer, Icon, Text, Tooltip } from '@indianous/base-ds'
 import { useStorefrontSession } from '@/stores/storefront-session'
 import { useNotificationsStore } from '@/stores/notifications.store'
 import { formatRelativeTime } from '@/lib/relative-time'

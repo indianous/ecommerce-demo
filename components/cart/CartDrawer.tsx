@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Badge, Button, Drawer, Icon, Text, Tooltip } from 'base-ds'
+import { Badge, Button, Drawer, Icon, Text, Tooltip } from '@indianous/base-ds'
 import { useCartStore, selectCartTotal, selectItemCount } from '@/stores/cart.store'
 import { CartCardItem } from './CartCardItem'
 

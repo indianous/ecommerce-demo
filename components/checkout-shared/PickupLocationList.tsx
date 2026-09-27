@@ -1,4 +1,4 @@
-import { FormField, Select } from 'base-ds'
+import { FormField, Select } from '@indianous/base-ds'
 import type { DistributionCenter } from '@/types'
 
 interface Props {

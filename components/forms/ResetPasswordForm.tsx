@@ -1,4 +1,4 @@
-import { Alert, Button, FormField, Icon, PasswordInput } from 'base-ds'
+import { Alert, Button, FormField, Icon, PasswordInput } from '@indianous/base-ds'
 import { isValidPassword, passwordErrors } from '@/lib/password-policy'
 
 interface Props {

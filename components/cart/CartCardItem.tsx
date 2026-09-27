@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, Icon, Image, Text } from 'base-ds'
+import { Button, Icon, Image, Text } from '@indianous/base-ds'
 import { useCartStore } from '@/stores/cart.store'
 import type { CartItem } from '@/types'
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, Dialog, FileUpload, FormField, Icon, Text, useToast } from 'base-ds'
+import { Button, Dialog, FileUpload, FormField, Icon, Text, useToast } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import type { ProductImportReport } from '@/types'
 

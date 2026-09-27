@@ -13,7 +13,7 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(mockSearch),
 }))
 
-import { ToastProvider, ToastViewport } from 'base-ds'
+import { ToastProvider, ToastViewport } from '@indianous/base-ds'
 import { DeletedProductsContent } from '@/components/content/dashboard/catalog/DeletedProductsContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Product } from '@/types'

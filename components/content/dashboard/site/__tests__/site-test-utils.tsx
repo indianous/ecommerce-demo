@@ -3,7 +3,7 @@ import { http, HttpResponse, type RequestHandler } from 'msw'
 import { setupServer } from 'msw/node'
 import type { ReactElement } from 'react'
 import { afterAll, afterEach, beforeAll } from 'vitest'
-import { ToastProvider, ToastViewport } from 'base-ds'
+import { ToastProvider, ToastViewport } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 
 export const fullSettings = {

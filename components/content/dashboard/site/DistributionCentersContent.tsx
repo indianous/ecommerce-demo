@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Button, Card, Container, Dialog, Heading, Icon, Text, useToast } from 'base-ds'
+import { Button, Card, Container, Dialog, Heading, Icon, Text, useToast } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import {

@@ -10,7 +10,7 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }))
 
-import { ToastProvider } from 'base-ds'
+import { ToastProvider } from '@indianous/base-ds'
 import AdminNewOrderPage from '../page'
 import { useAuthStore } from '@/stores/auth.store'
 

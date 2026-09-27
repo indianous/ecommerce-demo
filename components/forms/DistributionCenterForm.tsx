@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, FormField, Icon, Input } from 'base-ds'
+import { Button, FormField, Icon, Input } from '@indianous/base-ds'
 
 export type DistributionCenterFormState = {
   name: string

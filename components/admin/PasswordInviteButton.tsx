@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, Dialog, Icon, Text, useToast } from 'base-ds'
+import { Button, Dialog, Icon, Text, useToast } from '@indianous/base-ds'
 import { authFetch } from '@/lib/authFetch'
 
 interface Props {

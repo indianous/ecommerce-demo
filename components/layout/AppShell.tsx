@@ -1,8 +1,8 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { Footer, Navbar } from 'base-ds'
-import type { FooterSocialLink } from 'base-ds'
+import { Footer, Navbar } from '@indianous/base-ds'
+import type { FooterSocialLink } from '@indianous/base-ds'
 import { CartDrawer } from '@/components/cart/CartDrawer'
 import { EmailVerificationBanner } from '@/components/layout/EmailVerificationBanner'
 import { NavbarSearch } from '@/components/layout/NavbarSearch'

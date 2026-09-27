@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import ReactMarkdown from 'react-markdown'
-import { Container } from 'base-ds'
+import { Container } from '@indianous/base-ds'
 
 const API = process.env.API_INTERNAL_URL ?? 'http://localhost:8080/api/v1'
 

@@ -1,5 +1,5 @@
 import { act, render, screen } from '@testing-library/react'
-import { ToastProvider } from 'base-ds'
+import { ToastProvider } from '@indianous/base-ds'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'

@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { ToastProvider } from 'base-ds'
+import { ToastProvider } from '@indianous/base-ds'
 import { describe, expect, it } from 'vitest'
 import type { Product } from '@/types'
 import { ProductCarousel } from '../ProductCarousel'

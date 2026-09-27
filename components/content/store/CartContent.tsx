@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Button, Container, Heading, Icon, NumberInput, Table, type TableColumn, Text } from 'base-ds'
+import { Button, Container, Heading, Icon, NumberInput, Table, type TableColumn, Text } from '@indianous/base-ds'
 import { useCartStore, selectCartTotal } from '@/stores/cart.store'
 import type { CartItem } from '@/types'
 

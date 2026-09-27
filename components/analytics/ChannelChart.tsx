@@ -1,6 +1,6 @@
 'use client'
 
-import { BarChart } from 'base-ds'
+import { BarChart } from '@indianous/base-ds'
 import { formatBRL } from '@/lib/format'
 import type { ChannelConversionResponse } from '@/types'
 

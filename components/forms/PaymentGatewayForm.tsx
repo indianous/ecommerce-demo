@@ -1,4 +1,4 @@
-import { Badge, Button, FormField, Icon, Radio, Text } from 'base-ds'
+import { Badge, Button, FormField, Icon, Radio, Text } from '@indianous/base-ds'
 import type { PaymentGatewayConfig, PaymentGatewayProvider } from '@/types'
 
 interface Props {

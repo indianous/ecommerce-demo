@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { SearchField } from 'base-ds'
+import { SearchField } from '@indianous/base-ds'
 
 export function NavbarSearch() {
   const router = useRouter()

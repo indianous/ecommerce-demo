@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from 'react'
 import Link from 'next/link'
-import { Badge, Button, Container, Dialog, Heading, Icon, SearchField, Table, Text, useToast, type TableColumn } from 'base-ds'
+import { Badge, Button, Container, Dialog, Heading, Icon, SearchField, Table, Text, useToast, type TableColumn } from '@indianous/base-ds'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CouponForm, EMPTY_COUPON_FORM, toCouponInput, type CouponFormState } from '@/components/forms/CouponForm'
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'

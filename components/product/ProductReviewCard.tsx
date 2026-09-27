@@ -1,4 +1,4 @@
-import { Image, Rating, Text } from 'base-ds'
+import { Image, Rating, Text } from '@indianous/base-ds'
 import type { ProductReview } from '@/types'
 
 interface Props {

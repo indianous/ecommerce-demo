@@ -1,6 +1,6 @@
 'use client'
 
-import { Container, Heading, Text } from 'base-ds'
+import { Container, Heading, Text } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { ChangePasswordForm } from '@/components/forms/ChangePasswordForm'
 import { SecuritySection } from '@/components/profile/SecuritySection'

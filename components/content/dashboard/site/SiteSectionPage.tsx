@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { Container, Heading, Skeleton } from 'base-ds'
+import { Container, Heading, Skeleton } from '@indianous/base-ds'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 
 interface Props {

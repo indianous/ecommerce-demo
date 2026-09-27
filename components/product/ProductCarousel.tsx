@@ -1,4 +1,4 @@
-import { Carousel, Heading } from 'base-ds'
+import { Carousel, Heading } from '@indianous/base-ds'
 import { ProductCard } from '@/components/product/ProductCard'
 import type { Product } from '@/types'
 

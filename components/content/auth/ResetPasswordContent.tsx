@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Button, Container, Heading, Icon, Skeleton, Text } from 'base-ds'
+import { Button, Container, Heading, Icon, Skeleton, Text } from '@indianous/base-ds'
 import { ResetPasswordForm } from '@/components/forms/ResetPasswordForm'
 import type { PasswordTokenInfo } from '@/types'
 

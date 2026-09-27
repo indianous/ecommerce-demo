@@ -1,13 +1,13 @@
 import { createRequire } from 'module'
 import { render, screen } from '@testing-library/react'
-import { Dialog } from 'base-ds'
+import { Dialog } from '@indianous/base-ds'
 import { describe, expect, it, vi } from 'vitest'
 
 const require = createRequire(import.meta.url)
 
 describe('base-ds e React', () => {
   it('o base-ds resolve a mesma cópia de React do app (indianous/base-ds#38)', () => {
-    const baseDsEntry = require.resolve('base-ds')
+    const baseDsEntry = require.resolve('@indianous/base-ds')
 
     expect(require.resolve('react', { paths: [baseDsEntry] })).toBe(require.resolve('react'))
   })

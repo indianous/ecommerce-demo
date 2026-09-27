@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, Container, FilterDropdown, Icon, Table, type TableColumn, useToast } from 'base-ds'
+import { Badge, Button, Container, FilterDropdown, Icon, Table, type TableColumn, useToast } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ApplyPromotionDialog } from '@/components/product/ApplyPromotionDialog'

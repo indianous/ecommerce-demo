@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, Card, Heading, Icon, Text } from 'base-ds'
+import { Button, Card, Heading, Icon, Text } from '@indianous/base-ds'
 import { useResendVerification } from '@/lib/useResendVerification'
 
 /** No checkout, no lugar do botão de finalizar, enquanto o e-mail não for confirmado. */

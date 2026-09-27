@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Badge, Card, Heading, Image, Rating, Text } from "base-ds";
+import { Badge, Card, Heading, Image, Rating, Text } from "@indianous/base-ds";
 import { AddToCartButton } from "@/components/product/AddToCartButton";
 import { WishlistButton } from "@/components/product/WishlistButton";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";

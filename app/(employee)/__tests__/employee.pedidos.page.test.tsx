@@ -11,7 +11,7 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/dashboard/orders',
   useSearchParams: () => new URLSearchParams(),
 }))
-import { ToastProvider, ToastViewport } from 'base-ds'
+import { ToastProvider, ToastViewport } from '@indianous/base-ds'
 import PedidosPage from '../dashboard/orders/page'
 import { useAuthStore } from '@/stores/auth.store'
 import type { AdminOrderDetailResponse, AdminOrderResponse, OrderStatus } from '@/types'

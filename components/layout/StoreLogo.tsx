@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Image } from 'base-ds'
+import { Image } from '@indianous/base-ds'
 import { useSiteSettings } from '@/contexts/SiteSettingsContext'
 
 /** Logo da loja com link para a home (texto "Loja" sem logo configurado). Usado pela loja e pelo login. */

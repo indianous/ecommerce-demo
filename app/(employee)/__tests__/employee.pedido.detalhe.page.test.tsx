@@ -7,7 +7,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), back: vi.fn(), replace: vi.fn() }),
 }))
-import { ToastProvider, ToastViewport } from 'base-ds'
+import { ToastProvider, ToastViewport } from '@indianous/base-ds'
 import { OrderDetailContent } from '@/components/content/dashboard/sales/OrderDetailContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { AdminOrderDetailResponse, OrderStatus } from '@/types'

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Skeleton, Text } from 'base-ds'
+import { Skeleton, Text } from '@indianous/base-ds'
 
 interface ManagementContentBodyProps {
   loading: boolean

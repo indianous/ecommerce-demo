@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, FormField, Icon, Input, Select } from 'base-ds'
+import { Button, FormField, Icon, Input, Select } from '@indianous/base-ds'
 import type { Gender } from '@/types'
 
 const GENDER_OPTIONS: { value: Gender; label: string }[] = [

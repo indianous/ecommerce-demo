@@ -1,6 +1,6 @@
 'use client'
 
-import { Badge, Select, Table, type TableColumn } from 'base-ds'
+import { Badge, Select, Table, type TableColumn } from '@indianous/base-ds'
 import { formatBRL } from '@/lib/format'
 import { paymentMethodLabel } from '@/lib/payment-labels'
 import type { AdminOrderResponse, OrderStatus } from '@/types'

@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { Heading, Text } from 'base-ds'
+import { Heading, Text } from '@indianous/base-ds'
 import { ProductReviewCard } from '@/components/product/ProductReviewCard'
 import { PaginationBar } from '@/components/ui/PaginationBar'
 import type { ProductReviewPage } from '@/types'

@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Button, Icon, Sidebar } from 'base-ds'
+import { Button, Icon, Sidebar } from '@indianous/base-ds'
 import { DashboardMobileNavList } from '@/components/layout/DashboardMobileNavList'
 import { DashboardUserMenu } from '@/components/layout/DashboardUserMenu'
 import { DASHBOARD_NAV_GROUPS, type DashboardNavItem } from '@/components/layout/dashboard-nav-groups'

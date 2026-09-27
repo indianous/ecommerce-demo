@@ -12,9 +12,8 @@ updates:
     registries: [github-packages]
     schedule:
       interval: weekly
-    # Por enquanto só o base-ds: verifica se o Dependabot entende o alias
-    # "base-ds": "npm:@indianous/base-ds@..." (indianous/base-ds#44). Os dois nomes
-    # porque não se sabe qual deles ele reconhece.
+    # Por enquanto só o base-ds. Ele é instalado pelo nome com escopo: com o alias
+    # "base-ds": "npm:@indianous/base-ds@...", o Dependabot procurava o pacote pelo
+    # nome do alias e falhava (indianous/base-ds#44, ecommerce-frontend#24).
     allow:
-      - dependency-name: base-ds
       - dependency-name: '@indianous/base-ds'

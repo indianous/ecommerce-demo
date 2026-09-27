@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Image, useToast } from 'base-ds'
+import { Image, useToast } from '@indianous/base-ds'
 import { authFetch } from '@/lib/authFetch'
 import { useAuthStore } from '@/stores/auth.store'
 import { FaviconForm } from '@/components/forms/FaviconForm'

@@ -3,7 +3,7 @@
 import { useCallback, useRef } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
-import { Button, Container, Icon, Image, Rating, Table, type TableColumn, useToast } from 'base-ds'
+import { Button, Container, Icon, Image, Rating, Table, type TableColumn, useToast } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'

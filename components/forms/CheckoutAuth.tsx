@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Alert, Button, FormField, Icon, Input, PasswordInput, Tabs, Text } from 'base-ds'
+import { Alert, Button, FormField, Icon, Input, PasswordInput, Tabs, Text } from '@indianous/base-ds'
 import { MfaCodeForm } from '@/components/forms/MfaCodeForm'
 import { AuthError, useAuthStore } from '@/stores/auth.store'
 

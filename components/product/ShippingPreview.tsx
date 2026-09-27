@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Button, FormField, Icon, Input, Text } from 'base-ds'
+import { Button, FormField, Icon, Input, Text } from '@indianous/base-ds'
 import { useStorefrontSession } from '@/stores/storefront-session'
 import type { Address, ShippingQuote } from '@/types'
 

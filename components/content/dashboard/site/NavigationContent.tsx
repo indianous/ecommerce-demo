@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
-import { Badge, Button, Card, Container, Dialog, Heading, Icon, Skeleton, Text, useToast } from 'base-ds'
+import { Badge, Button, Card, Container, Dialog, Heading, Icon, Skeleton, Text, useToast } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { NavItemForm, EMPTY_NAV_ITEM_FORM, type NavItemFormState } from '@/components/forms/NavItemForm'

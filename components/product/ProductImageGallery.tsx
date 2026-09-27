@@ -1,4 +1,4 @@
-import { ImageGallery } from 'base-ds'
+import { ImageGallery } from '@indianous/base-ds'
 
 interface Props {
   imageUrls: string[]

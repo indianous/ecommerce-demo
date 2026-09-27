@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { ToastProvider } from 'base-ds'
+import { ToastProvider } from '@indianous/base-ds'
 import { describe, expect, it, vi } from 'vitest'
 import { RecoveryCodesPanel } from '../RecoveryCodesPanel'
 

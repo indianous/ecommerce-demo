@@ -1,4 +1,4 @@
-import { Badge } from 'base-ds'
+import { Badge } from '@indianous/base-ds'
 
 /** Estado da conta nos detalhes do painel: senha ainda não escolhida e e-mail não confirmado. */
 export function AccountStatusBadges({ passwordSet, emailVerified }: { passwordSet: boolean; emailVerified: boolean }) {

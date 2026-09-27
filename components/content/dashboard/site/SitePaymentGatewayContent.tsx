@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { useToast } from 'base-ds'
+import { useToast } from '@indianous/base-ds'
 import { authFetch } from '@/lib/authFetch'
 import { siteSectionTitle } from '@/lib/site-sections'
 import { useAuthStore } from '@/stores/auth.store'

@@ -1,6 +1,6 @@
 'use client'
 
-import { Alert, Button, Icon } from 'base-ds'
+import { Alert, Button, Icon } from '@indianous/base-ds'
 import { homeFor } from '@/lib/route-access'
 import { useAuthStore } from '@/stores/auth.store'
 

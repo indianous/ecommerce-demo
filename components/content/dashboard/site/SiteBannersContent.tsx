@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Button, Icon, useToast } from 'base-ds'
+import { Button, Icon, useToast } from '@indianous/base-ds'
 import { authFetch } from '@/lib/authFetch'
 import { siteSectionTitle } from '@/lib/site-sections'
 import { useConfirmDelete } from '@/lib/useConfirmDelete'

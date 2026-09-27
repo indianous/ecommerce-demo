@@ -8,7 +8,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
 }))
 
-import { ToastProvider, ToastViewport } from 'base-ds'
+import { ToastProvider, ToastViewport } from '@indianous/base-ds'
 import { DistributionCentersContent } from '@/components/content/dashboard/site/DistributionCentersContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { DistributionCenter } from '@/types'

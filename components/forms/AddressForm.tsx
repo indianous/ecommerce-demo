@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, FormField, Icon, Input } from 'base-ds'
+import { Button, FormField, Icon, Input } from '@indianous/base-ds'
 import type { Address } from '@/types'
 
 export type NewAddress = Omit<Address, 'id' | 'isDefault'>

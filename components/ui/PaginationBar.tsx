@@ -1,4 +1,4 @@
-import { Pagination } from 'base-ds'
+import { Pagination } from '@indianous/base-ds'
 
 interface PaginationBarProps {
   page: number

@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import type { Icon } from 'base-ds'
+import type { Icon } from '@indianous/base-ds'
 
 export type IconName = ComponentProps<typeof Icon>['name']
 

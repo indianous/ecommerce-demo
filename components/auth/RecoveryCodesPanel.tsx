@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Alert, Button, Card, Checkbox, Icon, Text } from 'base-ds'
+import { Alert, Button, Card, Checkbox, Icon, Text } from '@indianous/base-ds'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { downloadBlob } from '@/lib/downloadBlob'
 

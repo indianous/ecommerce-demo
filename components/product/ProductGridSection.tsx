@@ -1,4 +1,4 @@
-import { Heading } from 'base-ds'
+import { Heading } from '@indianous/base-ds'
 import { ProductGrid } from '@/components/product/ProductGrid'
 import type { Product } from '@/types'
 

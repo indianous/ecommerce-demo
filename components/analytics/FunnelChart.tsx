@@ -1,6 +1,6 @@
 "use client";
 
-import { Funnel, Text } from "base-ds";
+import { Funnel, Text } from "@indianous/base-ds";
 import type { FunnelResponse } from "@/types";
 
 const POST_LOGIN_ONLY_LABELS = ["Visualizou produto", "Adicionou ao carrinho"];

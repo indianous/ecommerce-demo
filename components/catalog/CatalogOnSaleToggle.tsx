@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Switch } from 'base-ds'
+import { Switch } from '@indianous/base-ds'
 import { buildCatalogUrl } from './catalogUrl'
 import type { ProductSort } from '@/types'
 

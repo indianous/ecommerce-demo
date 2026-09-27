@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Container, Heading, Text, useToast } from 'base-ds'
+import { Container, Heading, Text, useToast } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Address, Gender, User } from '@/types'
 import { ChangePasswordForm } from '@/components/forms/ChangePasswordForm'

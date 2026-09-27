@@ -1,4 +1,4 @@
-import { Card, Skeleton, Text } from 'base-ds'
+import { Card, Skeleton, Text } from '@indianous/base-ds'
 import { ProductCard } from '@/components/product/ProductCard'
 import type { Product } from '@/types'
 

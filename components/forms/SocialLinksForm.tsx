@@ -1,4 +1,4 @@
-import { Button, FormField, Icon, Input } from 'base-ds'
+import { Button, FormField, Icon, Input } from '@indianous/base-ds'
 
 interface Props {
   instagramUrl: string

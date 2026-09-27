@@ -1,4 +1,4 @@
-import { Button, FormField, Icon, Select, Text } from 'base-ds'
+import { Button, FormField, Icon, Select, Text } from '@indianous/base-ds'
 import type { StockLot, StockMovementReason } from '@/types'
 
 interface Props {

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Avatar, Button, DropdownMenu } from 'base-ds'
+import { Avatar, Button, DropdownMenu } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { useStorefrontSession } from '@/stores/storefront-session'
 

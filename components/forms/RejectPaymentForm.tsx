@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, FormField, Icon, Textarea } from 'base-ds'
+import { Button, FormField, Icon, Textarea } from '@indianous/base-ds'
 
 interface Props {
   reason: string

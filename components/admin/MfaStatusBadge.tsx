@@ -1,4 +1,4 @@
-import { Badge } from 'base-ds'
+import { Badge } from '@indianous/base-ds'
 import type { UserRole } from '@/types'
 
 /** Estado do 2FA no painel. Para a equipe, sem 2FA = pendente: ela configura no próximo login. */

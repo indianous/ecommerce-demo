@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Alert, Container, Heading, Text } from 'base-ds'
+import { Alert, Container, Heading, Text } from '@indianous/base-ds'
 import { ForgotPasswordForm } from '@/components/forms/ForgotPasswordForm'
 
 export function ForgotPasswordContent() {

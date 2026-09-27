@@ -1,4 +1,4 @@
-import { Alert, Button, FormField, Icon, PasswordInput, PinInput } from 'base-ds'
+import { Alert, Button, FormField, Icon, PasswordInput, PinInput } from '@indianous/base-ds'
 
 interface Props {
   password: string

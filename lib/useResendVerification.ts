@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useToast } from 'base-ds'
+import { useToast } from '@indianous/base-ds'
 import { authFetch } from '@/lib/authFetch'
 
 const COOLDOWN_MS = 60_000

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Badge, Button, Icon, Table, type TableColumn } from 'base-ds'
+import { Badge, Button, Icon, Table, type TableColumn } from '@indianous/base-ds'
 import type { Employee } from '@/types'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { makeSelectionColumn } from '@/components/layout/selectionColumn'

@@ -1,7 +1,7 @@
 'use client'
 import { useCallback, useRef, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Button, Checkbox, Container, Dialog, FilterDropdown, Icon, useToast } from 'base-ds'
+import { Button, Checkbox, Container, Dialog, FilterDropdown, Icon, useToast } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { EmployeeManagementTable } from '@/components/admin/EmployeeManagementTable'

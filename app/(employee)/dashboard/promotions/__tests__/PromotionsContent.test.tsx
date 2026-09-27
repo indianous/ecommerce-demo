@@ -11,7 +11,7 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }))
 
-import { ToastProvider, ToastViewport } from 'base-ds'
+import { ToastProvider, ToastViewport } from '@indianous/base-ds'
 import { PromotionsContent } from '@/components/content/dashboard/catalog/PromotionsContent'
 import { useAuthStore } from '@/stores/auth.store'
 import type { EmployeePermission, Promotion } from '@/types'

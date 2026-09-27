@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, Icon, useToast } from 'base-ds'
+import { Button, Icon, useToast } from '@indianous/base-ds'
 
 interface CopyButtonProps {
   value: string

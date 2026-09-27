@@ -1,4 +1,4 @@
-import { Button, FormField, Icon, Input, Text } from 'base-ds'
+import { Button, FormField, Icon, Input, Text } from '@indianous/base-ds'
 import { formatBRL } from '@/lib/format'
 import type { CouponValidation } from '@/types'
 

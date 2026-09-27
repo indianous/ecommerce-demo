@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { SearchField } from 'base-ds'
+import { SearchField } from '@indianous/base-ds'
 import { buildCatalogUrl } from './catalogUrl'
 import type { ProductSort } from '@/types'
 

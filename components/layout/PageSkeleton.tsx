@@ -1,4 +1,4 @@
-import { Container, Skeleton } from 'base-ds'
+import { Container, Skeleton } from '@indianous/base-ds'
 
 /** Fallback do Suspense dos layouts: título + linhas, no formato dos loadings dos Content. */
 export function PageSkeleton() {

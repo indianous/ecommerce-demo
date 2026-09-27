@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import Link from 'next/link'
-import { Badge, Button, Container, Dialog, Heading, Icon, Table, Tabs, useToast, type TableColumn } from 'base-ds'
+import { Badge, Button, Container, Dialog, Heading, Icon, Table, Tabs, useToast, type TableColumn } from '@indianous/base-ds'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { EMPTY_PROMOTION_FORM, PromotionForm, type PromotionFormState } from '@/components/forms/PromotionForm'
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'

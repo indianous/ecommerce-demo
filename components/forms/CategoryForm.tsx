@@ -1,4 +1,4 @@
-import { Button, FormField, Icon, Input, Textarea } from 'base-ds'
+import { Button, FormField, Icon, Input, Textarea } from '@indianous/base-ds'
 
 export type CategoryFormState = {
   name: string

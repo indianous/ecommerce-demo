@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Alert, Button, Container, Heading, Icon, Text, useToast } from 'base-ds'
+import { Alert, Button, Container, Heading, Icon, Text, useToast } from '@indianous/base-ds'
 import { MfaSetupPanel } from '@/components/auth/MfaSetupPanel'
 import { RecoveryCodesPanel } from '@/components/auth/RecoveryCodesPanel'
 import { LoginForm } from '@/components/forms/LoginForm'

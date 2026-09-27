@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, FormField, Icon, Input, Select } from 'base-ds'
+import { Button, FormField, Icon, Input, Select } from '@indianous/base-ds'
 import type { NavPlacement, SiteNavItemType } from '@/types'
 
 export type NavItemFormState = {

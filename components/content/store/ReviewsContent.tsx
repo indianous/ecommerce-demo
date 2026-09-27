@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Button, Container, Dialog, Heading, Icon, Image, Skeleton, Text, useToast } from 'base-ds'
+import { Button, Container, Dialog, Heading, Icon, Image, Skeleton, Text, useToast } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { ReviewForm } from '@/components/forms/ReviewForm'
 import { ProductReviewCard } from '@/components/product/ProductReviewCard'

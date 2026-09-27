@@ -10,7 +10,7 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/dashboard/change-requests',
   useSearchParams: () => new URLSearchParams(),
 }))
-import { ToastProvider, ToastViewport } from 'base-ds'
+import { ToastProvider, ToastViewport } from '@indianous/base-ds'
 import SolicitacoesPage from '../dashboard/change-requests/page'
 import { useAuthStore } from '@/stores/auth.store'
 import type { OrderChangeRequest } from '@/types'

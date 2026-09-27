@@ -1,4 +1,4 @@
-import { Text } from 'base-ds'
+import { Text } from '@indianous/base-ds'
 import { formatBRL } from '@/lib/format'
 
 interface Props {

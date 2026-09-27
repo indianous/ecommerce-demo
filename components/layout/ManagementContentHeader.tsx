@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { SearchField } from 'base-ds'
+import { SearchField } from '@indianous/base-ds'
 
 interface ManagementContentHeaderProps {
   searchId: string

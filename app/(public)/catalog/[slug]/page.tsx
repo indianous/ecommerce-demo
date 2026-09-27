@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { Badge, Breadcrumb, Container, Heading, Text } from 'base-ds'
+import { Badge, Breadcrumb, Container, Heading, Text } from '@indianous/base-ds'
 import { buildCatalogUrl } from '@/components/catalog/catalogUrl'
 import { AddToCartButton } from '@/components/product/AddToCartButton'
 import { ProductCarousel } from '@/components/product/ProductCarousel'

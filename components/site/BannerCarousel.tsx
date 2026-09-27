@@ -1,4 +1,4 @@
-import { Carousel, Image } from 'base-ds'
+import { Carousel, Image } from '@indianous/base-ds'
 import type { Banner } from '@/types'
 
 interface Props {

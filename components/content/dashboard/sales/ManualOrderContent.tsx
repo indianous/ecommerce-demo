@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge, Button, Card, Container, Dialog, FormField, Heading, Icon, Radio, SearchField, Select, Switch, Text, Textarea, useToast } from 'base-ds'
+import { Badge, Button, Card, Container, Dialog, FormField, Heading, Icon, Radio, SearchField, Select, Switch, Text, Textarea, useToast } from '@indianous/base-ds'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { AddressForm, EMPTY_ADDRESS, type NewAddress } from '@/components/forms/AddressForm'
 import { ManualOrderItemsForm, addLine, lineError, linesSubtotal, type ManualOrderLine } from '@/components/forms/ManualOrderItemsForm'

@@ -1,4 +1,4 @@
-import { Button, FormField, Icon, Input, PasswordInput, Switch } from 'base-ds'
+import { Button, FormField, Icon, Input, PasswordInput, Switch } from '@indianous/base-ds'
 import { PASSWORD_TOO_SHORT, isValidPassword } from '@/lib/password-policy'
 import type { EmployeeInput } from '@/types'
 

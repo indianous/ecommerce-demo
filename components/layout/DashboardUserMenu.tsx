@@ -1,5 +1,5 @@
 'use client'
-import { Avatar, DropdownMenu } from 'base-ds'
+import { Avatar, DropdownMenu } from '@indianous/base-ds'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth.store'
 

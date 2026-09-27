@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Badge, Button, Dialog, Heading, Icon, Text, useToast } from 'base-ds'
+import { Badge, Button, Dialog, Heading, Icon, Text, useToast } from '@indianous/base-ds'
 import { MfaSetupPanel } from '@/components/auth/MfaSetupPanel'
 import { RecoveryCodesPanel } from '@/components/auth/RecoveryCodesPanel'
 import { MfaCodeForm } from '@/components/forms/MfaCodeForm'

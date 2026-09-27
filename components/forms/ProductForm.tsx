@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Button, Card, Checkbox, FileUpload, FormField, Icon, Image, Input, MultiSelect, NumberInput, Select, Text } from 'base-ds'
+import { Button, Card, Checkbox, FileUpload, FormField, Icon, Image, Input, MultiSelect, NumberInput, Select, Text } from '@indianous/base-ds'
 import type { Category, MerchandiseOrigin } from '@/types'
 
 const MAX_IMAGES = 8

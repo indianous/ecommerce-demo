@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Container, FormField, Table, type TableColumn } from 'base-ds'
+import { Container, FormField, Table, type TableColumn } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'

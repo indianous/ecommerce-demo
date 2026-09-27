@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Button, FormField, Icon, Radio, Select, Text, useToast } from 'base-ds'
+import { Button, FormField, Icon, Radio, Select, Text, useToast } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { useCartStore, selectCartTotal } from '@/stores/cart.store'
 import { ManualPaymentInstructions } from '@/components/payment/ManualPaymentInstructions'

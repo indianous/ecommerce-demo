@@ -1,4 +1,4 @@
-import { Button, FileUpload, FormField, Icon } from 'base-ds'
+import { Button, FileUpload, FormField, Icon } from '@indianous/base-ds'
 
 interface Props {
   file: File | null

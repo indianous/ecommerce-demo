@@ -1,4 +1,4 @@
-import { Heading, Text } from 'base-ds'
+import { Heading, Text } from '@indianous/base-ds'
 
 interface ManagementPageHeaderProps {
   title: string

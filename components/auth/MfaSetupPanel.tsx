@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, QrCode, Skeleton, Text } from 'base-ds'
+import { Card, QrCode, Skeleton, Text } from '@indianous/base-ds'
 import { MfaCodeForm } from '@/components/forms/MfaCodeForm'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { AuthError } from '@/stores/auth.store'

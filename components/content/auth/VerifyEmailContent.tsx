@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Button, Container, Heading, Icon, Skeleton, Text } from 'base-ds'
+import { Button, Container, Heading, Icon, Skeleton, Text } from '@indianous/base-ds'
 import { useResendVerification } from '@/lib/useResendVerification'
 import { useAuthStore } from '@/stores/auth.store'
 import { useCartStore } from '@/stores/cart.store'

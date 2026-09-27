@@ -1,4 +1,4 @@
-import { Rating, Text } from 'base-ds'
+import { Rating, Text } from '@indianous/base-ds'
 
 interface Props {
   averageRating: number | null

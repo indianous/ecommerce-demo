@@ -1,4 +1,4 @@
-import { Button, Icon, NumberInput, SearchField, Table, Text, type TableColumn } from 'base-ds'
+import { Button, Icon, NumberInput, SearchField, Table, Text, type TableColumn } from '@indianous/base-ds'
 import { formatBRL } from '@/lib/format'
 import type { Product } from '@/types'
 

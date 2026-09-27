@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Button, Icon, Text } from 'base-ds'
+import { Button, Icon, Text } from '@indianous/base-ds'
 
 interface Props {
   selectedCount: number

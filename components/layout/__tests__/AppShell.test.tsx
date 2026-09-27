@@ -1,7 +1,7 @@
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Container, ToastProvider, ToastViewport, useToast } from 'base-ds'
+import { Container, ToastProvider, ToastViewport, useToast } from '@indianous/base-ds'
 import { AppShell } from '../AppShell'
 import { SiteSettingsContext } from '@/contexts/SiteSettingsContext'
 import { useAuthStore } from '@/stores/auth.store'

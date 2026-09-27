@@ -1,4 +1,4 @@
-import { Button, FormField, Icon, Input } from 'base-ds'
+import { Button, FormField, Icon, Input } from '@indianous/base-ds'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 

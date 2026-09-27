@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { useToast } from 'base-ds'
+import { useToast } from '@indianous/base-ds'
 import { authFetch } from '@/lib/authFetch'
 import { useAuthStore } from '@/stores/auth.store'
 import { LogoForm } from '@/components/forms/LogoForm'

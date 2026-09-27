@@ -1,7 +1,7 @@
 'use client'
 import { useCallback, useRef, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
-import { Container, FilterDropdown, Table, type TableColumn } from 'base-ds'
+import { Container, FilterDropdown, Table, type TableColumn } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { ManagementPageHeader } from '@/components/layout/ManagementPageHeader'
 import { ManagementPageBody } from '@/components/layout/ManagementPageBody'

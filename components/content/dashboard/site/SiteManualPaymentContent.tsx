@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { Heading, Image, Text, useToast } from 'base-ds'
+import { Heading, Image, Text, useToast } from '@indianous/base-ds'
 import { authFetch } from '@/lib/authFetch'
 import { useAuthStore } from '@/stores/auth.store'
 import { PixKeyForm } from '@/components/forms/PixKeyForm'

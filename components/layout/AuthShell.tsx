@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { Footer } from 'base-ds'
+import { Footer } from '@indianous/base-ds'
 import { StoreLogo } from '@/components/layout/StoreLogo'
 
 /**

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Container, Dialog, Heading, Icon, Skeleton, Table, Text, useToast, type TableColumn } from 'base-ds'
+import { Button, Container, Dialog, Heading, Icon, Skeleton, Table, Text, useToast, type TableColumn } from '@indianous/base-ds'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CategoryForm, EMPTY_CATEGORY_FORM, type CategoryFormState } from '@/components/forms/CategoryForm'
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'

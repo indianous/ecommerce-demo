@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, FormField, Icon, Input, Select } from 'base-ds'
+import { Button, FormField, Icon, Input, Select } from '@indianous/base-ds'
 import type { FiscalCompanyData, TaxRegime } from '@/types'
 
 const TAX_REGIME_OPTIONS: { value: TaxRegime; label: string }[] = [

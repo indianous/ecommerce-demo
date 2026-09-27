@@ -1,6 +1,6 @@
 'use client'
 
-import { Heading, Image, Text } from 'base-ds'
+import { Heading, Image, Text } from '@indianous/base-ds'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { paymentMethodLabel } from '@/lib/payment-labels'
 import { useSiteSettings } from '@/lib/useSiteSettings'

@@ -1,4 +1,4 @@
-import { Checkbox, type TableColumn } from 'base-ds'
+import { Checkbox, type TableColumn } from '@indianous/base-ds'
 
 export function makeSelectionColumn<T>(
   items: T[],

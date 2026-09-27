@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, Heading, Text } from 'base-ds'
+import { Button, Heading, Text } from '@indianous/base-ds'
 
 export function NotFoundContent() {
   return (

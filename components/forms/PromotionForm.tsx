@@ -1,4 +1,4 @@
-import { Button, FormField, Icon, Input, NumberInput, Radio, Text } from 'base-ds'
+import { Button, FormField, Icon, Input, NumberInput, Radio, Text } from '@indianous/base-ds'
 import { formatBRL } from '@/lib/format'
 import type { PromotionType } from '@/types'
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { Button } from 'base-ds'
+import { Button } from '@indianous/base-ds'
 import { useSiteSettings } from '@/contexts/SiteSettingsContext'
 import { whatsappUrl } from '@/lib/whatsapp'
 

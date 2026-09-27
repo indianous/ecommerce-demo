@@ -1,4 +1,4 @@
-import { Container } from 'base-ds'
+import { Container } from '@indianous/base-ds'
 import { ProductGridSkeleton } from '@/components/product/ProductGrid'
 
 export default function CatalogLoading() {

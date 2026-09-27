@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, FileUpload, FormField, Icon, Rating, Text, Textarea } from 'base-ds'
+import { Button, FileUpload, FormField, Icon, Rating, Text, Textarea } from '@indianous/base-ds'
 
 interface Props {
   rating: number
