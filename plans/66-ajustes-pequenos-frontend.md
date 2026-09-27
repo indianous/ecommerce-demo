@@ -34,7 +34,7 @@ Uma etapa não começa antes da anterior estar aprovada ou descartada. Cada etap
 | 6 | Tags de categoria sem quebra de linha no texto | aprovada |
 | 7 | Tags de categoria da página do produto como link | aprovada |
 | 8 | Layout da pesquisa do catálogo | aprovada |
-| 9 | Header e footer próprios no login e no cadastro | pendente |
+| 9 | Header e footer próprios no login e no cadastro | aprovada |
 
 ---
 
@@ -650,6 +650,21 @@ Passam a ter um **header e um footer mínimos, diferentes dos da loja**:
    compartilhado, para os dois não divergirem.
 2. **`app/(auth)/layout.tsx`**: envolve o `<main>` com o `AuthShell` (header acima,
    footer abaixo), mantendo o `Suspense` e o `<main>` no layout.
+
+### Notas da implementação
+
+- O `AuthShell` vale para todo o grupo `(auth)`: além de login e cadastro, "Esqueci minha senha", "Definir
+  senha" e "Confirmar e-mail" (plano 64).
+- O logo foi para `components/layout/StoreLogo.tsx`, usado pelo `AppShell` e pelo `AuthShell`.
+- O `Navbar` do base-ds rotula a navegação como "Main navigation" e renderiza a ação duas vezes (desktop e
+  celular). O teste "não exibe a Navbar pública" virou "sem busca, carrinho, sino e menu do usuário".
+
+### Ajuste 1 — só o logo, centralizado (pedido na verificação)
+
+O header fica só com o logo da loja, **centralizado**, que é o link para a home. O "Voltar à loja" sai. O
+`Navbar` do base-ds só centraliza o logo no celular (a célula usa `justify-center md:justify-start`, sem prop
+para mudar), então o header virou um `<header>` nativo com as mesmas classes de borda e altura do `Navbar`,
+até a issue [indianous/base-ds#50](https://github.com/indianous/base-ds/issues/50) ser resolvida.
 
 ### O que o usuário verifica
 

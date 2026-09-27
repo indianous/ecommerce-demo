@@ -1,14 +1,14 @@
 'use client'
 
-import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { Footer, Image, Navbar } from 'base-ds'
+import { Footer, Navbar } from 'base-ds'
 import type { FooterSocialLink } from 'base-ds'
 import { CartDrawer } from '@/components/cart/CartDrawer'
 import { EmailVerificationBanner } from '@/components/layout/EmailVerificationBanner'
 import { NavbarSearch } from '@/components/layout/NavbarSearch'
 import { NotificationBell } from '@/components/layout/NotificationBell'
 import { StaffPreviewBanner } from '@/components/layout/StaffPreviewBanner'
+import { StoreLogo } from '@/components/layout/StoreLogo'
 import { UserMenu } from '@/components/layout/UserMenu'
 import { WhatsAppButton } from '@/components/layout/WhatsAppButton'
 import { useSiteSettings } from '@/contexts/SiteSettingsContext'
@@ -38,7 +38,7 @@ interface AppShellProps {
 }
 
 export function AppShell({ children }: AppShellProps) {
-  const { logoUrl, instagramUrl, tiktokUrl, facebookUrl, navbarItems, footerColumns } = useSiteSettings()
+  const { instagramUrl, tiktokUrl, facebookUrl, navbarItems, footerColumns } = useSiteSettings()
 
   const socialLinks: FooterSocialLink[] = [
     instagramUrl && { icon: <InstagramIcon />, href: instagramUrl, label: 'Instagram' },
@@ -50,15 +50,7 @@ export function AppShell({ children }: AppShellProps) {
     <>
       <StaffPreviewBanner />
       <Navbar
-        logo={
-          <Link href="/" className="flex items-center">
-            {logoUrl ? (
-              <Image src={logoUrl} alt="Logo da loja" aspectRatio="square" objectFit="contain" className="h-8 w-8" />
-            ) : (
-              <span className="text-lg font-semibold text-foreground">Loja</span>
-            )}
-          </Link>
-        }
+        logo={<StoreLogo />}
         items={navbarItems.length > 0 ? navbarItems : undefined}
         search={<NavbarSearch />}
         actions={[<NotificationBell key="notifications" />, <CartDrawer key="cart" />, <UserMenu key="user" />]}
