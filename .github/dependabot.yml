@@ -1,11 +1,11 @@
 version: 2
 registries:
-  # base-ds vem do GitHub Packages, que exige token até para ler. BASE_DS_TOKEN é
+  # base-ds vem do GitHub Packages, que exige token até para ler. GH_PACKAGES_TOKEN é
   # um segredo do Dependabot (não de Actions) com um PAT classic com read:packages.
   github-packages:
     type: npm-registry
     url: https://npm.pkg.github.com
-    token: ${{ secrets.BASE_DS_TOKEN }}
+    token: ${{ secrets.GH_PACKAGES_TOKEN }}
 updates:
   - package-ecosystem: npm
     directory: /
