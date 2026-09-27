@@ -1,4 +1,5 @@
 import { act, render, screen } from '@testing-library/react'
+import { ToastProvider } from '@indianous/base-ds'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -15,6 +16,16 @@ vi.mock('next/navigation', () => ({
 import OrdersPage from '../orders/page'
 import { useAuthStore } from '@/stores/auth.store'
 import type { OrderResponse } from '@/types'
+
+// Como no app, com ToastProvider: as instruções de PIX mostram um CopyButton (useToast) quando as configurações
+// do site chegam, e sem o provider o teste falhava de forma intermitente.
+function renderPage() {
+  return render(
+    <ToastProvider>
+      <OrdersPage />
+    </ToastProvider>,
+  )
+}
 
 function makeOrder(i: number, overrides: Partial<OrderResponse> = {}): OrderResponse {
   return {
@@ -71,13 +82,13 @@ beforeEach(() => {
 describe('OrdersPage', () => {
   it('shows an empty state when there are no orders', async () => {
     ordersResponse = []
-    render(<OrdersPage />)
+    renderPage()
 
     expect(await screen.findByText(/nenhum pedido/i)).toBeInTheDocument()
   })
 
   it('exibe o número do pedido formatado como #<orderNumber> na coluna Pedido', async () => {
-    render(<OrdersPage />)
+    renderPage()
 
     expect(await screen.findByText('#1')).toBeInTheDocument()
     expect(screen.queryByText('order-1')).not.toBeInTheDocument()
@@ -85,7 +96,7 @@ describe('OrdersPage', () => {
 
   it('renders the first page of orders with status', async () => {
     ordersResponse = Array.from({ length: 12 }, (_, i) => makeOrder(i + 1))
-    render(<OrdersPage />)
+    renderPage()
 
     await screen.findByText('#1')
     expect(screen.getAllByText('PENDING').length).toBeGreaterThan(0)
@@ -95,7 +106,7 @@ describe('OrdersPage', () => {
   it('clicking next page updates the URL to ?page=2', async () => {
     ordersResponse = Array.from({ length: 12 }, (_, i) => makeOrder(i + 1))
     const user = userEvent.setup()
-    render(<OrdersPage />)
+    renderPage()
 
     await screen.findByText('#1')
 
@@ -107,7 +118,7 @@ describe('OrdersPage', () => {
   it('loading with ?page=2 in the URL fetches the second page directly', async () => {
     mockSearch = 'page=2'
     ordersResponse = Array.from({ length: 12 }, (_, i) => makeOrder(i + 1))
-    render(<OrdersPage />)
+    renderPage()
 
     expect(await screen.findByText('#11')).toBeInTheDocument()
   })
@@ -119,7 +130,7 @@ describe('OrdersPage', () => {
         items: [{ productId: 'p1', productName: 'Notebook', quantity: 2, unitPrice: 199.99, subtotal: 399.98 }],
       }),
     ]
-    render(<OrdersPage />)
+    renderPage()
     await screen.findByText('#1')
 
     expect(screen.queryByText('Notebook')).not.toBeInTheDocument()
@@ -133,7 +144,7 @@ describe('OrdersPage', () => {
         items: [{ productId: 'p1', productName: 'Notebook', quantity: 2, unitPrice: 199.99, subtotal: 399.98 }],
       }),
     ]
-    render(<OrdersPage />)
+    renderPage()
     await screen.findByText('#1')
 
     await user.click(screen.getByRole('button', { name: /expand row/i }))
@@ -151,7 +162,7 @@ describe('OrdersPage', () => {
         items: [{ productId: 'p1', productName: 'Notebook', quantity: 2, unitPrice: 199.99, subtotal: 399.98 }],
       }),
     ]
-    render(<OrdersPage />)
+    renderPage()
     await screen.findByText('#1')
 
     await user.click(screen.getByRole('button', { name: /expand row/i }))
@@ -167,7 +178,7 @@ describe('OrdersPage', () => {
         items: [{ productId: 'p1', productName: 'Notebook', quantity: 2, unitPrice: 199.99, subtotal: 399.98 }],
       }),
     ]
-    render(<OrdersPage />)
+    renderPage()
     await screen.findByText('#1')
 
     await user.click(screen.getByRole('button', { name: /expand row/i }))

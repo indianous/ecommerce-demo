@@ -5,6 +5,7 @@ import { Container, ToastProvider, ToastViewport, useToast } from '@indianous/ba
 import { AppShell } from '../AppShell'
 import { SiteSettingsContext } from '@/contexts/SiteSettingsContext'
 import { useAuthStore } from '@/stores/auth.store'
+import { useNotificationsStore } from '@/stores/notifications.store'
 
 const pushMock = vi.fn()
 
@@ -23,7 +24,9 @@ function ToastTrigger() {
 }
 
 afterEach(async () => {
+  vi.unstubAllGlobals()
   await act(async () => {
+    useNotificationsStore.getState().stopPolling()
     useAuthStore.setState({ accessToken: null, user: null, role: null, isAuthenticated: false })
   })
   pushMock.mockClear()
@@ -297,6 +300,8 @@ describe('AppShell — área de conteúdo', () => {
   })
 
   it('cliente logado: sem a faixa', () => {
+    // cliente logado mostra o sino, que busca as notificações: sem isso o fetch com URL relativa estoura fora do teste
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ count: 0 })))
     useAuthStore.setState({ role: 'CUSTOMER', isAuthenticated: true, accessToken: 'tok' })
     render(
       <AppShell>

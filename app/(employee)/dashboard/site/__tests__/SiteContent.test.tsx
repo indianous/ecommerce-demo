@@ -1,5 +1,5 @@
 import { act, render, screen, within } from '@testing-library/react'
-import { http, HttpResponse } from 'msw'
+import { http, HttpResponse, delay } from 'msw'
 import { describe, expect, it, vi } from 'vitest'
 import { ToastProvider } from '@indianous/base-ds'
 import { SiteContent } from '@/components/content/dashboard/site/SiteContent'
@@ -38,6 +38,8 @@ describe('SiteContent — índice da gestão do site', () => {
   })
 
   it('exibe o heading "Gestão do Site" e o Skeleton durante o carregamento', async () => {
+    // configurações pendentes: sem isso, a resposta podia chegar antes da asserção e o Skeleton já ter sumido
+    server.use(http.get('/api/site/settings', () => delay('infinite')))
     await signIn(employeeWithSite)
     renderHub()
 
