@@ -53,10 +53,10 @@ describe('ResetPasswordForm', () => {
     const input = screen.getByLabelText(/^nova senha$/i)
     expect(input).toHaveAttribute('type', 'password')
 
-    // Rótulo em inglês até indianous/base-ds#47
-    await user.click(screen.getAllByRole('button', { name: /show password/i })[0])
+    await user.click(screen.getAllByRole('button', { name: 'Mostrar senha' })[0])
 
     expect(input).toHaveAttribute('type', 'text')
+    expect(screen.getAllByRole('button', { name: 'Ocultar senha' })).toHaveLength(1)
   })
 
   it('mostra o erro vindo do servidor', () => {

@@ -66,7 +66,7 @@ describe('LoginPage', () => {
     renderLoginPage()
 
     await user.type(screen.getByLabelText(/email/i), 'valid@test.com')
-    await user.type(screen.getByLabelText(/senha/i), 'password123')
+    await user.type(screen.getByLabelText(/^senha$/i), 'password123')
     await user.click(screen.getByRole('button', { name: /entrar/i }))
 
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/'))
@@ -88,7 +88,7 @@ describe('LoginPage', () => {
     renderLoginPage()
 
     await user.type(screen.getByLabelText(/email/i), 'employee@test.com')
-    await user.type(screen.getByLabelText(/senha/i), 'password123')
+    await user.type(screen.getByLabelText(/^senha$/i), 'password123')
     await user.click(screen.getByRole('button', { name: /entrar/i }))
 
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/dashboard'))
@@ -110,7 +110,7 @@ describe('LoginPage', () => {
     renderLoginPage()
 
     await user.type(screen.getByLabelText(/email/i), 'admin@teste.com')
-    await user.type(screen.getByLabelText(/senha/i), 'admin@123')
+    await user.type(screen.getByLabelText(/^senha$/i), 'admin@123')
     await user.click(screen.getByRole('button', { name: /entrar/i }))
 
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/dashboard/admin'))
@@ -130,7 +130,7 @@ describe('LoginPage', () => {
     renderLoginPage()
 
     await user.type(screen.getByLabelText(/email/i), 'valid@test.com')
-    await user.type(screen.getByLabelText(/senha/i), 'password123')
+    await user.type(screen.getByLabelText(/^senha$/i), 'password123')
     await user.click(screen.getByRole('button', { name: /entrar/i }))
 
     await waitFor(() => expect(mergeCalled).toBe(true))
@@ -147,7 +147,7 @@ describe('LoginPage', () => {
     renderLoginPage()
 
     await user.type(screen.getByLabelText(/email/i), 'valid@test.com')
-    await user.type(screen.getByLabelText(/senha/i), 'password123')
+    await user.type(screen.getByLabelText(/^senha$/i), 'password123')
     await user.click(screen.getByRole('button', { name: /entrar/i }))
 
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/dashboard/orders'))
@@ -163,7 +163,7 @@ describe('LoginPage', () => {
     renderLoginPage()
 
     await user.type(screen.getByLabelText(/email/i), 'valid@test.com')
-    await user.type(screen.getByLabelText(/senha/i), 'password123')
+    await user.type(screen.getByLabelText(/^senha$/i), 'password123')
     await user.click(screen.getByRole('button', { name: /entrar/i }))
 
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith(expected))
@@ -212,12 +212,12 @@ describe('LoginPage', () => {
 
     async function submitPassword(user: ReturnType<typeof userEvent.setup>) {
       await user.type(screen.getByLabelText(/email/i), 'func@test.com')
-      await user.type(screen.getByLabelText(/senha/i), 'password123')
+      await user.type(screen.getByLabelText(/^senha$/i), 'password123')
       await user.click(screen.getByRole('button', { name: /entrar/i }))
     }
 
     async function typeCode(user: ReturnType<typeof userEvent.setup>, code: string) {
-      const [first] = await screen.findAllByRole('textbox', { name: /pin digit/i })
+      const [first] = await screen.findAllByRole('textbox', { name: /^dígito \d$/i })
       await user.click(first)
       await user.keyboard(code)
     }
@@ -231,7 +231,7 @@ describe('LoginPage', () => {
 
       expect(await screen.findByText(/digite o código do seu app autenticador/i)).toBeInTheDocument()
       expect(screen.getByText('func@test.com')).toBeInTheDocument()
-      expect(screen.queryByLabelText(/senha/i)).not.toBeInTheDocument()
+      expect(screen.queryByLabelText(/^senha$/i)).not.toBeInTheDocument()
       expect(pushMock).not.toHaveBeenCalled()
     })
 
@@ -281,7 +281,7 @@ describe('LoginPage', () => {
       await typeCode(user, '000000')
 
       expect(await screen.findByText('Muitas tentativas com código errado. Entre de novo com a senha.')).toBeInTheDocument()
-      expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/^senha$/i)).toBeInTheDocument()
     })
 
     it('410: volta para a senha com "Sua sessão de login expirou, entre de novo"', async () => {
@@ -298,7 +298,7 @@ describe('LoginPage', () => {
       await typeCode(user, '123456')
 
       expect(await screen.findByText('Sua sessão de login expirou, entre de novo')).toBeInTheDocument()
-      expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/^senha$/i)).toBeInTheDocument()
     })
 
     it('código de recuperação: entra e avisa quando restam poucos', async () => {
@@ -331,7 +331,7 @@ describe('LoginPage', () => {
       await submitPassword(user)
       await user.click(await screen.findByRole('button', { name: /voltar/i }))
 
-      expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/^senha$/i)).toBeInTheDocument()
       expect(useAuthStore.getState().mfaToken).toBeNull()
     })
 
@@ -379,7 +379,7 @@ describe('LoginPage', () => {
       await typeCode(user, '123456')
 
       expect(await screen.findByText('Sua sessão de login expirou, entre de novo')).toBeInTheDocument()
-      expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/^senha$/i)).toBeInTheDocument()
     })
 
     it('configuração: "Voltar" encerra a tentativa de login (não dá para pular)', async () => {
@@ -393,7 +393,7 @@ describe('LoginPage', () => {
       await submitPassword(user)
       await user.click(await screen.findByRole('button', { name: /voltar/i }))
 
-      expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/^senha$/i)).toBeInTheDocument()
       expect(useAuthStore.getState().mfaToken).toBeNull()
       expect(useAuthStore.getState().isAuthenticated).toBe(false)
     })

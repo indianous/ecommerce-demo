@@ -99,6 +99,8 @@ export function CheckoutAuth() {
   const passwordField = (autoComplete: 'current-password' | 'new-password') => (
     <FormField label="Senha" id="auth-password">
       <PasswordInput
+        showLabel="Mostrar senha"
+        hideLabel="Ocultar senha"
         id="auth-password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}

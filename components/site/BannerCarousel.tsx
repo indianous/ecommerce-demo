@@ -1,3 +1,5 @@
+'use client'
+
 import { Carousel, Image } from '@indianous/base-ds'
 import type { Banner } from '@/types'
 
@@ -11,6 +13,12 @@ export function BannerCarousel({ banners }: Props) {
   return (
     <Carousel
       loop
+      label="Banners"
+      slideLabel={(n, total) => `Banner ${n} de ${total}`}
+      slideRoleDescription="banner"
+      previousLabel="Banner anterior"
+      nextLabel="Próximo banner"
+      dotLabel={(n) => `Ir para o banner ${n}`}
       items={banners.map((banner) => {
         const image = (
           <Image

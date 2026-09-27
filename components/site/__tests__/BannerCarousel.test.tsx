@@ -40,4 +40,15 @@ describe('BannerCarousel', () => {
 
     expect(container).toBeEmptyDOMElement()
   })
+
+  it('rótulos de acessibilidade em português (plano 67)', () => {
+    const banners = [makeBanner(), makeBanner({ id: 'banner-2', position: 1 })]
+    render(<BannerCarousel banners={banners} />)
+
+    expect(screen.getByRole('region', { name: 'Banners' })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Banner 1 de 2' })).toHaveAttribute('aria-roledescription', 'banner')
+    expect(screen.getByRole('button', { name: 'Banner anterior' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Próximo banner' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ir para o banner 2' })).toBeInTheDocument()
+  })
 })

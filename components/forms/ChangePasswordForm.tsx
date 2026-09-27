@@ -65,6 +65,8 @@ export function ChangePasswordForm() {
 
       <FormField label="Senha atual" id="currentPassword">
         <PasswordInput
+          showLabel="Mostrar senha"
+          hideLabel="Ocultar senha"
           id="currentPassword"
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
@@ -75,6 +77,8 @@ export function ChangePasswordForm() {
 
       <FormField label="Nova senha" id="newPassword">
         <PasswordInput
+          showLabel="Mostrar senha"
+          hideLabel="Ocultar senha"
           id="newPassword"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
@@ -85,6 +89,8 @@ export function ChangePasswordForm() {
 
       <FormField label="Confirmar nova senha" id="confirmPassword">
         <PasswordInput
+          showLabel="Mostrar senha"
+          hideLabel="Ocultar senha"
           id="confirmPassword"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}

@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { Footer } from '@indianous/base-ds'
+import { Footer, Navbar } from '@indianous/base-ds'
 import { StoreLogo } from '@/components/layout/StoreLogo'
 
 /**
@@ -11,12 +11,7 @@ import { StoreLogo } from '@/components/layout/StoreLogo'
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
-      {/* <header> nativo: o Navbar do base-ds não centraliza o logo a partir de md (indianous/base-ds#50) */}
-      <header className="border-b border-border bg-background">
-        <div className="flex h-14 items-center justify-center px-4">
-          <StoreLogo />
-        </div>
-      </header>
+      <Navbar logo={<StoreLogo />} logoAlign="center" />
       {children}
       <Footer
         copyright={`© ${new Date().getFullYear()} Loja`}

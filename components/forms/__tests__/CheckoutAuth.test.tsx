@@ -43,7 +43,7 @@ describe('CheckoutAuth', () => {
     render(<CheckoutAuth />)
 
     expect(screen.getByLabelText(/e-mail/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^senha$/i)).toBeInTheDocument()
     expect(screen.queryByLabelText(/nome/i)).not.toBeInTheDocument()
   })
 
@@ -55,7 +55,7 @@ describe('CheckoutAuth', () => {
 
     expect(screen.getByLabelText(/nome/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/e-mail/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^senha$/i)).toBeInTheDocument()
   })
 
   it('sets accessToken in the store after successful login', async () => {
@@ -63,7 +63,7 @@ describe('CheckoutAuth', () => {
     render(<CheckoutAuth />)
 
     await user.type(screen.getByLabelText(/e-mail/i), 'joao@test.com')
-    await user.type(screen.getByLabelText(/senha/i), 'senha123')
+    await user.type(screen.getByLabelText(/^senha$/i), 'senha123')
     await user.click(screen.getByRole('button', { name: /entrar/i }))
 
     expect(await screen.findByRole('button', { name: /entrar/i })).not.toBeDisabled()
@@ -78,7 +78,7 @@ describe('CheckoutAuth', () => {
     await user.click(screen.getByRole('tab', { name: /criar conta/i }))
     await user.type(screen.getByLabelText(/nome/i), 'João Victor')
     await user.type(screen.getByLabelText(/e-mail/i), 'joao@test.com')
-    await user.type(screen.getByLabelText(/senha/i), 'senha123')
+    await user.type(screen.getByLabelText(/^senha$/i), 'senha123')
     await user.click(screen.getByRole('button', { name: /criar conta/i }))
 
     expect(await screen.findByRole('button', { name: /criar conta/i })).not.toBeDisabled()
@@ -96,7 +96,7 @@ describe('CheckoutAuth', () => {
     render(<CheckoutAuth />)
 
     await user.type(screen.getByLabelText(/e-mail/i), 'wrong@test.com')
-    await user.type(screen.getByLabelText(/senha/i), 'errada')
+    await user.type(screen.getByLabelText(/^senha$/i), 'errada')
     await user.click(screen.getByRole('button', { name: /entrar/i }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/credenciais inválidas/i)
@@ -113,7 +113,7 @@ describe('CheckoutAuth', () => {
     render(<CheckoutAuth />)
 
     await user.type(screen.getByLabelText(/e-mail/i), 'wrong@test.com')
-    await user.type(screen.getByLabelText(/senha/i), 'errada')
+    await user.type(screen.getByLabelText(/^senha$/i), 'errada')
     await user.click(screen.getByRole('button', { name: /entrar/i }))
     await screen.findByRole('alert')
 
@@ -125,7 +125,7 @@ describe('CheckoutAuth', () => {
   describe('cliente com 2FA (plano 65)', () => {
     async function loginWithPassword(user: ReturnType<typeof userEvent.setup>) {
       await user.type(screen.getByLabelText(/e-mail/i), 'joao@test.com')
-      await user.type(screen.getByLabelText(/senha/i), 'password123')
+      await user.type(screen.getByLabelText(/^senha$/i), 'password123')
       await user.click(screen.getByRole('button', { name: /^entrar$/i }))
     }
 
@@ -140,9 +140,9 @@ describe('CheckoutAuth', () => {
       await loginWithPassword(user)
 
       expect(await screen.findByText(/digite o código do seu app autenticador/i)).toBeInTheDocument()
-      expect(screen.queryByLabelText(/senha/i)).not.toBeInTheDocument()
+      expect(screen.queryByLabelText(/^senha$/i)).not.toBeInTheDocument()
 
-      const [first] = screen.getAllByRole('textbox', { name: /pin digit/i })
+      const [first] = screen.getAllByRole('textbox', { name: /^dígito \d$/i })
       await user.click(first)
       await user.keyboard('123456')
 
@@ -160,7 +160,7 @@ describe('CheckoutAuth', () => {
       render(<CheckoutAuth />)
 
       await loginWithPassword(user)
-      const [first] = await screen.findAllByRole('textbox', { name: /pin digit/i })
+      const [first] = await screen.findAllByRole('textbox', { name: /^dígito \d$/i })
       await user.click(first)
       await user.keyboard('000000')
 
@@ -177,7 +177,7 @@ describe('CheckoutAuth', () => {
       await loginWithPassword(user)
       await user.click(await screen.findByRole('button', { name: /voltar/i }))
 
-      expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/^senha$/i)).toBeInTheDocument()
       expect(useAuthStore.getState().mfaToken).toBeNull()
     })
 

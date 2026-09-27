@@ -32,7 +32,11 @@ describe('AuthLayout', () => {
     const logo = within(header).getByRole('link', { name: 'Loja' })
     expect(logo).toHaveAttribute('href', '/')
     expect(within(header).getAllByRole('link')).toHaveLength(1)
-    expect(logo.parentElement).toHaveClass('justify-center')
+    // Navbar do base-ds com logoAlign="center": a célula do logo fica centralizada também a partir de md
+    const logoCell = logo.parentElement!.parentElement!
+    expect(logoCell).toHaveClass('justify-center')
+    expect(logoCell).not.toHaveClass('md:justify-start')
+    expect(within(header).getByRole('navigation')).toBeInTheDocument()
     expect(within(header).queryByRole('link', { name: /voltar à loja/i })).not.toBeInTheDocument()
   })
 

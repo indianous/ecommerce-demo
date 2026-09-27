@@ -31,8 +31,7 @@ function renderCarousel(count: number) {
   )
 }
 
-// O Carousel do base-ds rotula os slides e os controles em inglês ("Slide 1 of 2", "Next slide")
-const pages = () => screen.getAllByRole('group', { name: /slide/i })
+const pages = () => screen.getAllByRole('group', { name: /^página \d de \d$/i })
 const names = (page: HTMLElement) => within(page).getAllByText(/^Produto \d+$/).map((el) => el.textContent)
 
 describe('ProductCarousel', () => {
@@ -43,10 +42,14 @@ describe('ProductCarousel', () => {
     expect(pages()).toHaveLength(2)
     expect(names(pages()[0])).toEqual(['Produto 1', 'Produto 2', 'Produto 3', 'Produto 4'])
     expect(names(pages()[1])).toEqual(['Produto 5', 'Produto 6', 'Produto 7', 'Produto 8'])
-    expect(screen.getAllByRole('button', { name: /go to slide/i })).toHaveLength(2)
+    expect(screen.getByRole('region', { name: 'Produtos relacionados' })).toBeInTheDocument()
+    expect(pages()[0]).toHaveAccessibleName('Página 1 de 2')
+    expect(pages()[0]).toHaveAttribute('aria-roledescription', 'página')
+    expect(screen.getAllByRole('button', { name: /^ir para a página \d$/i })).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'Anterior' })).toBeDisabled()
 
     expect(pages()[1]).toHaveClass('hidden')
-    await user.click(screen.getByRole('button', { name: /next slide/i }))
+    await user.click(screen.getByRole('button', { name: 'Próxima' }))
     expect(pages()[1]).not.toHaveClass('hidden')
     expect(pages()[0]).toHaveClass('hidden')
   })
@@ -62,7 +65,7 @@ describe('ProductCarousel', () => {
     renderCarousel(3)
 
     expect(pages()).toHaveLength(1)
-    expect(screen.queryByRole('button', { name: /slide/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /anterior|próxima|ir para a página/i })).not.toBeInTheDocument()
   })
 
   it('cada página é uma grade: 2 colunas no celular, 4 a partir de md', () => {

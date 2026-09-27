@@ -48,6 +48,8 @@ export function EmployeeForm({ value, onChange, onSave, onCancel, saving, saveLa
       {!value.sendInvite && (
         <FormField label="Senha" id="emp-password" error={passwordError} hint="Mínimo de 8 caracteres">
           <PasswordInput
+            showLabel="Mostrar senha"
+            hideLabel="Ocultar senha"
             id="emp-password"
             value={value.password}
             onChange={(e) => onChange({ password: e.target.value })}

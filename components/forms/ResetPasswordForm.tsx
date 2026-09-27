@@ -32,6 +32,8 @@ export function ResetPasswordForm({
 
       <FormField label="Nova senha" id="reset-password" error={errors.password} hint="Mínimo de 8 caracteres">
         <PasswordInput
+          showLabel="Mostrar senha"
+          hideLabel="Ocultar senha"
           id="reset-password"
           value={password}
           onChange={(e) => onPasswordChange(e.target.value)}
@@ -42,6 +44,8 @@ export function ResetPasswordForm({
 
       <FormField label="Confirmar nova senha" id="reset-password-confirm" error={errors.confirm}>
         <PasswordInput
+          showLabel="Mostrar senha"
+          hideLabel="Ocultar senha"
           id="reset-password-confirm"
           value={confirmPassword}
           onChange={(e) => onConfirmPasswordChange(e.target.value)}

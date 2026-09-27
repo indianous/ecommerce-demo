@@ -96,6 +96,8 @@ export function RegisterForm({ onSuccess, onPasswordNotSet }: Props) {
 
       <FormField label="Senha" id="password">
         <PasswordInput
+          showLabel="Mostrar senha"
+          hideLabel="Ocultar senha"
           id="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}

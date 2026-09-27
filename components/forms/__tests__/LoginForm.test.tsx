@@ -39,7 +39,7 @@ describe('LoginForm', () => {
     renderLoginForm({ onSuccess: () => {} })
 
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^senha$/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /entrar/i })).toBeInTheDocument()
   })
 
@@ -59,7 +59,7 @@ describe('LoginForm', () => {
     renderLoginForm({ onSuccess: () => {} })
 
     await user.type(screen.getByLabelText(/email/i), 'wrong@test.com')
-    await user.type(screen.getByLabelText(/senha/i), 'badpassword')
+    await user.type(screen.getByLabelText(/^senha$/i), 'badpassword')
     await user.click(screen.getByRole('button', { name: /entrar/i }))
 
     await waitFor(() => {
@@ -73,7 +73,7 @@ describe('LoginForm', () => {
     renderLoginForm({ onSuccess })
 
     await user.type(screen.getByLabelText(/email/i), 'valid@test.com')
-    await user.type(screen.getByLabelText(/senha/i), 'password123')
+    await user.type(screen.getByLabelText(/^senha$/i), 'password123')
     await user.click(screen.getByRole('button', { name: /entrar/i }))
 
     await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1))
@@ -96,7 +96,7 @@ describe('LoginForm', () => {
     const user = userEvent.setup()
     renderLoginForm({ onSuccess: () => {} })
     await user.type(screen.getByLabelText(/email/i), 'valid@test.com')
-    await user.type(screen.getByLabelText(/senha/i), 'password123')
+    await user.type(screen.getByLabelText(/^senha$/i), 'password123')
 
     const button = screen.getByRole('button', { name: /entrar/i })
 

@@ -16,13 +16,35 @@ function renderForm(props: FormProps = {}) {
   return handlers
 }
 
-// PinInput do base-ds tem aria-label fixo em inglês (indianous/base-ds#48)
-const digits = () => screen.getAllByRole('textbox', { name: /pin digit/i })
+const digits = () => screen.getAllByRole('textbox', { name: /^dígito \d$/i })
 
 describe('MfaCodeForm', () => {
-  it('mostra 6 campos de dígito do PinInput', () => {
+  it('mostra os 6 campos "Dígito 1" a "Dígito 6" no grupo "Código de 6 dígitos"', () => {
     renderForm()
     expect(digits()).toHaveLength(6)
+    expect(digits()[0]).toHaveAccessibleName('Dígito 1')
+    expect(digits()[5]).toHaveAccessibleName('Dígito 6')
+    expect(screen.getByRole('group', { name: 'Código de 6 dígitos' })).toBeInTheDocument()
+  })
+
+  it('o primeiro campo aceita o preenchimento automático do código e é o alvo do rótulo', async () => {
+    const user = userEvent.setup()
+    renderForm()
+
+    expect(digits()[0]).toHaveAttribute('autocomplete', 'one-time-code')
+    expect(digits()[0]).toHaveAttribute('id', 'mfa-code')
+    await user.click(screen.getByText('Código de 6 dígitos', { selector: 'label' }))
+    expect(digits()[0]).toHaveFocus()
+  })
+
+  it('colar o código inteiro no primeiro campo envia o código', async () => {
+    const user = userEvent.setup()
+    const { onSubmit } = renderForm()
+
+    await user.click(digits()[0])
+    await user.paste('123456')
+
+    expect(onSubmit).toHaveBeenCalledWith('123456')
   })
 
   it('ao completar os 6 dígitos, envia sozinho', async () => {
@@ -62,7 +84,7 @@ describe('MfaCodeForm', () => {
     await user.type(screen.getByLabelText(/código de recuperação/i), 'a')
 
     expect(onRecoveryCodeChange).toHaveBeenLastCalledWith('A')
-    expect(screen.queryAllByRole('textbox', { name: /pin digit/i })).toHaveLength(0)
+    expect(screen.queryAllByRole('textbox', { name: /^dígito \d$/i })).toHaveLength(0)
     expect(screen.getByRole('button', { name: /usar o código do app/i })).toBeInTheDocument()
   })
 

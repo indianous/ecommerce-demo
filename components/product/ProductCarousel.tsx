@@ -1,3 +1,5 @@
+'use client'
+
 import { Carousel, Heading } from '@indianous/base-ds'
 import { ProductCard } from '@/components/product/ProductCard'
 import type { Product } from '@/types'
@@ -28,6 +30,12 @@ export function ProductCarousel({ title, products }: Props) {
       <Carousel
         showArrows={paginated}
         showDots={paginated}
+        label={title}
+        slideLabel={(n, total) => `Página ${n} de ${total}`}
+        slideRoleDescription="página"
+        previousLabel="Anterior"
+        nextLabel="Próxima"
+        dotLabel={(n) => `Ir para a página ${n}`}
         items={pages.map((page) => (
           <div key={page[0].id} className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {page.map((p) => (

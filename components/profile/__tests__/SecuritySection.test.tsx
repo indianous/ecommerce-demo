@@ -52,7 +52,7 @@ function renderSection(user: User) {
 }
 
 async function typeCode(user: ReturnType<typeof userEvent.setup>, code: string, container: HTMLElement = document.body) {
-  const [first] = await within(container).findAllByRole('textbox', { name: /pin digit/i })
+  const [first] = await within(container).findAllByRole('textbox', { name: /^dígito \d$/i })
   await user.click(first)
   await user.keyboard(code)
 }
@@ -189,7 +189,8 @@ describe('SecuritySection', () => {
 
     await user.click(screen.getByRole('button', { name: /^desativar$/i }))
     const dialog = await screen.findByRole('dialog')
-    await user.type(within(dialog).getByLabelText(/senha/i), 'minhaSenha1')
+    expect(within(dialog).getByRole('group', { name: 'Código do app autenticador' })).toBeInTheDocument()
+    await user.type(within(dialog).getByLabelText(/^senha$/i), 'minhaSenha1')
     await typeCode(user, '123456', dialog)
     await user.click(within(dialog).getByRole('button', { name: /^desativar$/i }))
 
@@ -209,7 +210,7 @@ describe('SecuritySection', () => {
 
     await user.click(screen.getByRole('button', { name: /^desativar$/i }))
     const dialog = await screen.findByRole('dialog')
-    await user.type(within(dialog).getByLabelText(/senha/i), 'errada123')
+    await user.type(within(dialog).getByLabelText(/^senha$/i), 'errada123')
     await typeCode(user, '123456', dialog)
     await user.click(within(dialog).getByRole('button', { name: /^desativar$/i }))
 

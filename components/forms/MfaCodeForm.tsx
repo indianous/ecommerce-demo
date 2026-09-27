@@ -27,6 +27,9 @@ export function formatRecoveryCode(input: string): string {
   return raw.length > 4 ? `${raw.slice(0, 4)}-${raw.slice(4)}` : raw
 }
 
+/** Nome de cada campo do PinInput; o grupo leva o mesmo texto do rótulo do FormField. */
+export const digitLabel = (n: number) => `Dígito ${n}`
+
 function attemptsText(remaining: number) {
   return remaining === 1 ? '1 tentativa restante' : `${remaining} tentativas restantes`
 }
@@ -65,11 +68,15 @@ export function MfaCodeForm({
       {mode === 'code' ? (
         <FormField label="Código de 6 dígitos" id="mfa-code" hint="O código muda a cada 30 segundos">
           <PinInput
+            id="mfa-code"
             length={6}
             value={code}
             onChange={onCodeChange}
             onComplete={onSubmit}
             disabled={submitting}
+            groupLabel="Código de 6 dígitos"
+            digitLabel={digitLabel}
+            autoComplete="one-time-code"
           />
         </FormField>
       ) : (

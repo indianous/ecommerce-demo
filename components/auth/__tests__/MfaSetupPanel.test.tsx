@@ -19,7 +19,7 @@ function renderPanel(props: Partial<React.ComponentProps<typeof MfaSetupPanel>> 
 
 async function typeCode(code: string) {
   const user = userEvent.setup()
-  const [first] = screen.getAllByRole('textbox', { name: /pin digit/i })
+  const [first] = screen.getAllByRole('textbox', { name: /^dígito \d$/i })
   await user.click(first)
   await user.keyboard(code)
 }
@@ -65,6 +65,6 @@ describe('MfaSetupPanel', () => {
 
     expect(await screen.findByText('Código inválido')).toBeInTheDocument()
     expect(screen.getByText('4 tentativas restantes')).toBeInTheDocument()
-    screen.getAllByRole('textbox', { name: /pin digit/i }).forEach((input) => expect(input).toHaveValue(''))
+    screen.getAllByRole('textbox', { name: /^dígito \d$/i }).forEach((input) => expect(input).toHaveValue(''))
   })
 })

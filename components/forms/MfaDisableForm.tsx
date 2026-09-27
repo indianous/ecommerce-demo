@@ -1,4 +1,5 @@
 import { Alert, Button, FormField, Icon, PasswordInput, PinInput } from '@indianous/base-ds'
+import { digitLabel } from '@/components/forms/MfaCodeForm'
 
 interface Props {
   password: string
@@ -28,6 +29,8 @@ export function MfaDisableForm({
 
       <FormField label="Senha" id="mfa-disable-password">
         <PasswordInput
+          showLabel="Mostrar senha"
+          hideLabel="Ocultar senha"
           id="mfa-disable-password"
           value={password}
           onChange={(e) => onPasswordChange(e.target.value)}
@@ -37,7 +40,16 @@ export function MfaDisableForm({
       </FormField>
 
       <FormField label="Código do app autenticador" id="mfa-disable-code">
-        <PinInput length={6} value={code} onChange={onCodeChange} disabled={submitting} />
+        <PinInput
+          id="mfa-disable-code"
+          length={6}
+          value={code}
+          onChange={onCodeChange}
+          disabled={submitting}
+          groupLabel="Código do app autenticador"
+          digitLabel={digitLabel}
+          autoComplete="one-time-code"
+        />
       </FormField>
 
       <div className="flex justify-end gap-2">
