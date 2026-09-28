@@ -286,3 +286,22 @@ describe('EmployeeFuncionarioDetailContent — sem autoconcessão (plano 71)', (
     expect(await screen.findByText(/fora do seu alcance: MANAGE_SITE/i)).toBeInTheDocument()
   })
 })
+
+describe('EmployeeFuncionarioDetailContent — auditoria de admin (plano 73)', () => {
+  it('funcionário abrindo um admin: aviso no lugar do histórico, sem pedir a trilha', async () => {
+    let auditRequested = false
+    server.use(
+      http.get('/api/admin/employees/:id', () => HttpResponse.json({ ...mockEmployee, role: 'ADMIN', permissions: [] })),
+      http.get('/api/admin/employees/:id/audit-logs', () => {
+        auditRequested = true
+        return HttpResponse.json({ status: 403, message: 'A auditoria de administradores só é visível para administradores' }, { status: 403 })
+      }),
+    )
+    renderDetail()
+    await screen.findByText('Carlos Dias')
+
+    expect(screen.getByText(/a auditoria de administradores só é visível para administradores/i)).toBeInTheDocument()
+    expect(screen.queryByText(/nenhuma ação registrada/i)).not.toBeInTheDocument()
+    expect(auditRequested).toBe(false)
+  })
+})

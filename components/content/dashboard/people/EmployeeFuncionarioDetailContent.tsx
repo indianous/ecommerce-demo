@@ -30,19 +30,26 @@ export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/em
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
+  const viewerIsAdmin = currentUser?.role === 'ADMIN'
+
   useEffect(() => {
     if (!accessToken || !id) return
-    Promise.all([
-      authFetch(`/api/admin/employees/${id}`).then((r) => (r.ok ? r.json() : null)),
-      authFetch(`/api/admin/employees/${id}/audit-logs`).then((r) => (r.ok ? r.json() : { content: [] })),
-    ])
-      .then(([emp, logs]: [EmployeeDetailResponse | null, { content: AuditLogResponse[] }]) => {
-        setEmployee(emp)
-        setPermissions(emp?.permissions ?? [])
+    const load = async () => {
+      const emp: EmployeeDetailResponse | null = await authFetch(`/api/admin/employees/${id}`).then((r) =>
+        r.ok ? r.json() : null,
+      )
+      setEmployee(emp)
+      setPermissions(emp?.permissions ?? [])
+      // Plano 73: a trilha de um administrador é só para administrador; nem pede, para não parecer vazia
+      if (emp && (emp.role !== 'ADMIN' || viewerIsAdmin)) {
+        const logs: { content?: AuditLogResponse[] } = await authFetch(`/api/admin/employees/${id}/audit-logs`).then((r) =>
+          r.ok ? r.json() : { content: [] },
+        )
         setAuditLogs(logs.content ?? [])
-      })
-      .finally(() => setLoading(false))
-  }, [accessToken, id])
+      }
+    }
+    load().finally(() => setLoading(false))
+  }, [accessToken, id, viewerIsAdmin])
 
   const handleSave = async () => {
     if (!accessToken || !employee) return
@@ -172,7 +179,9 @@ export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/em
 
         <section>
           <Heading as="h2" size="xl" className="mb-4">Histórico de Ações</Heading>
-          {auditLogs.length === 0 ? (
+          {employee.role === 'ADMIN' && !viewerIsAdmin ? (
+            <p className="text-sm text-muted-foreground">A auditoria de administradores só é visível para administradores.</p>
+          ) : auditLogs.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma ação registrada.</p>
           ) : (
             <ul className="flex flex-col gap-2">
