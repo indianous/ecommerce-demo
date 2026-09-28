@@ -9,6 +9,7 @@ import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { OrderTotal } from '@/components/order/OrderTotal'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { paymentMethodLabel } from '@/lib/payment-labels'
+import { canChangeOrderStatus } from '@/lib/permissions'
 import type { AdminOrderDetailResponse, Invoice, InvoiceStatus, OrderItemResponse, OrderStatus, PaymentStatus } from '@/types'
 
 type IconName = ComponentProps<typeof Icon>['name']
@@ -137,13 +138,17 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
         headers: { 'Content-Type': 'application/json', },
         body: JSON.stringify({ status: transitionTarget, reason }),
       })
-      if (!res.ok) throw new Error()
+      if (!res.ok) {
+        const error = (await res.json().catch(() => null)) as { message?: string } | null
+        throw new Error(error?.message ?? '')
+      }
       setOrder(await res.json())
       setTransitionTarget(null)
       setReason('')
       toast({ variant: 'success', description: 'Status atualizado com sucesso.' })
-    } catch {
-      toast({ variant: 'destructive', description: 'Erro ao atualizar status.' })
+    } catch (error) {
+      const message = error instanceof Error && error.message ? error.message : 'Erro ao atualizar status.'
+      toast({ variant: 'destructive', description: message })
     } finally {
       setSaving(false)
     }
@@ -217,6 +222,8 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
   if (!order) return <p>Pedido não encontrado.</p>
 
   const nextStates = NEXT_STATES[order.status]
+  // Plano 72: só os botões de status que a pessoa pode usar (mesma tabela do backend)
+  const allowedNextStates = nextStates.filter((s) => canChangeOrderStatus(user, s))
   const isTerminal = TERMINAL_STATES.includes(order.status)
   const retroStates = ALL_STATUSES.filter((s) => s !== order.status && !nextStates.includes(s))
 
@@ -394,9 +401,9 @@ export function OrderDetailContent({ id, backPath = '/dashboard/orders' }: { id:
           </div>
         )}
 
-        {nextStates.length > 0 && !transitionTarget && !showRetroForm && (
+        {allowedNextStates.length > 0 && !transitionTarget && !showRetroForm && (
           <div className="mb-4 flex flex-wrap gap-2">
-            {nextStates.map((s) => (
+            {allowedNextStates.map((s) => (
               <Button leftIcon={<Icon name={ACTION_ICONS[s]} size="sm" />} key={s} variant="primary" size="sm" onClick={() => setTransitionTarget(s)}>{ACTION_LABELS[s]}</Button>
             ))}
           </div>

@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest'
 import {
   ALL_PERMISSIONS,
   PERMISSION_LABELS,
+  canChangeOrderStatus,
   canEditPermissions,
   canResetMfa,
   canSendPasswordInvite,
   editablePermissions,
+  requiredPermissionForStatus,
 } from '../permissions'
 
 describe('permissões', () => {
@@ -91,5 +93,35 @@ describe('edição de permissões (plano 71: sem autoconcessão)', () => {
     expect(canEditPermissions(gestor, { id: 'emp-1', role: 'EMPLOYEE' })).toBe(false)
     expect(canEditPermissions({ ...gestor, permissions: ['MANAGE_ORDERS'] }, colega)).toBe(false)
     expect(canEditPermissions(null, colega)).toBe(false)
+  })
+})
+
+describe('mudança de status do pedido (plano 72, issue #15 do backend)', () => {
+  const ALL_STATUSES = ['PENDING', 'CONFIRMED', 'SHIPPED', 'RETURNED', 'DELIVERED', 'CANCELLED'] as const
+
+  it('requiredPermissionForStatus: logística exige MANAGE_SHIPPING; o resto, MANAGE_ORDER_STATUS_REQUESTS', () => {
+    expect(requiredPermissionForStatus('SHIPPED')).toBe('MANAGE_SHIPPING')
+    expect(requiredPermissionForStatus('DELIVERED')).toBe('MANAGE_SHIPPING')
+    expect(requiredPermissionForStatus('RETURNED')).toBe('MANAGE_SHIPPING')
+    expect(requiredPermissionForStatus('CONFIRMED')).toBe('MANAGE_ORDER_STATUS_REQUESTS')
+    expect(requiredPermissionForStatus('CANCELLED')).toBe('MANAGE_ORDER_STATUS_REQUESTS')
+    expect(requiredPermissionForStatus('PENDING')).toBe('MANAGE_ORDER_STATUS_REQUESTS')
+    for (const status of ALL_STATUSES) {
+      expect(requiredPermissionForStatus(status)).toBeTruthy()
+    }
+  })
+
+  it('canChangeOrderStatus: admin sempre; funcionário só com a permissão do status', () => {
+    const admin = { role: 'ADMIN' as const, permissions: [] }
+    const logistica = { role: 'EMPLOYEE' as const, permissions: ['MANAGE_SHIPPING' as const] }
+    const pedidos = { role: 'EMPLOYEE' as const, permissions: ['MANAGE_ORDERS' as const] }
+
+    for (const status of ALL_STATUSES) {
+      expect(canChangeOrderStatus(admin, status)).toBe(true)
+      expect(canChangeOrderStatus(pedidos, status)).toBe(false)
+    }
+    expect(canChangeOrderStatus(logistica, 'RETURNED')).toBe(true)
+    expect(canChangeOrderStatus(logistica, 'CONFIRMED')).toBe(false)
+    expect(canChangeOrderStatus(null, 'SHIPPED')).toBe(false)
   })
 })

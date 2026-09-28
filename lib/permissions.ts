@@ -1,4 +1,4 @@
-import type { EmployeePermission, UserRole } from '@/types'
+import type { EmployeePermission, OrderStatus, UserRole } from '@/types'
 
 export const PERMISSION_LABELS: Record<EmployeePermission, string> = {
   MANAGE_PRODUCTS: 'Gerenciamento de Produtos',
@@ -61,4 +61,29 @@ export function editablePermissions(actor: PermissionsActor, target: { id: strin
 export function canEditPermissions(actor: PermissionsActor, target: { id: string; role: UserRole }): boolean {
   if (!actor || actor.id === target.id) return false
   return actor.role === 'ADMIN' || (actor.role === 'EMPLOYEE' && actor.permissions.includes('MANAGE_EMPLOYEES'))
+}
+
+/**
+ * Permissão exigida para levar um pedido a cada status, espelhando o OrderStatusPermissions do backend (plano 72):
+ * logística (envio, entrega, devolução) exige MANAGE_SHIPPING; o resto, MANAGE_ORDER_STATUS_REQUESTS.
+ */
+export function requiredPermissionForStatus(status: OrderStatus): EmployeePermission {
+  switch (status) {
+    case 'SHIPPED':
+    case 'DELIVERED':
+    case 'RETURNED':
+      return 'MANAGE_SHIPPING'
+    case 'PENDING':
+    case 'CONFIRMED':
+    case 'CANCELLED':
+      return 'MANAGE_ORDER_STATUS_REQUESTS'
+  }
+}
+
+type StatusActor = { role: UserRole; permissions: EmployeePermission[] } | null
+
+export function canChangeOrderStatus(actor: StatusActor, status: OrderStatus): boolean {
+  if (!actor) return false
+  if (actor.role === 'ADMIN') return true
+  return actor.role === 'EMPLOYEE' && actor.permissions.includes(requiredPermissionForStatus(status))
 }

@@ -10,7 +10,7 @@ vi.mock('next/navigation', () => ({
 import { ToastProvider, ToastViewport } from '@indianous/base-ds'
 import { OrderDetailContent } from '@/components/content/dashboard/sales/OrderDetailContent'
 import { useAuthStore } from '@/stores/auth.store'
-import type { AdminOrderDetailResponse, OrderStatus } from '@/types'
+import type { AdminOrderDetailResponse, EmployeePermission, OrderStatus } from '@/types'
 
 const mockDetail: AdminOrderDetailResponse = {
   id: 'o-1',
@@ -82,7 +82,8 @@ beforeEach(() => {
   useAuthStore.setState({
     accessToken: 'mock-token',
     isAuthenticated: true,
-    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
+    // plano 72: os botões de status só aparecem com a permissão do status (Confirmar/Cancelar → MANAGE_ORDER_STATUS_REQUESTS)
+    user: { id: 'u-1', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions: ['MANAGE_ORDERS', 'MANAGE_ORDER_STATUS_REQUESTS'] , phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
   })
 })
 
@@ -193,5 +194,56 @@ describe('OrderDetailContent', () => {
     await waitFor(() => {
       expect(lastPostBody).toMatchObject({ justification: 'Cliente pediu retrocesso' })
     })
+  })
+})
+
+describe('Employee Order Detail — botões de status pela permissão (plano 72)', () => {
+  function loginWith(permissions: EmployeePermission[]) {
+    useAuthStore.setState({
+      user: { id: 'u-9', name: 'Func', email: 'func@test.com', role: 'EMPLOYEE', permissions, phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null },
+    })
+  }
+
+  it('pedido SHIPPED sem MANAGE_SHIPPING → sem "Entregar" e sem "Devolver"', async () => {
+    loginWith(['MANAGE_ORDERS', 'MANAGE_ORDER_STATUS_REQUESTS'])
+    server.use(http.get('/api/admin/orders/:id', () => HttpResponse.json({ ...mockDetail, status: 'SHIPPED' })))
+    renderDetail()
+    await screen.findByText('Ana Lima')
+
+    expect(screen.queryByRole('button', { name: /^entregar$/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^devolver$/i })).not.toBeInTheDocument()
+  })
+
+  it('pedido SHIPPED com MANAGE_SHIPPING → "Entregar" e "Devolver"', async () => {
+    loginWith(['MANAGE_SHIPPING'])
+    server.use(http.get('/api/admin/orders/:id', () => HttpResponse.json({ ...mockDetail, status: 'SHIPPED' })))
+    renderDetail()
+
+    expect(await screen.findByRole('button', { name: /^entregar$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^devolver$/i })).toBeInTheDocument()
+  })
+
+  it('pedido PENDING só com MANAGE_ORDERS → sem "Confirmar" e "Cancelar", com "Solicitar retrocesso"', async () => {
+    loginWith(['MANAGE_ORDERS'])
+    renderDetail()
+
+    expect(await screen.findByRole('button', { name: /solicitar retrocesso/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^confirmar$/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^cancelar$/i })).not.toBeInTheDocument()
+  })
+
+  it('recusa do backend no PATCH: o toast mostra a mensagem dele', async () => {
+    server.use(
+      http.patch('/api/admin/orders/:id/status', () =>
+        HttpResponse.json({ status: 403, message: 'Permissão MANAGE_ORDER_STATUS_REQUESTS necessária' }, { status: 403 }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderDetail()
+    await user.click(await screen.findByRole('button', { name: /^confirmar$/i }))
+    await user.type(screen.getByRole('textbox', { name: /justificativa/i }), 'Pagamento confirmado')
+    await user.click(screen.getByRole('button', { name: /confirmar mudança/i }))
+
+    expect(await screen.findByText(/permissão MANAGE_ORDER_STATUS_REQUESTS necessária/i)).toBeInTheDocument()
   })
 })
