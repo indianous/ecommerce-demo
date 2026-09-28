@@ -7,8 +7,8 @@ import { EmployeeManagementTable } from '../EmployeeManagementTable'
 import type { Employee } from '@/types'
 
 const mockEmployees: Employee[] = [
-  { id: 'emp-1', name: 'Ana Costa', email: 'ana@test.com', role: 'EMPLOYEE', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: true },
-  { id: 'emp-2', name: 'Bruno Lima', email: 'bruno@test.com', role: 'EMPLOYEE', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: false },
+  { id: 'emp-1', name: 'Ana Costa', email: 'ana@test.com', role: 'EMPLOYEE', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: true, primaryAdmin: false },
+  { id: 'emp-2', name: 'Bruno Lima', email: 'bruno@test.com', role: 'EMPLOYEE', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: false, primaryAdmin: false },
 ]
 
 function renderTable(props: {
@@ -136,5 +136,34 @@ describe('EmployeeManagementTable', () => {
     const rows = screen.getAllByRole('row').slice(1)
     expect(rows[0]).toHaveTextContent('Ativo')
     expect(rows[1]).toHaveTextContent('Pendente')
+  })
+
+  describe('admin principal (plano 68)', () => {
+    const admins: Employee[] = [
+      { id: 'adm-1', name: 'Paula Principal', email: 'paula@test.com', role: 'ADMIN', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: true, primaryAdmin: true },
+      { id: 'adm-2', name: 'Carlos Comum', email: 'carlos@test.com', role: 'ADMIN', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: true, primaryAdmin: false },
+    ]
+
+    it('linha do principal mostra o selo "Principal" e não tem a lixeira', () => {
+      renderTable({ employees: admins })
+
+      const [principalRow, commonRow] = screen.getAllByRole('row').slice(1)
+      expect(principalRow).toHaveTextContent('Principal')
+      expect(screen.queryByRole('button', { name: /excluir paula principal/i })).not.toBeInTheDocument()
+      expect(commonRow).not.toHaveTextContent('Principal')
+      expect(screen.getByRole('button', { name: /excluir carlos comum/i })).toBeInTheDocument()
+    })
+
+    it('com selection, a linha do principal não tem checkbox e o "selecionar todos" ignora ela', async () => {
+      const user = userEvent.setup()
+      const onToggleAll = vi.fn()
+      renderTable({ employees: admins, selection: { selectedIds: new Set(), onToggle: vi.fn(), onToggleAll } })
+
+      expect(screen.queryByRole('checkbox', { name: /selecionar paula principal/i })).not.toBeInTheDocument()
+      expect(screen.getByRole('checkbox', { name: /selecionar carlos comum/i })).toBeInTheDocument()
+
+      await user.click(screen.getByRole('checkbox', { name: /selecionar todos/i }))
+      expect(onToggleAll).toHaveBeenCalledWith(['adm-2'])
+    })
   })
 })

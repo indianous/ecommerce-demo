@@ -17,7 +17,7 @@ const mockEmployee: EmployeeDetailResponse = {
   createdAt: '2024-01-01T00:00:00Z',
   photoUrl: 'https://example.com/avatar.jpg',
   passwordSet: true,
-  emailVerified: true, mfaEnabled: true,
+  emailVerified: true, mfaEnabled: true, primaryAdmin: false,
 }
 
 const mockAuditLogs: AuditLogPage = {
@@ -190,5 +190,25 @@ describe('Employee Detail Page — 2FA (plano 65)', () => {
 
     expect(await screen.findByText('2FA pendente')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Resetar 2FA' })).not.toBeInTheDocument()
+  })
+})
+
+describe('Employee Detail Page — admin principal (plano 68)', () => {
+  it('admin principal → selo "Principal"', async () => {
+    server.use(http.get('/api/admin/employees/:id', () =>
+      HttpResponse.json({ ...mockEmployee, role: 'ADMIN', primaryAdmin: true })))
+    renderPage()
+
+    await screen.findByText('Carlos Dias')
+    expect(screen.getByText('Principal')).toBeInTheDocument()
+  })
+
+  it('admin comum → sem o selo', async () => {
+    server.use(http.get('/api/admin/employees/:id', () =>
+      HttpResponse.json({ ...mockEmployee, role: 'ADMIN', primaryAdmin: false })))
+    renderPage()
+
+    await screen.findByText('Carlos Dias')
+    expect(screen.queryByText('Principal')).not.toBeInTheDocument()
   })
 })

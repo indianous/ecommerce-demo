@@ -24,7 +24,7 @@ const mockEmployees: Employee[] = [
     role: 'EMPLOYEE',
     permissions: ['MANAGE_ORDERS', 'MANAGE_PRODUCTS'],
     passwordSet: true,
-    emailVerified: true, mfaEnabled: true,
+    emailVerified: true, mfaEnabled: true, primaryAdmin: false,
   },
   {
     id: 'emp-2',
@@ -33,7 +33,7 @@ const mockEmployees: Employee[] = [
     role: 'EMPLOYEE',
     permissions: [],
     passwordSet: true,
-    emailVerified: true, mfaEnabled: true,
+    emailVerified: true, mfaEnabled: true, primaryAdmin: false,
   },
 ]
 
@@ -44,7 +44,7 @@ const newEmployee: Employee = {
   role: 'EMPLOYEE',
   permissions: [],
   passwordSet: true,
-  emailVerified: true, mfaEnabled: true,
+  emailVerified: true, mfaEnabled: true, primaryAdmin: false,
 }
 
 const server = setupServer(

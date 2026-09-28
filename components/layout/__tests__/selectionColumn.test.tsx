@@ -97,4 +97,60 @@ describe('makeSelectionColumn', () => {
 
     expect(onToggleAll).toHaveBeenCalledWith([])
   })
+
+  describe('com isSelectable (plano 68: admin principal fora da seleção)', () => {
+    const three: Item[] = [...items, { id: '3', name: 'Carla Dias' }]
+
+    function renderWithSelectable(selectedIds: Set<string>, onToggleAll = vi.fn()) {
+      const column = makeSelectionColumn(
+        three,
+        (i) => i.id,
+        (i) => i.name,
+        selectedIds,
+        vi.fn(),
+        onToggleAll,
+        (i) => i.id !== '2',
+      )
+      render(
+        <table>
+          <thead>
+            <tr>
+              <th>{column.header}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {three.map((item, index) => (
+              <tr key={item.id}>
+                <td>{column.render?.(item, index)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>,
+      )
+      return { onToggleAll }
+    }
+
+    it('linha recusada por isSelectable não tem checkbox', () => {
+      renderWithSelectable(new Set())
+      expect(screen.queryByRole('checkbox', { name: /selecionar bruno lima/i })).not.toBeInTheDocument()
+      expect(screen.getByRole('checkbox', { name: /selecionar ana costa/i })).toBeInTheDocument()
+      expect(screen.getByRole('checkbox', { name: /selecionar carla dias/i })).toBeInTheDocument()
+    })
+
+    it('"Selecionar todos" chama onToggleAll só com os ids selecionáveis', async () => {
+      const user = userEvent.setup()
+      const { onToggleAll } = renderWithSelectable(new Set())
+
+      await user.click(screen.getByRole('checkbox', { name: /selecionar todos/i }))
+
+      expect(onToggleAll).toHaveBeenCalledWith(['1', '3'])
+    })
+
+    it('cabeçalho fica marcado quando todos os selecionáveis estão selecionados', () => {
+      renderWithSelectable(new Set(['1', '3']))
+      const headerCheckbox = screen.getByRole('checkbox', { name: /selecionar todos/i }) as HTMLInputElement
+      expect(headerCheckbox).toBeChecked()
+      expect(headerCheckbox.indeterminate).toBe(false)
+    })
+  })
 })

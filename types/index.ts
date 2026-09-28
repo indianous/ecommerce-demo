@@ -572,6 +572,8 @@ export interface Employee {
   passwordSet: boolean
   emailVerified: boolean
   mfaEnabled: boolean
+  /** Admin criado pelo ADMIN_EMAIL do backend: não pode ser excluído. */
+  primaryAdmin: boolean
 }
 
 /** Sem {@code password}, a conta nasce sem senha e a pessoa recebe o convite por e-mail. */

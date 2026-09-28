@@ -18,11 +18,11 @@ import { useAuthStore } from '@/stores/auth.store'
 import type { Employee } from '@/types'
 
 const mockAdmins: Employee[] = [
-  { id: 'admin-1', name: 'Ana Costa', email: 'ana@test.com', role: 'ADMIN', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: true },
-  { id: 'admin-2', name: 'Bruno Lima', email: 'bruno@test.com', role: 'ADMIN', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: true },
+  { id: 'admin-1', name: 'Ana Costa', email: 'ana@test.com', role: 'ADMIN', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: true, primaryAdmin: false },
+  { id: 'admin-2', name: 'Bruno Lima', email: 'bruno@test.com', role: 'ADMIN', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: true, primaryAdmin: false },
 ]
 
-const newAdmin: Employee = { id: 'admin-3', name: 'Carlos Melo', email: 'carlos@test.com', role: 'ADMIN', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: true }
+const newAdmin: Employee = { id: 'admin-3', name: 'Carlos Melo', email: 'carlos@test.com', role: 'ADMIN', permissions: [], passwordSet: true, emailVerified: true, mfaEnabled: true, primaryAdmin: false }
 
 let lastDeletedId = ''
 let lastListUrl = ''
@@ -275,5 +275,43 @@ describe('AdminsContent — seleção em massa', () => {
     expect(screen.queryByText('Ana Costa')).not.toBeInTheDocument()
     expect(await screen.findByText('Bruno Lima')).toBeInTheDocument()
     expect(await screen.findByText(/último administrador/i)).toBeInTheDocument()
+  })
+})
+
+describe('AdminsContent — admin principal (plano 68)', () => {
+  const withPrincipal: Employee[] = [
+    { ...mockAdmins[0], id: 'admin-p', name: 'Paula Principal', email: 'paula@test.com', primaryAdmin: true },
+    ...mockAdmins,
+  ]
+
+  beforeEach(() => {
+    server.use(
+      http.get('/api/admin/admins', () =>
+        HttpResponse.json({ ...mockPage, content: withPrincipal, totalElements: withPrincipal.length }),
+      ),
+    )
+  })
+
+  it('o principal aparece com o selo "Principal" e sem o botão de excluir', async () => {
+    renderContent()
+    await screen.findByText('Paula Principal')
+
+    const principalRow = screen.getByText('Paula Principal').closest('tr')!
+    expect(within(principalRow).getByText('Principal')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /excluir paula principal/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /excluir ana costa/i })).toBeInTheDocument()
+  })
+
+  it('"Selecionar todos" + "Excluir selecionados" manda só os outros admins para o bulk-delete', async () => {
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByText('Paula Principal')
+
+    await user.click(screen.getByRole('checkbox', { name: /selecionar todos/i }))
+    await user.click(screen.getByRole('button', { name: /excluir selecionados/i }))
+    await user.click(screen.getByRole('button', { name: /^confirmar$/i }))
+
+    expect(lastBulkDeleteBody?.ids.sort()).toEqual(['admin-1', 'admin-2'])
+    expect(screen.getByText('Paula Principal')).toBeInTheDocument()
   })
 })

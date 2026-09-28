@@ -86,6 +86,7 @@ export function EmployeeDetailPage({ id }: { id: string }) {
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <Badge variant="default">{employee.role}</Badge>
+            {employee.primaryAdmin && <Badge variant="default">Principal</Badge>}
             <AccountStatusBadges passwordSet={employee.passwordSet} emailVerified={employee.emailVerified} />
             <MfaStatusBadge mfaEnabled={employee.mfaEnabled} role={employee.role} />
             <PasswordInviteButton

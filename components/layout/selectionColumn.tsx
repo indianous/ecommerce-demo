@@ -7,8 +7,9 @@ export function makeSelectionColumn<T>(
   selectedIds: Set<string>,
   onToggle: (id: string) => void,
   onToggleAll: (ids: string[]) => void,
+  isSelectable: (item: T) => boolean = () => true,
 ): TableColumn<T> {
-  const ids = items.map(getId)
+  const ids = items.filter(isSelectable).map(getId)
   const allSelected = ids.length > 0 && ids.every((id) => selectedIds.has(id))
   const someSelected = !allSelected && ids.some((id) => selectedIds.has(id))
 
@@ -24,6 +25,7 @@ export function makeSelectionColumn<T>(
       />
     ),
     render: (row) => {
+      if (!isSelectable(row)) return null
       const id = getId(row)
       return (
         <Checkbox

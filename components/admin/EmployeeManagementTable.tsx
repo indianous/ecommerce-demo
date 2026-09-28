@@ -27,7 +27,7 @@ export function EmployeeManagementTable({ employees, onDelete, onManagePermissio
 
   const columns: TableColumn<Employee>[] = [
     ...(selection
-      ? [makeSelectionColumn(sortedEmployees, (e) => e.id, (e) => e.name, selection.selectedIds, selection.onToggle, selection.onToggleAll)]
+      ? [makeSelectionColumn(sortedEmployees, (e) => e.id, (e) => e.name, selection.selectedIds, selection.onToggle, selection.onToggleAll, (e) => !e.primaryAdmin)]
       : []),
     {
       key: 'name',
@@ -37,6 +37,7 @@ export function EmployeeManagementTable({ employees, onDelete, onManagePermissio
         <span className="inline-flex items-center gap-2">
           {row.name}
           <CopyButton value={row.name} label="nome" />
+          {row.primaryAdmin && <Badge variant="default">Principal</Badge>}
         </span>
       ),
     },
@@ -66,7 +67,9 @@ export function EmployeeManagementTable({ employees, onDelete, onManagePermissio
           {onManagePermissions && (
             <Button iconOnly leftIcon={<Icon name="Pencil" size="sm" />} aria-label={`Editar ${row.name}`} variant="secondary" onClick={() => onManagePermissions(row)} />
           )}
-          <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Excluir ${row.name}`} variant="danger" onClick={() => onDelete(row.id)} />
+          {!row.primaryAdmin && (
+            <Button iconOnly leftIcon={<Icon name="Trash2" size="sm" />} aria-label={`Excluir ${row.name}`} variant="danger" onClick={() => onDelete(row.id)} />
+          )}
         </div>
       ),
     },

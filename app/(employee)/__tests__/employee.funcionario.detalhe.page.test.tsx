@@ -23,7 +23,7 @@ const mockEmployee: EmployeeDetailResponse = {
   createdAt: '2024-01-01T00:00:00Z',
   photoUrl: 'https://example.com/avatar.jpg',
   passwordSet: true,
-  emailVerified: true, mfaEnabled: true,
+  emailVerified: true, mfaEnabled: true, primaryAdmin: false,
 }
 
 const mockAuditLogs: AuditLogPage = {
