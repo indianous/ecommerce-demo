@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/authFetch'
 import Link from 'next/link'
-import { Avatar, Badge, Button, Container, Heading, Icon, Skeleton, TransferList, useToast } from '@indianous/base-ds'
+import { Avatar, Badge, Button, Container, Heading, Icon, Skeleton, Text, TransferList, useToast } from '@indianous/base-ds'
 import { useAuthStore } from '@/stores/auth.store'
 import { PermissionGuard } from '@/components/employee/PermissionGuard'
 import { CopyButton } from '@/components/ui/CopyButton'
@@ -11,7 +11,13 @@ import { AccountStatusBadges } from '@/components/admin/AccountStatusBadges'
 import { MfaResetButton } from '@/components/admin/MfaResetButton'
 import { MfaStatusBadge } from '@/components/admin/MfaStatusBadge'
 import { PasswordInviteButton } from '@/components/admin/PasswordInviteButton'
-import { ALL_PERMISSIONS, PERMISSION_LABELS, canResetMfa, canSendPasswordInvite } from '@/lib/permissions'
+import {
+  PERMISSION_LABELS,
+  canEditPermissions,
+  canResetMfa,
+  canSendPasswordInvite,
+  editablePermissions,
+} from '@/lib/permissions'
 import type { AuditLogResponse, EmployeeDetailResponse, EmployeePermission } from '@/types'
 
 export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/employees' }: { id: string; backPath?: string }) {
@@ -47,10 +53,15 @@ export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/em
         headers: { 'Content-Type': 'application/json', },
         body: JSON.stringify({ permissions }),
       })
-      if (!res.ok) throw new Error()
+      if (!res.ok) {
+        // A recusa do backend (ex.: permissão fora do alcance) explica o motivo melhor que a mensagem genérica
+        const error = (await res.json().catch(() => null)) as { message?: string } | null
+        throw new Error(error?.message ?? '')
+      }
       toast({ variant: 'success', description: 'Permissões salvas com sucesso.' })
-    } catch {
-      toast({ variant: 'destructive', description: 'Erro ao salvar permissões.' })
+    } catch (error) {
+      const message = error instanceof Error && error.message ? error.message : 'Erro ao salvar permissões.'
+      toast({ variant: 'destructive', description: message })
     } finally {
       setSaving(false)
     }
@@ -67,7 +78,14 @@ export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/em
 
   if (!employee) return <p>Funcionário não encontrado.</p>
 
-  const permOptions = ALL_PERMISSIONS.map((p) => ({ value: p, label: PERMISSION_LABELS[p] }))
+  // Plano 71: o funcionário só mexe nas permissões que ele tem, e nunca nas próprias. As do alvo fora desse
+  // alcance ficam fixas e vão junto no salvar.
+  const target = { id: employee.id, role: employee.role }
+  const canEdit = canEditPermissions(currentUser, target)
+  const editable = editablePermissions(currentUser, target)
+  const permOptions = editable.map((p) => ({ value: p, label: PERMISSION_LABELS[p] }))
+  const editableValue = permissions.filter((p) => editable.includes(p))
+  const lockedPermissions = permissions.filter((p) => !editable.includes(p))
 
   return (
     <PermissionGuard permissions={['MANAGE_EMPLOYEES']}>
@@ -114,19 +132,38 @@ export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/em
 
         <section className="mb-8">
           <Heading as="h2" size="xl" className="mb-4">Permissões</Heading>
-          <TransferList
-            options={permOptions}
-            value={permissions}
-            onChange={(next) => setPermissions(next as EmployeePermission[])}
-            availableLabel="Disponíveis"
-            selectedLabel="Atribuídas"
-            moveLabel="Mover para Atribuídas"
-            moveAllLabel="Mover todos para Atribuídas"
-            moveBackLabel="Mover para Disponíveis"
-            moveAllBackLabel="Mover todos para Disponíveis"
-          />
+          {!canEdit ? (
+            <>
+              <PermissionBadges permissions={permissions} />
+              <Text size="sm" color="muted" className="mt-2">
+                Você não pode alterar as próprias permissões. Peça a um administrador.
+              </Text>
+            </>
+          ) : (
+            <>
+              <TransferList
+                options={permOptions}
+                value={editableValue}
+                onChange={(next) => setPermissions([...(next as EmployeePermission[]), ...lockedPermissions])}
+                availableLabel="Disponíveis"
+                selectedLabel="Atribuídas"
+                moveLabel="Mover para Atribuídas"
+                moveAllLabel="Mover todos para Atribuídas"
+                moveBackLabel="Mover para Disponíveis"
+                moveAllBackLabel="Mover todos para Disponíveis"
+              />
+              {lockedPermissions.length > 0 && (
+                <section aria-label="Outras permissões" className="mt-4">
+                  <Text weight="semibold" className="mb-2">Outras permissões (só um administrador altera)</Text>
+                  <PermissionBadges permissions={lockedPermissions} />
+                </section>
+              )}
+            </>
+          )}
           <div className="flex gap-2 mt-4">
-            <Button leftIcon={<Icon name="Save" size="sm" />} variant="primary" onClick={handleSave} isLoading={saving}>Salvar permissões</Button>
+            {canEdit && (
+              <Button leftIcon={<Icon name="Save" size="sm" />} variant="primary" onClick={handleSave} isLoading={saving}>Salvar permissões</Button>
+            )}
             <Button variant="secondary" disabled>
               Redefinir senha
             </Button>
@@ -153,5 +190,15 @@ export function EmployeeFuncionarioDetailContent({ id, backPath = '/dashboard/em
         </section>
       </Container>
     </PermissionGuard>
+  )
+}
+
+function PermissionBadges({ permissions }: { permissions: EmployeePermission[] }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {permissions.map((p) => (
+        <Badge key={p} variant="default">{PERMISSION_LABELS[p]}</Badge>
+      ))}
+    </div>
   )
 }

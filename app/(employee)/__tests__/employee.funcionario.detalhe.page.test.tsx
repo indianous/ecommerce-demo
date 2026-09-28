@@ -12,7 +12,7 @@ vi.mock('next/navigation', () => ({
 import { ToastProvider, ToastViewport } from '@indianous/base-ds'
 import { EmployeeFuncionarioDetailContent } from '@/components/content/dashboard/people/EmployeeFuncionarioDetailContent'
 import { useAuthStore } from '@/stores/auth.store'
-import type { AuditLogPage, EmployeeDetailResponse } from '@/types'
+import type { AuditLogPage, EmployeeDetailResponse, EmployeePermission } from '@/types'
 
 const mockEmployee: EmployeeDetailResponse = {
   id: 'emp-1',
@@ -73,7 +73,8 @@ beforeEach(() => {
       name: 'Manager',
       email: 'manager@test.com',
       role: 'EMPLOYEE',
-      permissions: ['MANAGE_EMPLOYEES'],
+      // plano 71: o TransferList só oferece o que o ator tem
+      permissions: ['MANAGE_EMPLOYEES', 'MANAGE_ORDERS', 'MANAGE_PRODUCTS'],
      phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null},
   })
 })
@@ -205,5 +206,83 @@ describe('EmployeeFuncionarioDetailContent — 2FA (plano 65)', () => {
 
     expect(await screen.findByText('2FA pendente')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Resetar 2FA' })).not.toBeInTheDocument()
+  })
+})
+
+describe('EmployeeFuncionarioDetailContent — sem autoconcessão (plano 71)', () => {
+  const colegaComSite: EmployeeDetailResponse = { ...mockEmployee, permissions: ['MANAGE_ORDERS', 'MANAGE_SITE'] }
+
+  function loginAs(permissions: EmployeePermission[], id = 'manager-1') {
+    useAuthStore.setState({
+      user: {
+        id, name: 'Manager', email: 'manager@test.com', role: 'EMPLOYEE', permissions,
+        phone: null, birthDate: null, gender: 'PREFIRO_NAO_DIZER' as const, cpf: null,
+      },
+    })
+  }
+
+  it('no próprio perfil: sem TransferList e sem salvar, com as permissões só para leitura e o aviso', async () => {
+    loginAs(['MANAGE_EMPLOYEES', 'MANAGE_ORDERS'], 'emp-1')
+    renderDetail('emp-1')
+    await screen.findByText('Carlos Dias')
+
+    expect(screen.queryByRole('listbox', { name: /atribuídas/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /salvar permissões/i })).not.toBeInTheDocument()
+    expect(screen.getByText(/você não pode alterar as próprias permissões/i)).toBeInTheDocument()
+    expect(screen.getByText('Gerenciamento de Pedidos')).toBeInTheDocument()
+  })
+
+  it('num colega: o TransferList só oferece o que o ator tem, e o resto aparece em "Outras permissões"', async () => {
+    loginAs(['MANAGE_EMPLOYEES', 'MANAGE_ORDERS'])
+    server.use(http.get('/api/admin/employees/:id', () => HttpResponse.json(colegaComSite)))
+    renderDetail()
+    await screen.findByText('Carlos Dias')
+
+    expect(screen.getByRole('listbox', { name: /atribuídas/i })).toHaveTextContent('Gerenciamento de Pedidos')
+    expect(screen.getByRole('listbox', { name: /disponíveis/i })).toHaveTextContent('Gestão de Funcionários')
+    expect(screen.queryByRole('option', { name: /gestão do site/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: /gerenciamento de produtos/i })).not.toBeInTheDocument()
+    const outras = screen.getByRole('region', { name: /outras permissões/i })
+    expect(outras).toHaveTextContent('Gestão do Site')
+  })
+
+  it('salvar num colega leva junto as "Outras permissões"', async () => {
+    let captured: { permissions: string[] } | null = null
+    loginAs(['MANAGE_EMPLOYEES', 'MANAGE_ORDERS'])
+    server.use(
+      http.get('/api/admin/employees/:id', () => HttpResponse.json(colegaComSite)),
+      http.put('/api/admin/employees/:id/permissions', async ({ request }) => {
+        captured = (await request.json()) as { permissions: string[] }
+        return HttpResponse.json({ permissions: captured.permissions })
+      }),
+    )
+    const user = userEvent.setup()
+    renderDetail()
+    await screen.findByText('Carlos Dias')
+
+    await user.click(screen.getByRole('option', { name: /gerenciamento de pedidos/i }))
+    await user.click(screen.getByRole('button', { name: /mover para disponíveis/i }))
+    await user.click(screen.getByRole('button', { name: /salvar permissões/i }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent(/permissões salvas/i)
+    expect(captured!.permissions).toEqual(['MANAGE_SITE'])
+  })
+
+  it('recusa do backend: o toast mostra a mensagem que veio dele', async () => {
+    server.use(
+      http.put('/api/admin/employees/:id/permissions', () =>
+        HttpResponse.json(
+          { status: 403, message: 'Você só pode conceder ou remover permissões que você tem. Fora do seu alcance: MANAGE_SITE' },
+          { status: 403 },
+        ),
+      ),
+    )
+    const user = userEvent.setup()
+    renderDetail()
+    await screen.findByText('Carlos Dias')
+
+    await user.click(screen.getByRole('button', { name: /salvar permissões/i }))
+
+    expect(await screen.findByText(/fora do seu alcance: MANAGE_SITE/i)).toBeInTheDocument()
   })
 })

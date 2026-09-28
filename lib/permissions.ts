@@ -44,3 +44,21 @@ export function canResetMfa(actor: ResetActor, target: { id: string; role: UserR
   if (actor.role === 'ADMIN') return true
   return actor.role === 'EMPLOYEE' && target.role === 'CUSTOMER' && actor.permissions.includes('MANAGE_CUSTOMERS')
 }
+
+type PermissionsActor = { id: string; role: UserRole; permissions: EmployeePermission[] } | null
+
+/**
+ * Permissões que o ator pode conceder ou remover no alvo, pela mesma regra do backend (plano 71): admin mexe em
+ * todas; funcionário só nas que ele tem, e nunca no próprio perfil.
+ */
+export function editablePermissions(actor: PermissionsActor, target: { id: string; role: UserRole }): EmployeePermission[] {
+  if (!actor || actor.id === target.id) return []
+  if (actor.role === 'ADMIN') return ALL_PERMISSIONS
+  if (actor.role !== 'EMPLOYEE') return []
+  return ALL_PERMISSIONS.filter((permission) => actor.permissions.includes(permission))
+}
+
+export function canEditPermissions(actor: PermissionsActor, target: { id: string; role: UserRole }): boolean {
+  if (!actor || actor.id === target.id) return false
+  return actor.role === 'ADMIN' || (actor.role === 'EMPLOYEE' && actor.permissions.includes('MANAGE_EMPLOYEES'))
+}
