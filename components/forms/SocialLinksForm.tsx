@@ -1,4 +1,5 @@
 import { Button, FormField, Icon, Input } from '@indianous/base-ds'
+import { isAbsoluteHttpUrl } from '@/lib/safe-url'
 
 interface Props {
   instagramUrl: string
@@ -23,6 +24,13 @@ export function SocialLinksForm({
   saving,
   saveLabel = 'Salvar',
 }: Props) {
+  const errorFor = (url: string) =>
+    url.trim() === '' || isAbsoluteHttpUrl(url) ? undefined : 'Use um endereço começando com https://'
+  const instagramError = errorFor(instagramUrl)
+  const tiktokError = errorFor(tiktokUrl)
+  const facebookError = errorFor(facebookUrl)
+  const hasError = !!(instagramError || tiktokError || facebookError)
+
   return (
     <form
       onSubmit={(e) => {
@@ -31,7 +39,7 @@ export function SocialLinksForm({
       }}
       className="flex flex-col gap-4"
     >
-      <FormField label="Instagram" id="social-instagram">
+      <FormField label="Instagram" id="social-instagram" error={instagramError}>
         <Input
           id="social-instagram"
           type="url"
@@ -41,7 +49,7 @@ export function SocialLinksForm({
         />
       </FormField>
 
-      <FormField label="TikTok" id="social-tiktok">
+      <FormField label="TikTok" id="social-tiktok" error={tiktokError}>
         <Input
           id="social-tiktok"
           type="url"
@@ -51,7 +59,7 @@ export function SocialLinksForm({
         />
       </FormField>
 
-      <FormField label="Facebook" id="social-facebook">
+      <FormField label="Facebook" id="social-facebook" error={facebookError}>
         <Input
           id="social-facebook"
           type="url"
@@ -62,7 +70,7 @@ export function SocialLinksForm({
       </FormField>
 
       <div>
-        <Button leftIcon={<Icon name="Save" size="sm" />} type="submit" variant="primary" isLoading={saving}>{saveLabel}</Button>
+        <Button leftIcon={<Icon name="Save" size="sm" />} type="submit" variant="primary" disabled={hasError} isLoading={saving}>{saveLabel}</Button>
       </div>
     </form>
   )

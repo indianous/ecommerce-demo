@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { SocialLinksForm } from '@/components/forms/SocialLinksForm'
 import type { SiteSettings } from '@/types'
 import { SiteSettingsSection } from './SiteSettingsSection'
+import { apiErrorMessage } from '@/lib/api-error'
 
 function SocialLinksEditor({ settings }: { settings: SiteSettings }) {
   const { accessToken } = useAuthStore()
@@ -23,7 +24,10 @@ function SocialLinksEditor({ settings }: { settings: SiteSettings }) {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ instagramUrl, tiktokUrl, facebookUrl }),
       })
-      if (!res.ok) throw new Error()
+      if (!res.ok) {
+        toast({ variant: 'destructive', description: await apiErrorMessage(res, 'Erro ao salvar redes sociais.') })
+        return
+      }
       toast({ variant: 'success', description: 'Redes sociais atualizadas com sucesso.' })
     } catch {
       toast({ variant: 'destructive', description: 'Erro ao salvar redes sociais.' })

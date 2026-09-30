@@ -2,6 +2,7 @@
 
 import { Button, FormField, Icon, Input, Select } from '@indianous/base-ds'
 import type { NavPlacement, SiteNavItemType } from '@/types'
+import { isAbsoluteHttpUrl } from '@/lib/safe-url'
 
 export type NavItemFormState = {
   type: SiteNavItemType
@@ -44,7 +45,7 @@ export function NavItemForm({ form, onFormChange, onSubmit, saving, isChild = fa
   const labelMissing = !form.label.trim()
   const urlMissing = requiresUrl && !form.url.trim()
   const placementMissing = requiresPlacement && !form.placement
-  const urlFormatInvalid = requiresUrl && form.url.trim() !== '' && !/^https?:\/\//i.test(form.url.trim())
+  const urlFormatInvalid = requiresUrl && form.url.trim() !== '' && !isAbsoluteHttpUrl(form.url)
 
   const urlError = urlFormatInvalid ? 'URL deve começar com http:// ou https://' : undefined
   const canSubmit = !labelMissing && !urlMissing && !placementMissing && !urlFormatInvalid

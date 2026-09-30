@@ -9,6 +9,7 @@ import { BannerForm } from '@/components/forms/BannerForm'
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 import type { Banner } from '@/types'
 import { SiteSectionPage } from './SiteSectionPage'
+import { apiErrorMessage } from '@/lib/api-error'
 
 export function SiteBannersContent({ backPath }: { backPath: string }) {
   const { accessToken } = useAuthStore()
@@ -35,7 +36,10 @@ export function SiteBannersContent({ backPath }: { backPath: string }) {
       fd.append('file', file)
       if (linkUrl) fd.append('linkUrl', linkUrl)
       const res = await authFetch('/api/site/banners', { method: 'POST', body: fd })
-      if (!res.ok) throw new Error()
+      if (!res.ok) {
+        toast({ variant: 'destructive', description: await apiErrorMessage(res, 'Erro ao salvar banner.') })
+        return
+      }
       const newBanner = await res.json()
       setBanners((prev) => [...prev, newBanner])
       setFile(null)

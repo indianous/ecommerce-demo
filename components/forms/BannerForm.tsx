@@ -1,4 +1,5 @@
 import { Button, FileUpload, FormField, Icon, Input } from '@indianous/base-ds'
+import { isSafeLink } from '@/lib/safe-url'
 
 interface Props {
   file: File | null
@@ -11,6 +12,8 @@ interface Props {
 }
 
 export function BannerForm({ file, linkUrl, onFileChange, onLinkUrl, onSave, saving, saveLabel = 'Salvar' }: Props) {
+  const linkError = isSafeLink(linkUrl) ? undefined : 'Link inválido. Use http://, https:// ou um caminho que comece com /'
+
   return (
     <form
       onSubmit={(e) => {
@@ -32,10 +35,11 @@ export function BannerForm({ file, linkUrl, onFileChange, onLinkUrl, onSave, sav
         </p>
       )}
 
-      <FormField label="Link do banner" id="banner-link">
+      <FormField label="Link do banner" id="banner-link" error={linkError}>
         <Input
           id="banner-link"
-          type="url"
+          type="text"
+          inputMode="url"
           value={linkUrl}
           onChange={(e) => onLinkUrl(e.target.value)}
           placeholder="https://..."
@@ -43,7 +47,7 @@ export function BannerForm({ file, linkUrl, onFileChange, onLinkUrl, onSave, sav
       </FormField>
 
       <div>
-        <Button leftIcon={<Icon name="Save" size="sm" />} type="submit" variant="primary" disabled={!file} isLoading={saving}>{saveLabel}</Button>
+        <Button leftIcon={<Icon name="Save" size="sm" />} type="submit" variant="primary" disabled={!file || !!linkError} isLoading={saving}>{saveLabel}</Button>
       </div>
     </form>
   )
