@@ -3,13 +3,17 @@ import { proxyJson } from '@/lib/api-proxy'
 
 const API = process.env.API_INTERNAL_URL ?? 'http://localhost:8080/api/v1'
 
+/** Produto ativo ou excluído, para a edição e o histórico de estoque do painel. */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params
+  const authorization = request.headers.get('Authorization')
 
-  const res = await fetch(`${API}/catalog/products/${id}`)
+  const res = await fetch(`${API}/admin/products/${id}`, {
+    headers: authorization ? { Authorization: authorization } : {},
+  })
 
   return proxyJson(res)
 }
