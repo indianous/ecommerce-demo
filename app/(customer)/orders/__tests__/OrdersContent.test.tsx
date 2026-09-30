@@ -8,8 +8,10 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 const pushMock = vi.fn()
 const replaceMock = vi.fn()
 let mockSearch = ''
+// Sempre o mesmo objeto, como no Next: um router novo a cada render faz o efeito do ?payment= rodar de novo (#25)
+const routerMock = { push: pushMock, replace: replaceMock }
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: pushMock, replace: replaceMock }),
+  useRouter: () => routerMock,
   usePathname: () => '/orders',
   useSearchParams: () => new URLSearchParams(mockSearch),
 }))
@@ -69,6 +71,9 @@ afterEach(async () => {
 afterAll(() => server.close())
 
 beforeEach(() => {
+  pushMock.mockClear()
+  replaceMock.mockClear()
+  mockSearch = ''
   useAuthStore.setState({ accessToken: 'mock-token', isAuthenticated: true })
 })
 

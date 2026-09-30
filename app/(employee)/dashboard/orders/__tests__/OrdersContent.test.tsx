@@ -310,8 +310,9 @@ describe('EmployeeOrdersContent — pedidos da equipe', () => {
     setPermissions(['CREATE_ORDERS'])
     renderContent()
 
-    expect(await screen.findByRole('button', { name: /novo pedido/i })).toBeInTheDocument()
-    expect(screen.getByText(/a lista de pedidos exige a permissão de gestão de pedidos/i)).toBeInTheDocument()
+    // A explicação só aparece no fim do carregamento; o botão, já na primeira renderização (#25)
+    expect(await screen.findByText(/a lista de pedidos exige a permissão de gestão de pedidos/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /novo pedido/i })).toBeInTheDocument()
     expect(calls).toBe(0)
   })
 
