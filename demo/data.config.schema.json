@@ -1,0 +1,173 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Quantidades dos dados da demo",
+  "description": "Depois de alterar, rode `node demo/generator/generate.ts` para regerar demo/data.json e as imagens.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647,
+      "default": 42,
+      "description": "Semente do gerador: a mesma semente gera sempre os mesmos dados."
+    },
+    "periodDays": {
+      "type": "integer",
+      "minimum": 7,
+      "maximum": 365,
+      "default": 90,
+      "description": "Janela, em dias até hoje, em que caem pedidos, cadastros, avaliações e visitas."
+    },
+    "categories": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 12,
+      "default": 6,
+      "description": "Categorias de produto (moda)."
+    },
+    "products": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 500,
+      "default": 60,
+      "description": "Produtos do catálogo."
+    },
+    "customers": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000,
+      "default": 30,
+      "description": "Clientes, além da conta fixa cliente@demo.com."
+    },
+    "employees": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 50,
+      "default": 4,
+      "description": "Funcionários, além da conta fixa funcionario@demo.com."
+    },
+    "admins": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10,
+      "default": 1,
+      "description": "Administradores, além da conta fixa admin@demo.com."
+    },
+    "addressesPerCustomer": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5,
+      "default": 2,
+      "description": "Endereços de cada cliente (o cliente fixo sempre tem ao menos um)."
+    },
+    "orders": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5000,
+      "default": 150,
+      "description": "Pedidos."
+    },
+    "orderChangeRequests": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5000,
+      "default": 8,
+      "description": "Solicitações de alteração de status de pedido. Não passa do número de pedidos."
+    },
+    "reviews": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5000,
+      "default": 120,
+      "description": "Avaliações de produto, sempre de quem recebeu o produto. Não passa do número de pedidos."
+    },
+    "wishlistItems": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000,
+      "default": 40,
+      "description": "Itens em listas de desejos."
+    },
+    "cartItems": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000,
+      "default": 20,
+      "description": "Itens em carrinhos abertos."
+    },
+    "coupons": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 50,
+      "default": 5,
+      "description": "Cupons de desconto."
+    },
+    "couponRedemptions": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5000,
+      "default": 25,
+      "description": "Pedidos que usaram cupom. Não passa do número de pedidos."
+    },
+    "promotions": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 20,
+      "default": 3,
+      "description": "Promoções (ativas, agendadas e encerradas)."
+    },
+    "stockMovements": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 20000,
+      "default": 200,
+      "description": "Movimentações de estoque. Cada produto tem ao menos a entrada inicial."
+    },
+    "distributionCenters": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10,
+      "default": 2,
+      "description": "Centros de distribuição (retirada na loja)."
+    },
+    "banners": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 6,
+      "default": 3,
+      "description": "Banners da home."
+    },
+    "navItems": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 12,
+      "default": 6,
+      "description": "Itens do menu de navegação do site."
+    },
+    "notifications": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5000,
+      "default": 30,
+      "description": "Notificações de mudança de status de pedido."
+    },
+    "auditLogs": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 20000,
+      "default": 150,
+      "description": "Registros de auditoria das ações da equipe."
+    },
+    "pageViews": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 50000,
+      "default": 2000,
+      "description": "Visitas a páginas (alimentam a analytics)."
+    }
+  }
+}

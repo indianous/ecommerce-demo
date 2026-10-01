@@ -1,0 +1,140 @@
+{
+  "firstNames": {
+    "FEMININO": ["Ana", "Beatriz", "Camila", "Carolina", "Daniela", "Fernanda", "Gabriela", "Helena", "Isabela", "Juliana", "Larissa", "Letícia", "Luana", "Mariana", "Natália", "Patrícia", "Rafaela", "Sofia", "Tainá", "Vitória"],
+    "MASCULINO": ["André", "Bruno", "Caio", "Diego", "Eduardo", "Felipe", "Gustavo", "Henrique", "Igor", "João", "Leonardo", "Lucas", "Marcelo", "Matheus", "Otávio", "Pedro", "Rafael", "Renato", "Thiago", "Vinícius"],
+    "NAO_BINARIO": ["Alex", "Ariel", "Dani", "Jules", "Kim", "Noa", "Rian", "Sam"]
+  },
+  "lastNames": ["Almeida", "Andrade", "Araújo", "Barbosa", "Cardoso", "Carvalho", "Castro", "Costa", "Dias", "Fernandes", "Ferreira", "Gomes", "Lima", "Lopes", "Martins", "Melo", "Monteiro", "Moreira", "Nascimento", "Oliveira", "Pereira", "Pinto", "Ramos", "Ribeiro", "Rocha", "Santos", "Silva", "Souza", "Teixeira", "Vieira"],
+  "streets": ["Rua das Flores", "Avenida Brasil", "Rua Sete de Setembro", "Rua XV de Novembro", "Avenida Paulista", "Rua da Consolação", "Rua Augusta", "Avenida Atlântica", "Rua dos Andradas", "Rua Bela Vista", "Rua do Comércio", "Avenida Getúlio Vargas", "Rua São João", "Rua Dom Pedro II", "Rua Marechal Deodoro", "Avenida Afonso Pena", "Rua Tiradentes", "Rua das Palmeiras", "Rua Boa Vista", "Avenida Beira-Mar"],
+  "districts": ["Centro", "Jardim América", "Vila Mariana", "Boa Vista", "Santa Cecília", "Pinheiros", "Savassi", "Moinhos de Vento", "Batel", "Meireles", "Pituba", "Boa Viagem", "Jardim Botânico", "Cidade Nova"],
+  "cities": [
+    { "city": "São Paulo", "state": "SP", "zip": "01" },
+    { "city": "Campinas", "state": "SP", "zip": "13" },
+    { "city": "Rio de Janeiro", "state": "RJ", "zip": "20" },
+    { "city": "Niterói", "state": "RJ", "zip": "24" },
+    { "city": "Belo Horizonte", "state": "MG", "zip": "30" },
+    { "city": "Curitiba", "state": "PR", "zip": "80" },
+    { "city": "Porto Alegre", "state": "RS", "zip": "90" },
+    { "city": "Florianópolis", "state": "SC", "zip": "88" },
+    { "city": "Salvador", "state": "BA", "zip": "40" },
+    { "city": "Recife", "state": "PE", "zip": "50" },
+    { "city": "Fortaleza", "state": "CE", "zip": "60" },
+    { "city": "Brasília", "state": "DF", "zip": "70" },
+    { "city": "Goiânia", "state": "GO", "zip": "74" }
+  ],
+  "complements": ["Apto 12", "Apto 304", "Casa 2", "Bloco B", "Sala 5", "Fundos"],
+  "colors": [
+    { "name": "Preto", "hex": "#1f1f1f" },
+    { "name": "Branco", "hex": "#f4f1ea" },
+    { "name": "Azul-marinho", "hex": "#1f3a5f" },
+    { "name": "Azul-claro", "hex": "#8fb8de" },
+    { "name": "Verde-oliva", "hex": "#6b7041" },
+    { "name": "Vermelho", "hex": "#b3261e" },
+    { "name": "Vinho", "hex": "#6d1f2f" },
+    { "name": "Rosa", "hex": "#e8a0b4" },
+    { "name": "Bege", "hex": "#d9c3a0" },
+    { "name": "Caramelo", "hex": "#a8672f" },
+    { "name": "Cinza-mescla", "hex": "#9a9a9a" },
+    { "name": "Mostarda", "hex": "#d4a017" },
+    { "name": "Lilás", "hex": "#b39ddb" },
+    { "name": "Terracota", "hex": "#c0583a" }
+  ],
+  "categories": [
+    { "name": "Camisetas", "slug": "camisetas", "shape": "tshirt", "piece": "Camiseta", "styles": ["Básica", "Oversized", "Gola V", "Listrada", "Estampada", "Manga Longa", "Cropped"], "price": [49, 129], "ncm": "6109.10.00", "material": "Algodão penteado macio, que não perde a forma depois da lavagem.", "description": "Camisetas básicas e estampadas para o dia a dia." },
+    { "name": "Vestidos", "slug": "vestidos", "shape": "dress", "piece": "Vestido", "styles": ["Midi", "Longo Floral", "Tubinho", "Envelope", "Chemise", "Tomara que Caia"], "price": [119, 329], "ncm": "6204.42.00", "material": "Viscose com caimento fluido e forro leve.", "description": "Vestidos para o trabalho, para o fim de semana e para a festa." },
+    { "name": "Calças", "slug": "calcas", "shape": "pants", "piece": "Calça", "styles": ["Jeans Reta", "Alfaiataria", "Cargo", "Wide Leg", "Jogger", "Skinny"], "price": [129, 289], "ncm": "6203.42.00", "material": "Tecido com elastano, que acompanha o movimento.", "description": "Jeans, alfaiataria e modelos confortáveis." },
+    { "name": "Tênis", "slug": "tenis", "shape": "sneaker", "piece": "Tênis", "styles": ["Casual", "Corrida", "Cano Alto", "Slip-on", "Plataforma", "Retrô"], "price": [179, 499], "ncm": "6404.11.00", "material": "Cabedal respirável e solado de borracha antiderrapante.", "description": "Tênis casuais e esportivos." },
+    { "name": "Bolsas", "slug": "bolsas", "shape": "bag", "piece": "Bolsa", "styles": ["Tote", "Transversal", "Clutch", "Baguete", "Saco", "Shopper"], "price": [99, 399], "ncm": "4202.22.10", "material": "Material sintético com toque de couro e forro interno com bolso.", "description": "Bolsas para todas as ocasiões." },
+    { "name": "Bonés e Chapéus", "slug": "bones-e-chapeus", "shape": "cap", "piece": "Boné", "styles": ["Aba Curva", "Dad Hat", "Trucker", "Aba Reta", "Bordado"], "price": [59, 149], "ncm": "6505.00.90", "material": "Sarja de algodão com regulagem traseira.", "description": "Bonés, chapéus e bucket hats." },
+    { "name": "Camisas", "slug": "camisas", "shape": "shirt", "piece": "Camisa", "styles": ["Linho", "Social Slim", "Xadrez", "Jeans", "Oxford", "Manga Curta"], "price": [99, 259], "ncm": "6205.20.00", "material": "Tecido leve, com botões de madrepérola sintética.", "description": "Camisas sociais e casuais." },
+    { "name": "Saias", "slug": "saias", "shape": "skirt", "piece": "Saia", "styles": ["Midi Plissada", "Lápis", "Jeans", "Envelope", "Evasê"], "price": [89, 219], "ncm": "6204.52.00", "material": "Cós com zíper invisível e tecido que não amassa.", "description": "Saias curtas, midi e longas." },
+    { "name": "Bermudas", "slug": "bermudas", "shape": "shorts", "piece": "Bermuda", "styles": ["Sarja", "Jeans", "Moletom", "Alfaiataria", "Cargo"], "price": [79, 179], "ncm": "6203.43.00", "material": "Sarja com toque macio e bolsos funcionais.", "description": "Bermudas e shorts para os dias quentes." },
+    { "name": "Sandálias", "slug": "sandalias", "shape": "sandal", "piece": "Sandália", "styles": ["Rasteira", "Plataforma", "Papete", "Salto Bloco", "Tiras"], "price": [89, 259], "ncm": "6402.99.90", "material": "Palmilha acolchoada e tiras ajustáveis.", "description": "Rasteiras, papetes e sandálias de salto." },
+    { "name": "Mochilas", "slug": "mochilas", "shape": "backpack", "piece": "Mochila", "styles": ["Urbana", "Notebook", "Mini", "Roll Top", "Escolar"], "price": [129, 349], "ncm": "4202.92.00", "material": "Nylon resistente à água com alças acolchoadas.", "description": "Mochilas para o trabalho, a faculdade e a viagem." },
+    { "name": "Óculos", "slug": "oculos", "shape": "glasses", "piece": "Óculos de Sol", "styles": ["Aviador", "Redondo", "Gatinho", "Quadrado", "Esportivo"], "price": [99, 299], "ncm": "9004.10.00", "material": "Lentes com proteção UV400 e armação leve.", "description": "Óculos de sol com proteção UV." }
+  ],
+  "reviewComments": {
+    "5": ["Amei! Caimento perfeito e chegou antes do prazo.", "Qualidade excelente, já quero em outras cores.", "Ficou exatamente como nas fotos. Recomendo!", "Tecido ótimo e acabamento impecável.", "Melhor compra do ano, super confortável."],
+    "4": ["Muito bonito, só achei a forma um pouco pequena.", "Gostei bastante, a cor é um pouco mais escura que na foto.", "Boa qualidade pelo preço. Compraria de novo.", "Confortável e bem costurado, entrega demorou um pouco."],
+    "3": ["É bonito, mas esperava um tecido mais grosso.", "Razoável. Atende, mas não surpreende.", "A cor não é igual à da foto, mas dá para usar."],
+    "2": ["Veio com uma costura solta. Troquei sem problema.", "O tamanho não corresponde à tabela de medidas."],
+    "1": ["Não gostei do material, devolvi."]
+  },
+  "statusReasons": {
+    "CONFIRMED": "Pagamento confirmado.",
+    "SHIPPED": "Pedido postado na transportadora.",
+    "DELIVERED": "Entrega confirmada pela transportadora.",
+    "CANCELLED": "Pagamento não aprovado dentro do prazo.",
+    "RETURNED": "Cliente devolveu o pedido dentro do prazo de troca."
+  },
+  "changeRequestJustifications": [
+    "Cliente pediu o cancelamento por telefone antes do envio.",
+    "A transportadora confirmou a entrega, mas o rastreio não atualizou.",
+    "Produto voltou ao centro de distribuição por endereço incorreto.",
+    "Cliente informou que o pacote chegou violado; vamos trocar.",
+    "Pagamento conferido manualmente no extrato do banco."
+  ],
+  "stockNotes": {
+    "PURCHASE": "Reposição do fornecedor.",
+    "ADJUSTMENT": "Ajuste depois da contagem do inventário.",
+    "LOSS_DAMAGE": "Peça com defeito de fábrica descartada.",
+    "RETURN": "Devolução de cliente conferida e de volta ao estoque.",
+    "OTHER": "Peça separada para fotos do catálogo."
+  },
+  "coupons": [
+    { "code": "BEMVINDO10", "type": "PERCENT", "value": 10, "maxDiscountAmount": 50, "minSubtotal": null },
+    { "code": "FRETE20", "type": "FIXED", "value": 20, "maxDiscountAmount": null, "minSubtotal": 150 },
+    { "code": "VERAO15", "type": "PERCENT", "value": 15, "maxDiscountAmount": 80, "minSubtotal": 200 },
+    { "code": "BLACK30", "type": "PERCENT", "value": 30, "maxDiscountAmount": 120, "minSubtotal": 250 },
+    { "code": "VOLTA25", "type": "FIXED", "value": 25, "maxDiscountAmount": null, "minSubtotal": 120 },
+    { "code": "ANIVER20", "type": "PERCENT", "value": 20, "maxDiscountAmount": 100, "minSubtotal": null },
+    { "code": "CLIENTEVIP", "type": "PERCENT", "value": 12, "maxDiscountAmount": 60, "minSubtotal": 100 },
+    { "code": "OUTLET40", "type": "PERCENT", "value": 40, "maxDiscountAmount": 150, "minSubtotal": 300 }
+  ],
+  "promotions": ["Liquida de Inverno", "Semana do Jeans", "Esquenta Black Friday", "Dia dos Namorados", "Coleção Verão", "Outlet de Calçados", "Volta às Aulas", "Saldão de Acessórios"],
+  "banners": [
+    { "title": "Nova coleção", "subtitle": "Peças leves para a estação", "link": "/catalog?sort=NEWEST" },
+    { "title": "Até 40% off", "subtitle": "Promoções por tempo limitado", "link": "/catalog?onSale=true" },
+    { "title": "Frete grátis", "subtitle": "Em produtos selecionados", "link": "/catalog" },
+    { "title": "Tênis e sandálias", "subtitle": "Conforto para o dia todo", "link": "/catalog?category=tenis" },
+    { "title": "Bolsas da estação", "subtitle": "Para levar tudo com estilo", "link": "/catalog?category=bolsas" },
+    { "title": "Básicos que combinam", "subtitle": "Monte looks em minutos", "link": "/catalog?category=camisetas" }
+  ],
+  "distributionCenters": [
+    { "name": "Loja Pinheiros", "city": "São Paulo", "state": "SP", "zip": "05422-000", "street": "Rua dos Pinheiros", "number": "870", "district": "Pinheiros" },
+    { "name": "Loja Savassi", "city": "Belo Horizonte", "state": "MG", "zip": "30140-071", "street": "Rua Pernambuco", "number": "1020", "district": "Savassi" },
+    { "name": "Loja Batel", "city": "Curitiba", "state": "PR", "zip": "80420-090", "street": "Avenida do Batel", "number": "1550", "district": "Batel" },
+    { "name": "Loja Moinhos", "city": "Porto Alegre", "state": "RS", "zip": "90570-001", "street": "Rua Padre Chagas", "number": "300", "district": "Moinhos de Vento" },
+    { "name": "Loja Boa Viagem", "city": "Recife", "state": "PE", "zip": "51020-000", "street": "Avenida Conselheiro Aguiar", "number": "2100", "district": "Boa Viagem" }
+  ],
+  "trafficSources": [
+    { "utmSource": "google", "utmMedium": "cpc", "utmCampaign": "colecao-verao", "referrer": "https://www.google.com/" },
+    { "utmSource": "instagram", "utmMedium": "social", "utmCampaign": "lookbook", "referrer": "https://l.instagram.com/" },
+    { "utmSource": "facebook", "utmMedium": "social", "utmCampaign": "remarketing", "referrer": "https://m.facebook.com/" },
+    { "utmSource": "newsletter", "utmMedium": "email", "utmCampaign": "novidades-semana", "referrer": null },
+    { "utmSource": "tiktok", "utmMedium": "social", "utmCampaign": "provador", "referrer": "https://www.tiktok.com/" }
+  ],
+  "site": {
+    "siteTitle": "Vitrine Demo",
+    "defaultDescription": "Loja de moda de demonstração: roupas, calçados e acessórios. Os dados são fictícios e nada do que você fizer aqui é salvo.",
+    "contactDescription": "Fale com a gente pelo WhatsApp ou por e-mail, de segunda a sábado, das 9h às 18h. Esta é uma loja de demonstração: as mensagens não são respondidas.",
+    "contactPhone": "5511900000000",
+    "contactEmail": "contato@demo.com",
+    "aboutUsContent": "## Sobre a Vitrine Demo\n\nA **Vitrine Demo** é uma loja de moda fictícia, criada para demonstrar este e-commerce: catálogo com filtros e promoções, carrinho, checkout, área do cliente e um painel completo para a equipe e para a administração.\n\nTodos os produtos, clientes e pedidos foram gerados automaticamente. Fique à vontade para explorar: **nada do que você fizer aqui é salvo**.\n\n### Contas para testar\n\n- Cliente: `cliente@demo.com`\n- Funcionário: `funcionario@demo.com`\n- Administrador: `admin@demo.com`\n\nQualquer senha funciona.",
+    "privacyPolicyContent": "## Política de privacidade\n\nEsta é uma loja de demonstração. Nenhum dado pessoal é coletado ou armazenado: o cadastro, o login e os pedidos não são gravados em lugar nenhum, e todos os clientes que aparecem no painel são fictícios.\n\n### Cookies\n\nUsamos apenas os cookies necessários para manter a sessão da demonstração aberta enquanto você navega.",
+    "termsContent": "## Termos e condições\n\nA Vitrine Demo existe só para demonstrar o funcionamento de um e-commerce. Nenhuma compra é cobrada, nenhum produto é enviado e nenhuma alteração feita no painel é salva.\n\nOs preços, estoques e prazos exibidos são fictícios.",
+    "refundPolicyContent": "## Trocas e devoluções\n\nNa loja de verdade, o cliente teria **7 dias** após o recebimento para pedir a devolução e **30 dias** para trocar por outro tamanho ou cor.\n\nComo esta é uma demonstração, nenhum pedido é cobrado nem enviado, então não há nada a devolver.",
+    "pixKey": "pix@demo.com",
+    "pixKeyHolder": "Vitrine Demo Comércio de Roupas Ltda",
+    "fiscalCompanyLegalName": "Vitrine Demo Comércio de Roupas Ltda",
+    "fiscalCompanyTradeName": "Vitrine Demo",
+    "fiscalCompanyStreet": "Rua dos Pinheiros",
+    "fiscalCompanyNumber": "870",
+    "fiscalCompanyNeighborhood": "Pinheiros",
+    "fiscalCompanyCity": "São Paulo",
+    "fiscalCompanyState": "SP",
+    "fiscalCompanyZipCode": "05422-000",
+    "fiscalCompanyEmail": "fiscal@demo.com",
+    "fiscalCompanyPhone": "1130000000"
+  }
+}
