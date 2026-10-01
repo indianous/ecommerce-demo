@@ -115,6 +115,16 @@ describe('ProductForm — categorias', () => {
     expect(screen.queryByLabelText(/categoria principal/i)).not.toBeInTheDocument()
   })
 
+  it('buscar uma categoria que não existe mostra "Nenhum resultado" em português', async () => {
+    const user = userEvent.setup()
+    renderForm({ categories: twoCategories })
+
+    await user.type(screen.getByRole('combobox', { name: /categorias/i }), 'zzz')
+
+    expect(screen.getByText('Nenhum resultado')).toBeInTheDocument()
+    expect(screen.queryByText('No results')).not.toBeInTheDocument()
+  })
+
   it('sem nenhuma categoria marcada, botão Salvar fica desabilitado', () => {
     renderForm({ categories: twoCategories })
 

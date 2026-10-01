@@ -13,6 +13,7 @@ import { makeSelectionColumn } from '@/components/layout/selectionColumn'
 import { sortTableData } from '@/lib/sortTableData'
 import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
+import { FILTER_DROPDOWN_LABELS } from '@/lib/base-ds-labels'
 import type { AuditAction, AuditEntityType, AuditLogResponse } from '@/types'
 
 const ENTITY_TYPE_OPTIONS = [
@@ -126,12 +127,14 @@ export function AuditLogsContent() {
           filters={
             <>
               <FilterDropdown
+                {...FILTER_DROPDOWN_LABELS}
                 label="Tipo de entidade"
                 options={ENTITY_TYPE_OPTIONS}
                 value={entityType}
                 onApply={setEntityType}
               />
               <FilterDropdown
+                {...FILTER_DROPDOWN_LABELS}
                 label="Ação"
                 options={ACTION_OPTIONS}
                 value={action}

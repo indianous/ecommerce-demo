@@ -163,6 +163,20 @@ describe('EmployeeOrdersContent — listagem', () => {
 })
 
 describe('EmployeeOrdersContent — filtros', () => {
+  it('o painel do filtro de status mostra os botões em português', async () => {
+    const user = userEvent.setup()
+    renderContent()
+    await screen.findByRole('cell', { name: 'Bruno Souza' })
+
+    const statusFilterButton = screen.getAllByRole('button', { name: /^status/i }).find((btn) => !btn.closest('table'))!
+    await user.click(statusFilterButton)
+
+    expect(screen.getByRole('button', { name: 'Selecionar todos' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Limpar' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Aplicar' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /select all|^clear$|^apply$/i })).not.toBeInTheDocument()
+  })
+
   it('marcar 2 status e clicar "Aplicar" chama a API com os dois status no query string', async () => {
     let capturedUrl = ''
     server.use(

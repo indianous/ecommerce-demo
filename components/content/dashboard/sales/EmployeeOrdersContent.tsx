@@ -18,6 +18,7 @@ import { formatBRL } from '@/lib/format'
 import { sortTableData } from '@/lib/sortTableData'
 import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
+import { FILTER_DROPDOWN_LABELS } from '@/lib/base-ds-labels'
 import type { AdminOrderResponse, OrderOrigin, OrderStatus } from '@/types'
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -156,12 +157,14 @@ export function EmployeeOrdersContent({ orderBasePath = '/dashboard/orders' }: {
             filters={
               <>
                 <FilterDropdown
+                  {...FILTER_DROPDOWN_LABELS}
                   label="Status"
                   options={ALL_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
                   value={statusFilter}
                   onApply={setStatusFilter}
                 />
                 <FilterDropdown
+                  {...FILTER_DROPDOWN_LABELS}
                   label="Origem"
                   options={(['WEB', 'STAFF'] as const).map((o) => ({ value: o, label: ORIGIN_LABELS[o] }))}
                   value={originFilter}

@@ -2,6 +2,7 @@
 
 import { useRef } from 'react'
 import { authFetch } from '@/lib/authFetch'
+import { MULTI_SELECT_LABELS } from '@/lib/base-ds-labels'
 import { Button, Card, Checkbox, FileUpload, FormField, Icon, Image, Input, MultiSelect, NumberInput, Select, Text } from '@indianous/base-ds'
 import type { Category, MerchandiseOrigin } from '@/types'
 
@@ -142,6 +143,7 @@ export function ProductForm({
 
       <FormField label="Categorias" id="product-categories">
         <MultiSelect
+          {...MULTI_SELECT_LABELS}
           id="product-categories"
           options={categories.map((c) => ({ value: c.id, label: c.name }))}
           value={form.categoryIds}

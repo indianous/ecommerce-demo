@@ -19,6 +19,7 @@ import { makeSelectionColumn } from '@/components/layout/selectionColumn'
 import { sortTableData } from '@/lib/sortTableData'
 import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
+import { FILTER_DROPDOWN_LABELS } from '@/lib/base-ds-labels'
 import type { Category, Product } from '@/types'
 
 const formatBRL = (value: number) =>
@@ -158,12 +159,14 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
             filters={
               <>
                 <FilterDropdown
+                  {...FILTER_DROPDOWN_LABELS}
                   label="Categoria"
                   options={categories.map((c) => ({ value: c.id, label: c.name }))}
                   value={categoryIds}
                   onApply={setCategoryIds}
                 />
                 <FilterDropdown
+                  {...FILTER_DROPDOWN_LABELS}
                   label="Promoção"
                   options={[
                     { value: 'ACTIVE', label: 'Ativa' },
@@ -174,6 +177,7 @@ export function ProductsContent({ basePath = '/dashboard/products' }: { basePath
                   onApply={setPromotionFilter}
                 />
                 <FilterDropdown
+                  {...FILTER_DROPDOWN_LABELS}
                   label="Disponibilidade"
                   options={[
                     { value: 'AVAILABLE', label: 'Disponível' },

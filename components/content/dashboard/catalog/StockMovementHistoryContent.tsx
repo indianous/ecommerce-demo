@@ -16,6 +16,7 @@ import { makeSelectionColumn } from '@/components/layout/selectionColumn'
 import { sortTableData } from '@/lib/sortTableData'
 import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
+import { FILTER_DROPDOWN_LABELS } from '@/lib/base-ds-labels'
 import type { StockMovement } from '@/types'
 
 interface Props {
@@ -109,6 +110,7 @@ export function StockMovementHistoryContent({ productId, stockBasePath = '/dashb
             filters={
               <>
                 <FilterDropdown
+                  {...FILTER_DROPDOWN_LABELS}
                   label="Motivo"
                   options={REASON_OPTIONS}
                   value={reason}

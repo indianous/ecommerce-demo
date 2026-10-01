@@ -17,6 +17,7 @@ import { useConfirmDelete } from '@/lib/useConfirmDelete'
 import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
 import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions'
+import { FILTER_DROPDOWN_LABELS } from '@/lib/base-ds-labels'
 import type { BulkOperationResult, Employee, EmployeePermission } from '@/types'
 
 export function EmployeesContent() {
@@ -194,6 +195,7 @@ export function EmployeesContent() {
             onSearch={handleSearch}
             filters={
               <FilterDropdown
+                {...FILTER_DROPDOWN_LABELS}
                 label="Permissão"
                 options={ALL_PERMISSIONS.map((p) => ({ value: p, label: PERMISSION_LABELS[p] }))}
                 value={permissionFilter}

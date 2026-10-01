@@ -15,6 +15,7 @@ import { makeSelectionColumn } from '@/components/layout/selectionColumn'
 import { sortTableData } from '@/lib/sortTableData'
 import { useRowSelection } from '@/lib/useRowSelection'
 import { usePaginatedFetch, type PageResult } from '@/lib/usePaginatedFetch'
+import { FILTER_DROPDOWN_LABELS } from '@/lib/base-ds-labels'
 import type { OrderChangeRequest, OrderChangeRequestStatus, OrderStatus } from '@/types'
 
 const STATUS_LABELS: Record<OrderChangeRequestStatus, string> = {
@@ -234,6 +235,7 @@ export function SolicitacoesContent() {
             onSearch={handleSearch}
             filters={
               <FilterDropdown
+                {...FILTER_DROPDOWN_LABELS}
                 label="Status"
                 options={[
                   { value: 'PENDING', label: 'Pendente' },
